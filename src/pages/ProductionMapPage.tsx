@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ReactFlow,
@@ -43,6 +43,7 @@ import {
   Layers3,
   Link2,
   Loader2,
+  LockKeyhole,
   PackageCheck,
   Plus,
   Save,
@@ -62,7 +63,22 @@ import {
   automaticOrderTemplate,
   calculationSignature,
 } from "@/lib/order-draft";
-import { getDemoPage } from "@/lib/demo";
+import { demoProductionSnapshot, getDemoPage } from "@/lib/demo";
+import {
+  assertExistingMapBaseline,
+  existingMapErrorMessage,
+  existingMapIncomingEdgeIsLocked,
+  existingMapLockedNodeIds,
+  existingMapLockViolation,
+  existingMapRecoveryResult,
+  existingMapSaveMayHaveSucceeded,
+  existingMapSignature,
+  loadExistingMap,
+  parseExistingMapSaved,
+  readExistingMapState,
+  saveExistingMap,
+} from "@/lib/existing-map";
+import type { ExistingMapLoad } from "@/lib/existing-map";
 import { MutationScope } from "@/lib/mutation-scope";
 import type { MutationLease } from "@/lib/mutation-scope";
 import {
@@ -147,6 +163,8 @@ const ProductionNodeActionsContext = createContext<{
   removeEdge: (id: string) => void;
   nodeTitles: Record<string, string>;
   disabled: boolean;
+  lockedNodeIds: ReadonlySet<string>;
+  stageStates: Record<string, string>;
 } | null>(null);
 const previewTemplate: CalculateOrderTemplate = {
   name: "Namuna qadoq",
@@ -223,7 +241,7 @@ function ProductionConnectionEdge({
               className="size-7 rounded-full shadow-sm hover:text-destructive"
               aria-label={`Bog‘lanishni uzish: ${description}`}
               title="Bog‘lanishni uzish"
-              disabled={actions.disabled}
+              disabled={actions.disabled || actions.lockedNodeIds.has(target)}
               onPointerDown={(event) => event.stopPropagation()}
               onClick={(event) => {
                 event.stopPropagation();
@@ -241,6 +259,7 @@ function ProductionConnectionEdge({
 
 function ProductionNodeCard({ data: node, selected }: NodeProps<FlowNode>) {
   const actions = useContext(ProductionNodeActionsContext);
+  const locked = actions?.lockedNodeIds.has(node.id);
   const isOrder = node.kind === "task" && node.role_code === "zakaz";
   const isApparatus =
     node.kind === "apparatus" || (node.kind === "task" && !isOrder);
@@ -272,6 +291,7 @@ function ProductionNodeCard({ data: node, selected }: NodeProps<FlowNode>) {
         <Handle
           type="target"
           position={Position.Top}
+          isConnectable={!actions?.disabled && !locked}
           aria-label={`${node.title}: kirish`}
           className="!size-3 !border-2 !border-background !bg-foreground"
         />
@@ -296,7 +316,7 @@ function ProductionNodeCard({ data: node, selected }: NodeProps<FlowNode>) {
                 className="nodrag nopan ml-auto size-6 text-muted-foreground hover:text-destructive"
                 aria-label={`${node.title}ni xaritadan olib tashlash`}
                 title="Xaritadan olib tashlash"
-                disabled={actions.disabled}
+                disabled={actions.disabled || locked}
                 onPointerDown={(event) => event.stopPropagation()}
                 onClick={(event) => {
                   event.stopPropagation();
@@ -308,6 +328,16 @@ function ProductionNodeCard({ data: node, selected }: NodeProps<FlowNode>) {
             )}
           </div>
           <p className="line-clamp-2 text-sm font-medium">{node.title}</p>
+          {locked && (
+            <Badge variant="secondary" className="gap-1 text-[10px]">
+              <LockKeyhole className="size-3" /> Bosqich bloklangan
+            </Badge>
+          )}
+          {actions?.stageStates[node.id] && (
+            <p className="text-xs text-muted-foreground">
+              {mapStageLabel(actions.stageStates[node.id])}
+            </p>
+          )}
           {node.rezka_kadr_count && (
             <p className="text-xs text-muted-foreground">
               {node.rezka_kadr_count} kadr ·{" "}
@@ -355,6 +385,62 @@ function ProductionNodeCard({ data: node, selected }: NodeProps<FlowNode>) {
 }
 
 export function ProductionMapPage() {
+  const [params] = useSearchParams();
+  const { scope } = useSession();
+  const mapId = params.get("mapId")?.trim().toLowerCase();
+  return mapId
+    ? <ExistingProductionMapPage key={`${scope}:${mapId}`} mapId={mapId} />
+    : <NewProductionMapPage key={scope} />;
+}
+
+function ExistingProductionMapPage({ mapId }: { mapId: string }) {
+  const { client, demo, scope } = useSession();
+  const workflow = useProductionWorkflow();
+  const [version, setVersion] = useState(0);
+  const loaded = useQuery({
+    queryKey: ["existing-map-editor", scope, mapId, version],
+    queryFn: ({ signal }): Promise<ExistingMapLoad> => {
+      if (demo) {
+        const row = getDemoPage("maps", { limit: 500 }).items.find(row => text(row.id, "") === mapId);
+        if (!row) return Promise.reject(new ApiError(404, "map_not_found"));
+        const saved = parseExistingMapSaved(row, mapId);
+        const nativeNodes = isRecord(row.map) && Array.isArray(row.map.nodes) ? row.map.nodes : [];
+        saved.map.nodes = saved.map.nodes.map((node, index) => ({ ...node,
+          x: isRecord(nativeNodes[index]) && typeof nativeNodes[index].x === "number" ? node.x : 420,
+          y: isRecord(nativeNodes[index]) && typeof nativeNodes[index].y === "number" ? node.y : 32 + index * 132,
+        }));
+        return Promise.resolve({ saved, snapshot: demoProductionSnapshot });
+      }
+      if (!client) return Promise.reject(new ApiError(401, "unauthorized"));
+      return loadExistingMap(client, mapId, signal);
+    },
+    retry: false,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+  });
+  if (!loaded.data) return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{loaded.error ? "Xarita ochilmadi" : "Xarita yuklanmoqda"}</CardTitle>
+        <CardDescription>
+          {loaded.error ? existingMapErrorMessage(loaded.error) : "Saqlangan xarita, buyurtma ma’lumotlari va bosqichlar holati olinmoqda."}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex gap-2">
+        {loaded.isPending && <Loader2 role="status" aria-label="Xarita yuklanmoqda" className="animate-spin" />}
+        {loaded.error && <Button variant="outline" onClick={() => void loaded.refetch()}>Qayta urinish</Button>}
+        <Button variant="outline" asChild><Link to={`/app/orders?selected=${encodeURIComponent(mapId)}`}>Buyurtmaga qaytish</Link></Button>
+      </CardContent>
+    </Card>
+  );
+  const draft = workflow.existingMapDrafts[mapId];
+  const baseline = draft?.baseline ?? loaded.data;
+  return <ProductionMapEditor key={`${mapId}:${version}`} initialMap={baseline.saved.map} initialDraft={draft?.map}
+    initialUncertain={draft?.uncertain} initialAttempted={draft?.attemptedMap ?? undefined}
+    template={baseline.template} preview={demo} existing={baseline} initialServerState={loaded.data} onReload={() => setVersion(value => value + 1)} />;
+}
+
+function NewProductionMapPage() {
   const workflow = useProductionWorkflow();
   const { demo } = useSession();
   const fresh =
@@ -406,19 +492,31 @@ export function ProductionMapPage() {
 
 function ProductionMapEditor({
   initialMap,
+  initialDraft,
+  initialUncertain,
+  initialAttempted,
+  initialServerState,
   template,
   preview,
+  existing,
+  onReload,
 }: {
   initialMap: ProductionMapDefinition;
-  template: CalculateOrderTemplate;
+  initialDraft?: ProductionMapDefinition;
+  initialUncertain?: boolean;
+  initialAttempted?: ProductionMapDefinition;
+  initialServerState?: ExistingMapLoad;
+  template?: CalculateOrderTemplate;
   preview: boolean;
+  existing?: ExistingMapLoad;
+  onReload?: () => void;
 }) {
   const { client, demo, scope, connection } = useSession();
   const workflow = useProductionWorkflow();
   const navigate = useNavigate(),
     queryClient = useQueryClient();
   const initial = useMemo(
-    () => decorateGraph(initialMap, "order"),
+    () => decorateGraph(initialDraft ?? initialMap, "order"),
     [initialMap.id],
   );
   const [nodes, setNodes] = useState<FlowNode[]>(initial.nodes);
@@ -434,9 +532,22 @@ function ProductionMapEditor({
   const [confirm, setConfirm] = useState(false);
   const [recoveryOpen, setRecoveryOpen] = useState(false);
   const [checkedOrders, setCheckedOrders] = useState(false);
-  const { uncertain, setUncertain } = workflow;
+  const [existingUncertain, setExistingUncertain] = useState(initialUncertain ?? false);
+  const [retryReady, setRetryReady] = useState(false);
+  const uncertain = existing ? existingUncertain : workflow.uncertain;
+  const setUncertain = (value: boolean) => {
+    if (existing) {
+      setExistingUncertain(value);
+      rememberDraft(currentMap(), value);
+    } else workflow.setUncertain(value);
+  };
+  const [leaveAction, setLeaveAction] = useState<string | "reload" | null>(null);
+  const [checkingSave, setCheckingSave] = useState(false);
+  const [recoveryMessage, setRecoveryMessage] = useState("");
+  const attemptedMap = useRef<ProductionMapDefinition | null>(initialAttempted ?? null);
+  const saveInFlight = useRef(false);
   const imageMissing = Boolean(
-    workflow.localImage && !workflow.draft.image?.image_id,
+    !existing && workflow.localImage && !workflow.draft.image?.image_id,
   );
   const [source, setSource] = useState(""),
     [target, setTarget] = useState("");
@@ -463,10 +574,30 @@ function ProductionMapEditor({
   const currentMap = () =>
     fromEditorGraph(initialMap, nodesRef.current, edgesRef.current);
   const graph = currentMap();
-  const issues = validateProductionMap(graph, { apparatus, template });
+  const issues = validateProductionMap(graph, { apparatus, template }).filter(issue => !(demo && existing && ["missing_start", "missing_end"].includes(issue.code)));
   const errors = issues.filter((issue) => issue.severity === "error");
   const selected = graph.nodes.find((node) => node.id === selectedNodeId);
   const selectedEdge = edges.find((edge) => edge.id === selectedEdgeId);
+  const productName = template?.product || initialMap.title;
+  const latest = useQuery({
+    queryKey: ["existing-map-editor-status", scope, initialMap.id],
+    queryFn: ({ signal }) => readExistingMapState(client!, initialMap.id, signal),
+    enabled: Boolean(existing && client && !demo),
+    initialData: initialServerState ?? existing,
+    staleTime: 0,
+    refetchInterval: 15_000,
+    retry: false,
+  });
+  const status = latest.data?.snapshot ?? existing?.snapshot;
+  const lockedNodeIds = status ? existingMapLockedNodeIds(initialMap, status) : new Set<string>();
+  const stageStates = status?.stage_states[initialMap.id] || {};
+  const dirty = Boolean(existing && existingMapSignature(graph) !== existingMapSignature(initialMap));
+  let conflict = "";
+  if (existing && latest.data) {
+    try { assertExistingMapBaseline(existing, latest.data); }
+    catch (error) { conflict = error instanceof Error ? error.message : "Xarita holati o‘zgardi."; }
+  }
+  const lockChanged = Boolean(existing && existingMapLockViolation(initialMap, graph, lockedNodeIds));
 
   useEffect(() => {
     const observer = new MutationObserver(() =>
@@ -482,15 +613,15 @@ function ProductionMapEditor({
   const recovery = useQuery({
     queryKey: ["map-save-recovery", scope],
     queryFn: ({ signal }) => client!.listSnapshot("orders", {}, signal),
-    enabled: recoveryOpen && uncertain && Boolean(client) && !demo,
+    enabled: !existing && recoveryOpen && uncertain && Boolean(client) && !demo,
     staleTime: 0,
     retry: false,
   });
   useEffect(() => setCheckedOrders(false), [recovery.dataUpdatedAt]);
   const relatedOrders = (recovery.data?.items ?? []).filter((order) =>
-    template.item_code
+    template?.item_code
       ? order.product_code === template.item_code
-      : order.title === template.product,
+      : order.title === productName,
   );
   const save = useMutation({
     mutationFn: async ({
@@ -515,6 +646,20 @@ function ProductionMapEditor({
       await request.client.me(request.lease.controller.signal);
       if (!mutations.isCurrent(request.lease) || scopeRef.current !== request.scope)
         throw new DOMException("So‘rov bekor qilindi.", "AbortError");
+      if (existing) {
+        const saved = await saveExistingMap(request.client, existing, map, {
+          signal: request.lease.controller.signal,
+          isCurrent: () => mutations.isCurrent(request.lease) && scopeRef.current === request.scope,
+          onSent: (native) => {
+            request.sent = true;
+            attemptedMap.current = native;
+            setRetryReady(false);
+            setUncertain(true);
+          },
+        });
+        return { saved };
+      }
+      if (!template) throw new Error("Buyurtmaning hisob-kitobi topilmadi.");
       request.sent = true;
       setUncertain(true);
       return request.client.saveProductionMapWithOrder(
@@ -532,10 +677,12 @@ function ProductionMapEditor({
       const saved = isRecord(data.saved) ? data.saved : {};
       const map = isRecord(saved.map) ? saved.map : {};
       toast.success(
-        `Production map va buyurtma №${text(map.order_number)} saqlandi.`,
+        existing ? `Buyurtma №${text(map.order_number)} xaritasi saqlandi.` : `Production map va buyurtma №${text(map.order_number)} saqlandi.`,
       );
+      setUncertain(false);
       void queryClient.invalidateQueries();
-      workflow.reset();
+      if (existing) forgetDraft();
+      else workflow.reset();
       navigate(`/app/orders?selected=${encodeURIComponent(text(map.id, ""))}`);
     },
     onError: (error, { request }) => {
@@ -546,17 +693,111 @@ function ProductionMapEditor({
         return;
       setConfirm(false);
       setUncertain(
-        request.sent && error instanceof ApiError &&
-          (error.status === 0 || error.status >= 500 || error.code === "invalid_response"),
+        Boolean(existing && uncertain) || (request.sent && existingMapSaveMayHaveSucceeded(error)),
       );
+      if (existing && error instanceof ApiError && error.status === 409) void latest.refetch();
     },
-    onSettled: (_data, _error, { request }) => mutations.finish(request.lease),
+    onSettled: (_data, _error, { request }) => {
+      saveInFlight.current = false;
+      mutations.finish(request.lease);
+    },
   });
+  const requestBlocked = save.isPending || checkingSave
+    || Boolean(existing && ((save.error instanceof ApiError && save.error.status === 403) || (latest.error instanceof ApiError && latest.error.status === 403)));
+  const editingDisabled = requestBlocked || Boolean(existing && uncertain);
+
+  useEffect(() => {
+    if (!existing || (!dirty && !uncertain && !save.isPending)) return;
+    const beforeUnload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
+    const click = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const anchor = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>("a[href]") : null;
+      if (!anchor || anchor.hasAttribute("download") || (anchor.target && anchor.target !== "_self")) return;
+      const url = new URL(anchor.href, location.href);
+      if (url.origin !== location.origin || url.pathname + url.search === location.pathname + location.search) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (!saveInFlight.current && !checkingSave) setLeaveAction(url.pathname + url.search + url.hash);
+    };
+    window.addEventListener("beforeunload", beforeUnload);
+    document.addEventListener("click", click, true);
+    return () => {
+      window.removeEventListener("beforeunload", beforeUnload);
+      document.removeEventListener("click", click, true);
+    };
+  }, [existing, dirty, uncertain, save.isPending, checkingSave]);
+
+  function submitSave() {
+    if (saveInFlight.current || requestBlocked || (uncertain && !retryReady)) return;
+    saveInFlight.current = true;
+    save.mutate({ map: existing && retryReady && attemptedMap.current ? attemptedMap.current : currentMap(), request: { client, scope, lease: mutations.begin(), sent: false } });
+  }
+
+  async function checkExistingSave() {
+    if (!existing || !client || !attemptedMap.current || checkingSave || saveInFlight.current) return;
+    const lease = mutations.begin();
+    const requestScope = scope;
+    setCheckingSave(true);
+    setRecoveryMessage("");
+    try {
+      const state = await readExistingMapState(client, initialMap.id, lease.controller.signal);
+      if (!mutations.isCurrent(lease) || scopeRef.current !== requestScope) return;
+      queryClient.setQueryData(["existing-map-editor-status", scope, initialMap.id], state);
+      const result = existingMapRecoveryResult(existing, attemptedMap.current, state);
+      if (result === "saved") {
+        setUncertain(false);
+        forgetDraft();
+        toast.success("Saqlangan xarita serverdan tasdiqlandi.");
+        void queryClient.invalidateQueries();
+        navigate(`/app/orders?selected=${encodeURIComponent(initialMap.id)}`);
+      } else if (result === "unchanged") {
+        setRetryReady(true);
+        save.reset();
+        setRecoveryMessage("Serverda avvalgi xarita saqlangan. Shu tahrirni qayta saqlashni tasdiqlashingiz mumkin. Natija tasdiqlanguncha tahrirlash yopiq.");
+      } else {
+        setRecoveryMessage("Serverdagi xarita o‘zgargan. Qayta saqlash bloklandi. Yangi holatni yuklash uchun mahalliy tahrirlarni bekor qiling.");
+      }
+    } catch (error) {
+      if (mutations.isCurrent(lease) && scopeRef.current === requestScope) setRecoveryMessage(error instanceof Error ? existingMapErrorMessage(error) : "Saqlash holati tekshirilmadi.");
+    } finally {
+      if (mutations.isCurrent(lease) && scopeRef.current === requestScope) setCheckingSave(false);
+      mutations.finish(lease);
+    }
+  }
+
+  function requestReload() {
+    if (saveInFlight.current || checkingSave) return;
+    if (dirty || uncertain) setLeaveAction("reload");
+    else { forgetDraft(); onReload?.(); }
+  }
+
+  function rememberDraft(map: ProductionMapDefinition, value = existingUncertain) {
+    if (!existing) return;
+    workflow.setExistingMapDrafts(drafts => ({ ...drafts, [initialMap.id]: {
+      baseline: existing, map: structuredClone(map), uncertain: value,
+      attemptedMap: attemptedMap.current ? structuredClone(attemptedMap.current) : null,
+    } }));
+  }
+
+  function forgetDraft() {
+    if (!existing) return;
+    workflow.setExistingMapDrafts(drafts => {
+      const next = { ...drafts };
+      delete next[initialMap.id];
+      return next;
+    });
+  }
 
   function persist(map: ProductionMapDefinition) {
-    workflow.setMap(map);
+    if (existing) rememberDraft(map);
+    else workflow.setMap(map);
   }
   function replaceGraph(map: ProductionMapDefinition, remember = true) {
+    if (editingDisabled) return;
+    if (existing && existingMapLockViolation(initialMap, map, lockedNodeIds)) {
+      toast.error("Ish boshlangan bosqich va unga kiruvchi yo‘l bloklangan.");
+      return;
+    }
     if (remember) {
       setHistory((old) => [...old.slice(-29), currentMap()]);
       setFuture([]);
@@ -569,13 +810,15 @@ function ProductionMapEditor({
     persist(map);
   }
   function onNodesChange(changes: NodeChange<FlowNode>[]) {
+    if (editingDisabled) return;
     const safe = changes.filter(
       (change) =>
-        change.type !== "remove" ||
+        ((change.type !== "remove" && change.type !== "position") || !lockedNodeIds.has(change.id)) && (change.type !== "remove" ||
+        !edgesRef.current.some(edge => edge.source === change.id && lockedNodeIds.has(edge.target))) && (change.type !== "remove" ||
         !nodesRef.current.some(
           (node) =>
             node.id === change.id && ["start", "end"].includes(node.data.kind),
-        ),
+        )),
     );
     const next = applyNodeChanges(safe, nodesRef.current);
     nodesRef.current = next;
@@ -590,14 +833,16 @@ function ProductionMapEditor({
     }
   }
   function onEdgesChange(changes: EdgeChange<FlowEdge>[]) {
-    const next = applyEdgeChanges(changes, edgesRef.current);
+    if (editingDisabled) return;
+    const safe = changes.filter(change => change.type !== "remove" || !edgesRef.current.some(edge => edge.id === change.id && lockedNodeIds.has(edge.target)));
+    const next = applyEdgeChanges(safe, edgesRef.current);
     edgesRef.current = next;
     setEdges(next);
-    if (changes.some((change) => change.type === "remove"))
+    if (safe.some((change) => change.type === "remove"))
       persist(currentMap());
   }
   function connect(connection: Connection) {
-    if (!connection.source || !connection.target || save.isPending) return;
+    if (!connection.source || !connection.target || editingDisabled || lockedNodeIds.has(connection.target)) return;
     try {
       replaceGraph(
         connectMapNodes(
@@ -614,6 +859,7 @@ function ProductionMapEditor({
     }
   }
   function applyNode(id: string, patch: Partial<ProductionMapNode>) {
+    if (editingDisabled || lockedNodeIds.has(id)) return;
     let next = updateMapNode(currentMap(), id, patch);
     const node = next.nodes.find((node) => node.id === id);
     if (node?.alternative_group_id && patch.rezka_frame_groups) {
@@ -633,7 +879,7 @@ function ProductionMapEditor({
   function removeNode(id: string) {
     const map = currentMap();
     const node = map.nodes.find((node) => node.id === id);
-    if (save.isPending || !node || ["start", "end"].includes(node.kind)) return;
+    if (editingDisabled || lockedNodeIds.has(id) || !node || ["start", "end"].includes(node.kind)) return;
     replaceGraph(removeMapNode(map, id));
     if (selectedNodeId === id) setSelectedNodeId("");
     setSelectedEdgeId(null);
@@ -641,20 +887,20 @@ function ProductionMapEditor({
     if (target === id) setTarget("");
   }
   function removeEdge(id: string) {
-    if (save.isPending) return;
+    if (editingDisabled) return;
     const map = currentMap();
     const edge = map.edges.find((edge) => mapEdgeId(edge) === id);
-    if (!edge) return;
+    if (!edge || existingMapIncomingEdgeIsLocked(edge, lockedNodeIds)) return;
     replaceGraph(removeMapEdge(map, edge));
     if (selectedEdgeId === id) setSelectedEdgeId(null);
   }
   function pickApparatus(items: ApparatusOption[], alternative: boolean) {
-    if (!picker || !items.length) return;
+    if (!picker || !items.length || editingDisabled || (picker.editId && lockedNodeIds.has(picker.editId))) return;
     try {
       const kind = picker.operation === "task" ? "task" : "apparatus";
       const cut = kind === "apparatus" && items[0].operation === "cut";
       const count =
-        Number.isSafeInteger(template.frame_count) && template.frame_count > 0
+        template && Number.isSafeInteger(template.frame_count) && template.frame_count > 0
           ? template.frame_count
           : 0;
       const rezka =
@@ -703,25 +949,32 @@ function ProductionMapEditor({
     }
   }
   function addTask() {
+    if (editingDisabled) return;
     const node = createMapNode(currentMap(), "task");
     replaceGraph(addMapNode(currentMap(), node));
     setSelectedNodeId(node.id);
     setPicker({ operation: "task", editId: node.id });
   }
   function goBack() {
+    if (existing) {
+      const target = `/app/orders?selected=${encodeURIComponent(initialMap.id)}`;
+      if (dirty || uncertain) setLeaveAction(target);
+      else { forgetDraft(); navigate(target); }
+      return;
+    }
     persist(currentMap());
     navigate("/app/calculate");
   }
   function undo() {
     const previous = history.at(-1);
-    if (!previous) return;
+    if (!previous || editingDisabled || (existing && existingMapLockViolation(initialMap, previous, lockedNodeIds))) return;
     setFuture((old) => [currentMap(), ...old]);
     setHistory((old) => old.slice(0, -1));
     replaceGraph(previous, false);
   }
   function redo() {
     const next = future[0];
-    if (!next) return;
+    if (!next || editingDisabled || (existing && existingMapLockViolation(initialMap, next, lockedNodeIds))) return;
     setHistory((old) => [...old, currentMap()]);
     setFuture((old) => old.slice(1));
     replaceGraph(next, false);
@@ -754,7 +1007,9 @@ function ProductionMapEditor({
         nodeTitles: Object.fromEntries(
           graph.nodes.map((node) => [node.id, node.title]),
         ),
-        disabled: save.isPending,
+        disabled: editingDisabled,
+        lockedNodeIds,
+        stageStates,
       }}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -764,31 +1019,34 @@ function ProductionMapEditor({
               Production map
             </h1>
             <Badge variant="outline">
-              {demo ? "Ko‘rish rejimi" : "Yangi buyurtma"}
+              {demo ? "Ko‘rish rejimi" : existing ? `Buyurtma №${initialMap.order_number || initialMap.code || initialMap.id}` : "Yangi buyurtma"}
             </Badge>
+            {existing && <Badge variant={dirty ? "secondary" : "outline"}>{dirty ? "Saqlanmagan tahrir" : "Saqlangan"}</Badge>}
           </div>
           <p className="text-sm text-muted-foreground">
-            {template.product} · {template.customer || "Mijoz tanlanmagan"}
+            {productName} · {template?.customer || initialMap.customer_name || "Mijoz tanlanmagan"}
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" disabled={save.isPending} onClick={goBack}>
+          <Button variant="outline" disabled={save.isPending || checkingSave} onClick={goBack}>
             <ArrowLeft />
-            Hisobga qaytish
+            {existing ? "Bekor qilish" : "Hisobga qaytish"}
           </Button>
+          {existing && <Button variant="outline" disabled={save.isPending || checkingSave} onClick={requestReload}>Holatni yangilash</Button>}
           <Button
             disabled={
               demo ||
               save.isPending ||
               errors.length > 0 ||
               connection === "offline" ||
-              uncertain ||
-              imageMissing
+              (uncertain && !retryReady) ||
+              imageMissing ||
+              Boolean(existing && (!dirty || conflict || lockChanged || latest.error || requestBlocked))
             }
             onClick={() => setConfirm(true)}
           >
             {save.isPending ? <Loader2 className="animate-spin" /> : <Save />}
-            Saqlash va buyurtma ochish
+            {existing ? retryReady ? "Shu tahrirni qayta saqlash" : "O‘zgarishlarni saqlash" : "Saqlash va buyurtma ochish"}
           </Button>
         </div>
       </div>
@@ -800,10 +1058,27 @@ function ProductionMapEditor({
           </AlertDescription>
         </Alert>
       )}
+      {existing?.templateNotice && <Alert><AlertDescription>{existing.templateNotice}</AlertDescription></Alert>}
+      {existing && (conflict || lockChanged || latest.error) && (
+        <Alert variant="destructive">
+          <AlertTitle>{conflict ? "Xarita o‘zgargan" : lockChanged ? "Bosqich ishga tushgan" : "Holat tekshirilmadi"}</AlertTitle>
+          <AlertDescription>
+            {conflict || (lockChanged ? "Tahrirlangan bosqich ishga tushgan. Bu o‘zgarishlarni saqlab bo‘lmaydi; serverdagi xaritani qayta yuklang." : existingMapErrorMessage(latest.error!))}
+            <Button variant="outline" size="sm" disabled={save.isPending || checkingSave} onClick={requestReload}>Yangi holatni yuklash</Button>
+          </AlertDescription>
+        </Alert>
+      )}
+      {existing && !!lockedNodeIds.size && !lockChanged && (
+        <Alert>
+          <LockKeyhole />
+          <AlertDescription>Ish boshlangan {lockedNodeIds.size} ta tugun va ularga kiruvchi yo‘llar bloklangan. Kelgusi bosqichlarni tahrirlash mumkin.</AlertDescription>
+        </Alert>
+      )}
+      {existing && recoveryMessage && <Alert><AlertDescription>{recoveryMessage}</AlertDescription></Alert>}
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
         <span>
           <span className="text-muted-foreground">KG: </span>
-          {numberLabel(template.kg)}
+          {numberLabel(template?.kg ?? graph.order_kg)}
         </span>
         <span>
           <span className="text-muted-foreground">Eni: </span>
@@ -811,13 +1086,11 @@ function ProductionMapEditor({
         </span>
         <span>
           <span className="text-muted-foreground">Kadr: </span>
-          {numberLabel(template.frame_count)}
+          {numberLabel(template?.frame_count)}
         </span>
         <span>
           <span className="text-muted-foreground">Ishlab chiqarish: </span>
-          {template.production_options?.print_method === "flexo"
-            ? "Flexo"
-            : "Temir"}
+          {template?.production_options?.print_method === "flexo" ? "Flexo" : template?.production_options?.print_method === "metal" ? "Temir" : "Saqlangan yo‘nalish"}
         </span>
         <span className="ml-auto text-xs text-muted-foreground">
           {nodes.length} tugun · {edges.length} bog‘lanish
@@ -848,7 +1121,18 @@ function ProductionMapEditor({
           </AlertDescription>
         </Alert>
       )}
-      {uncertain && !save.isPending && (
+      {existing && uncertain && !save.isPending && (
+        <Alert variant="destructive">
+          <AlertTitle>Saqlash natijasi tekshirilishi kerak</AlertTitle>
+          <AlertDescription>
+            Javob olinmadi. Tahrirlar shu oynada turibdi; serverdagi aynan shu buyurtma xaritasini tekshiring.
+            <Button variant="outline" size="sm" disabled={checkingSave || connection === "offline"} onClick={() => void checkExistingSave()}>
+              {checkingSave && <Loader2 className="animate-spin" />} Saqlash holatini tekshirish
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+      {!existing && uncertain && !save.isPending && (
         <Alert variant="destructive">
           <AlertDescription>
             {save.error && <span className="block">{save.error.message}</span>}
@@ -872,9 +1156,9 @@ function ProductionMapEditor({
       )}
       {save.error && !uncertain && (
         <Alert variant="destructive">
-          <AlertTitle>Buyurtma saqlanmadi</AlertTitle>
+          <AlertTitle>{existing ? "Xarita saqlanmadi" : "Buyurtma saqlanmadi"}</AlertTitle>
           <AlertDescription>
-            {save.error.message} Xarita va buyurtma ma’lumotlari saqlanib turibdi. Ulanish tiklangach qayta saqlashingiz mumkin.
+            {existing ? existingMapErrorMessage(save.error) : save.error.message} Tahrirlar shu oynada saqlanib turibdi.
           </AlertDescription>
         </Alert>
       )}
@@ -886,7 +1170,7 @@ function ProductionMapEditor({
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={save.isPending || catalog.isPending}
+                  disabled={editingDisabled || catalog.isPending}
                 >
                   <Plus />
                   Bosqich qo‘shish
@@ -914,7 +1198,7 @@ function ProductionMapEditor({
               <Button
                 size="sm"
                 variant="ghost"
-                disabled={!history.length || save.isPending}
+                disabled={!history.length || editingDisabled}
                 onClick={undo}
               >
                 Bekor qilish
@@ -922,7 +1206,7 @@ function ProductionMapEditor({
               <Button
                 size="sm"
                 variant="ghost"
-                disabled={!future.length || save.isPending}
+                disabled={!future.length || editingDisabled}
                 onClick={redo}
               >
                 Qaytarish
@@ -941,8 +1225,8 @@ function ProductionMapEditor({
           </div>
           <div className="h-[calc(100svh-18rem)] min-h-[440px] w-full">
             <ReactFlow<FlowNode, FlowEdge>
-              nodes={nodes}
-              edges={edges}
+              nodes={nodes.map(node => ({ ...node, draggable: !lockedNodeIds.has(node.id), deletable: node.deletable && !lockedNodeIds.has(node.id) }))}
+              edges={edges.map(edge => ({ ...edge, deletable: !lockedNodeIds.has(edge.target) }))}
               nodeTypes={nodeTypes}
               edgeTypes={edgeTypes}
               onNodesChange={onNodesChange}
@@ -964,10 +1248,10 @@ function ProductionMapEditor({
                 setFuture([]);
               }}
               onNodeDragStop={() => persist(currentMap())}
-              nodesDraggable={!save.isPending}
-              nodesConnectable={!save.isPending}
-              elementsSelectable={!save.isPending}
-              deleteKeyCode={save.isPending ? null : ["Backspace", "Delete"]}
+              nodesDraggable={!editingDisabled}
+              nodesConnectable={!editingDisabled}
+              elementsSelectable={!editingDisabled}
+              deleteKeyCode={editingDisabled ? null : ["Backspace", "Delete"]}
               minZoom={0.2}
               maxZoom={2}
               fitView
@@ -1004,6 +1288,7 @@ function ProductionMapEditor({
             <CardContent className="space-y-4">
               {selected ? (
                 <>
+                  {lockedNodeIds.has(selected.id) && <Alert><LockKeyhole /><AlertDescription>Bu bosqich ishga tushgan. Uning parametrlari va kiruvchi yo‘li tahrirlanmaydi.</AlertDescription></Alert>}
                   <NodeInspector
                     key={selected.id}
                     node={selected}
@@ -1016,7 +1301,7 @@ function ProductionMapEditor({
                         editId: selected.id,
                       })
                     }
-                    disabled={save.isPending}
+                    disabled={editingDisabled || lockedNodeIds.has(selected.id)}
                   />
                   {!["start", "end"].includes(selected.kind) && (
                     <>
@@ -1024,7 +1309,7 @@ function ProductionMapEditor({
                       <Button
                         variant="outline"
                         className="w-full"
-                        disabled={save.isPending}
+                        disabled={editingDisabled || lockedNodeIds.has(selected.id)}
                         onClick={() => removeNode(selected.id)}
                       >
                         <Trash2 />
@@ -1051,7 +1336,7 @@ function ProductionMapEditor({
                   <Button
                     variant="outline"
                     className="w-full"
-                    disabled={save.isPending}
+                    disabled={editingDisabled || lockedNodeIds.has(selectedEdge.target)}
                     onClick={() => removeEdge(selectedEdge.id)}
                   >
                     <Trash2 />
@@ -1073,7 +1358,7 @@ function ProductionMapEditor({
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Select value={source} onValueChange={setSource}>
+              <Select value={source} onValueChange={setSource} disabled={editingDisabled}>
                 <SelectTrigger
                   className="w-full"
                   aria-label="Boshlang‘ich tugun"
@@ -1090,7 +1375,7 @@ function ProductionMapEditor({
                     ))}
                 </SelectContent>
               </Select>
-              <Select value={target} onValueChange={setTarget}>
+              <Select value={target} onValueChange={setTarget} disabled={editingDisabled}>
                 <SelectTrigger className="w-full" aria-label="Maqsad tugun">
                   <SelectValue placeholder="Qayerga" />
                 </SelectTrigger>
@@ -1098,7 +1383,7 @@ function ProductionMapEditor({
                   {graph.nodes
                     .filter((node) => node.kind !== "start")
                     .map((node) => (
-                      <SelectItem key={node.id} value={node.id}>
+                      <SelectItem key={node.id} value={node.id} disabled={lockedNodeIds.has(node.id)}>
                         {node.title}
                       </SelectItem>
                     ))}
@@ -1107,7 +1392,7 @@ function ProductionMapEditor({
               <Button
                 className="w-full"
                 variant="outline"
-                disabled={!source || !target || save.isPending}
+                disabled={!source || !target || editingDisabled || lockedNodeIds.has(target)}
                 onClick={() =>
                   connect({
                     source,
@@ -1210,12 +1495,12 @@ function ProductionMapEditor({
           )}
         </DialogContent>
       </Dialog>
-      <Dialog open={recoveryOpen} onOpenChange={setRecoveryOpen}>
+      {!existing && <Dialog open={recoveryOpen} onOpenChange={setRecoveryOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Buyurtmani qayta saqlash</DialogTitle>
             <DialogDescription>
-              {template.product} bo‘yicha ro‘yxat serverdan yangilanadi. Oldingi so‘rov buyurtmani saqlagan bo‘lsa, o‘sha buyurtmani oching. Qayta saqlash yangi buyurtma yaratadi.
+              {productName} bo‘yicha ro‘yxat serverdan yangilanadi. Oldingi so‘rov buyurtmani saqlagan bo‘lsa, o‘sha buyurtmani oching. Qayta saqlash yangi buyurtma yaratadi.
             </DialogDescription>
           </DialogHeader>
           {recovery.isFetching ? (
@@ -1265,7 +1550,27 @@ function ProductionMapEditor({
             }}>Shu xaritani qayta saqlash</Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog>}
+      {existing && <Dialog open={leaveAction !== null} onOpenChange={open => { if (!open) setLeaveAction(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{uncertain ? "Saqlash natijasi tasdiqlanmagan" : "Saqlanmagan tahrirlarni bekor qilish"}</DialogTitle>
+            <DialogDescription>
+              {uncertain ? "Serverdagi natija hali tekshirilmagan. Chiqsangiz, shu oynadagi tahrirlar yo‘qoladi. Saqlash holatini tekshirib davom etishingiz mumkin." : "Shu oynadagi o‘zgarishlar saqlanmagan. Davom etsangiz, mahalliy tahrirlar bekor qilinadi."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLeaveAction(null)}>Tahrirlashda qolish</Button>
+            <Button variant="destructive" onClick={() => {
+              const target = leaveAction;
+              setLeaveAction(null);
+              forgetDraft();
+              if (target === "reload") onReload?.();
+              else if (target) navigate(target);
+            }}>Tahrirlarni bekor qilish</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>}
       <Dialog
         open={confirm}
         onOpenChange={(open) => {
@@ -1274,15 +1579,14 @@ function ProductionMapEditor({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Xarita va buyurtmani saqlash</DialogTitle>
+            <DialogTitle>{existing ? "Xarita o‘zgarishlarini saqlash" : "Xarita va buyurtmani saqlash"}</DialogTitle>
             <DialogDescription>
-              {template.product} · {numberLabel(template.kg)} kg. Xarita bilan
-              buyurtma birga saqlanadi. Buyurtma raqamini ERP serveri beradi.
+              {existing ? `${productName}. Buyurtma №${initialMap.order_number || initialMap.code || initialMap.id} xaritasi yangilanadi. Saqlangan buyurtma o‘lchamlari saqlanadi.` : `${productName} · ${numberLabel(template?.kg)} kg. Xarita bilan buyurtma birga saqlanadi. Buyurtma raqamini ERP serveri beradi.`}
             </DialogDescription>
           </DialogHeader>
           {save.error && (
             <Alert variant="destructive">
-              <AlertDescription>{save.error.message}</AlertDescription>
+              <AlertDescription>{existing ? existingMapErrorMessage(save.error) : save.error.message}</AlertDescription>
             </Alert>
           )}
           <DialogFooter>
@@ -1297,17 +1601,12 @@ function ProductionMapEditor({
               disabled={
                 save.isPending ||
                 demo ||
-                uncertain ||
+                (uncertain && !retryReady) ||
                 imageMissing ||
                 errors.length > 0
-                || connection === "offline"
+                || connection === "offline" || Boolean(existing && (!dirty || conflict || lockChanged || latest.error || requestBlocked))
               }
-              onClick={() => {
-                save.mutate({
-                  map: currentMap(),
-                  request: { client, scope, lease: mutations.begin(), sent: false },
-                });
-              }}
+              onClick={submitSave}
             >
               {save.isPending ? (
                 <Loader2 className="animate-spin" />
@@ -1321,6 +1620,11 @@ function ProductionMapEditor({
       </Dialog>
     </ProductionNodeActionsContext.Provider>
   );
+}
+
+function mapStageLabel(state: string): string {
+  const labels: Record<string, string> = { pending: "Kutilmoqda", print_preflight: "Bosma tekshiruvi", in_progress: "Ish jarayonida", paused: "To‘xtatilgan", frozen: "Muzlatilgan", completed: "Yakunlangan" };
+  return labels[state.trim().toLowerCase()] || "Holat tekshirilmoqda";
 }
 
 function decorateGraph(
@@ -1358,7 +1662,7 @@ function NodeInspector({
 }: {
   node: ProductionMapNode;
   catalog: Row[];
-  template: CalculateOrderTemplate;
+  template?: CalculateOrderTemplate;
   onChange: (patch: Partial<ProductionMapNode>) => void;
   onPick: () => void;
   disabled: boolean;
@@ -1370,10 +1674,9 @@ function NodeInspector({
     node.kind === "apparatus" ||
     (node.kind === "task" && node.role_code !== "zakaz");
   const cut = node.kind === "apparatus" && apparatus?.operation === "cut";
-  const count =
-    Number.isSafeInteger(template.frame_count) && template.frame_count > 0
-      ? template.frame_count
-      : 0;
+  const count = Number.isSafeInteger(node.rezka_kadr_count) && (node.rezka_kadr_count || 0) > 0
+    ? node.rezka_kadr_count!
+    : template && Number.isSafeInteger(template.frame_count) && template.frame_count > 0 ? template.frame_count : 0;
   const frameGroups = node.rezka_frame_groups || [];
   let cursor = 1;
   return (
@@ -1525,7 +1828,7 @@ function NodeInspector({
       )}
       {node.kind === "end" && (
         <p className="text-xs text-muted-foreground">
-          Mahsulot: {node.item_code || template.item_code}
+          Mahsulot: {node.item_code || template?.item_code}
         </p>
       )}
     </>

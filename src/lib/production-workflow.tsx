@@ -10,11 +10,20 @@ import type { Dispatch, PropsWithChildren, SetStateAction } from "react";
 import type { Row } from "./api-types";
 import { newOrderDraft } from "./order-draft";
 import type { OrderDraft } from "./order-draft";
+import type { ExistingMapLoad } from "./existing-map";
+import type { ProductionMapDefinition } from "./production-map";
 import { useSession } from "./session";
 
 export interface ProductionCalculation {
   result: Row;
   signature: string;
+}
+
+export interface ExistingMapDraft {
+  baseline: ExistingMapLoad;
+  map: ProductionMapDefinition;
+  uncertain: boolean;
+  attemptedMap: ProductionMapDefinition | null;
 }
 
 export interface ProductionWorkflowValue {
@@ -32,6 +41,8 @@ export interface ProductionWorkflowValue {
   setLocalImage: Dispatch<SetStateAction<string>>;
   uncertain: boolean;
   setUncertain: Dispatch<SetStateAction<boolean>>;
+  existingMapDrafts: Record<string, ExistingMapDraft>;
+  setExistingMapDrafts: Dispatch<SetStateAction<Record<string, ExistingMapDraft>>>;
   reset: () => void;
 }
 
@@ -59,6 +70,7 @@ function ScopedProductionWorkflow({ children }: PropsWithChildren) {
   const [mapSignature, setMapSignature] = useState("");
   const [localImage, setLocalImage] = useState("");
   const [uncertain, setUncertain] = useState(false);
+  const [existingMapDrafts, setExistingMapDrafts] = useState<Record<string, ExistingMapDraft>>({});
 
   useEffect(
     () => () => {
@@ -97,6 +109,8 @@ function ScopedProductionWorkflow({ children }: PropsWithChildren) {
       setLocalImage,
       uncertain,
       setUncertain,
+      existingMapDrafts,
+      setExistingMapDrafts,
       reset,
     }),
     [
@@ -107,6 +121,7 @@ function ScopedProductionWorkflow({ children }: PropsWithChildren) {
       mapSignature,
       localImage,
       uncertain,
+      existingMapDrafts,
       reset,
     ],
   );
