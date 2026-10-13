@@ -5,7 +5,7 @@ import { catalogMutation, catalogPermission, cleanCatalogResult, groupParentChoi
 const client = new ApiClient({ endpoint: 'http://127.0.0.1:5199', token: 'local-test' })
 afterEach(() => vi.unstubAllGlobals())
 function response(value: unknown) {
-  const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(value), { status: 200 }))
+  const fetch = vi.fn().mockImplementation(() => Promise.resolve(new Response(JSON.stringify(value), { status: 200 })))
   vi.stubGlobal('fetch', fetch)
   return fetch
 }
@@ -19,16 +19,17 @@ describe('catalog native contracts', () => {
     expect(JSON.parse(options.body)).toEqual({ original_code: 'OLD', code: 'NEW', name: 'New name' })
   })
   it('never removes warehouse products implicitly', async () => {
-    const fetch = response({ warehouse: 'Test', deleted_product_count: 0 })
+    const fetch = response({ warehouse: 'Test', deleted_product_count: 0, deleted_assignment_count: 0 })
     await catalogMutation(client, 'warehouses', { warehouse: 'Test' }, 'remove', { delete_products: true })
     expect(fetch.mock.calls[0]![1].method).toBe('DELETE')
     expect(JSON.parse(fetch.mock.calls[0]![1].body)).toEqual({ warehouse: 'Test', delete_products: false })
   })
   it('uses encoded party identity and strips unsolicited credentials', async () => {
-    const fetch = response({ ref: 'test/with space', phone: '+998', code: 'secret' })
-    const result = await catalogMutation(client, 'customers', { ref: 'test/with space' }, 'edit', { phone: ' +998 ' })
+    const fetch = response({ ref: 'test/with space', phone: '+998901234567', code: 'secret' })
+    const result = await catalogMutation(client, 'customers', { ref: 'test/with space' }, 'edit', { phone: ' (90) 123-45-67 ' })
     expect(String(fetch.mock.calls[0]![0])).toContain('ref=test%2Fwith+space')
-    expect(result).toEqual({ ref: 'test/with space', phone: '+998' })
+    expect(result).toEqual({ ref: 'test/with space', phone: '+998901234567' })
+    expect(JSON.parse(fetch.mock.calls[0]![1].body)).toEqual({ phone: '+998901234567' })
   })
   it('reveals a generated code only for the explicit regeneration result', async () => {
     response({ ref: 's1', code: 'new-secret', blocked: false })
@@ -57,6 +58,45 @@ describe('catalog native contracts', () => {
     const fetch = response({ ok: true })
     await expect(catalogMutation(client, 'items', { code: 'p1' }, 'edit', { code: ' ', name: 'X' })).rejects.toThrow('kodini')
     await expect(catalogMutation(client, 'suppliers', { ref: 's1' }, 'assign', { item_code: '' })).rejects.toThrow('tanlang')
+    expect(fetch).not.toHaveBeenCalled()
+  })
+  it.each([{}, { ok: false }, { ref: 's1', removed: true }])('rejects malformed deletion success acknowledgements', async result => {
+    response(result)
+    await expect(catalogMutation(client, 'items', { code: 'p1' }, 'remove', {})).rejects.toMatchObject({ code: 'invalid_response' })
+    await expect(catalogMutation(client, 'suppliers', { ref: 's1' }, 'remove', {})).rejects.toMatchObject({ code: 'invalid_response' })
+    await expect(catalogMutation(client, 'customers', { ref: 's1' }, 'remove', {})).rejects.toMatchObject({ code: 'invalid_response' })
+  })
+  it('accepts native delete acknowledgements without inventing a returned identity', async () => {
+    response({ ok: true })
+    expect(await catalogMutation(client, 'items', { code: 'p1' }, 'remove', {})).toEqual({ ok: true })
+  })
+  it('rejects a different warehouse receipt or implicit product deletion', async () => {
+    for (const result of [{ warehouse: 'other', deleted_product_count: 0, deleted_assignment_count: 0 }, { warehouse: 'Test', deleted_product_count: 1, deleted_assignment_count: 0 }, { warehouse: 'Test', deleted_product_count: 0 }]) {
+      response(result)
+      await expect(catalogMutation(client, 'warehouses', { warehouse: 'Test' }, 'remove', {})).rejects.toMatchObject({ code: 'invalid_response' })
+    }
+  })
+  it('requires the exact entity and submitted values for updates', async () => {
+    response({ code: 'other', name: 'Name' })
+    await expect(catalogMutation(client, 'items', { code: 'p1' }, 'edit', { code: 'p1', name: 'Name' })).rejects.toMatchObject({ code: 'invalid_response' })
+    response({ ref: 'other', phone: '+998901234567' })
+    await expect(catalogMutation(client, 'customers', { ref: 's1' }, 'edit', { phone: '+998901234567' })).rejects.toMatchObject({ code: 'invalid_response' })
+    response({ ref: 's1', blocked: false })
+    await expect(catalogMutation(client, 'suppliers', { ref: 's1' }, 'block', {})).rejects.toMatchObject({ code: 'invalid_response' })
+  })
+  it('checks assignment membership and native restored state', async () => {
+    response({ ref: 's1', assigned_items: [] })
+    await expect(catalogMutation(client, 'suppliers', { ref: 's1' }, 'assign', { item_code: 'p1' })).rejects.toMatchObject({ code: 'invalid_response' })
+    response({ ref: 's1', assigned_items: [{ code: 'p1' }] })
+    await expect(catalogMutation(client, 'suppliers', { ref: 's1' }, 'unassign', { item_code: 'p1' })).rejects.toMatchObject({ code: 'invalid_response' })
+    response({ ref: 's1', removed: true })
+    await expect(catalogMutation(client, 'suppliers', { ref: 's1' }, 'restore', {})).rejects.toMatchObject({ code: 'invalid_response' })
+  })
+  it('honors the native root parent normalization and forbids moving the root', async () => {
+    response({ name: 'Group', parent_item_group: 'All Item Groups' })
+    await expect(catalogMutation(client, 'item-groups', { name: 'Group' }, 'move', { parent: '' })).resolves.toMatchObject({ parent_item_group: 'All Item Groups' })
+    const fetch = response({})
+    await expect(catalogMutation(client, 'item-groups', { name: 'All Item Groups' }, 'move', { parent: 'Other' })).rejects.toThrow('ko‘chirilmaydi')
     expect(fetch).not.toHaveBeenCalled()
   })
 })

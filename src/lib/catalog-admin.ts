@@ -43,41 +43,87 @@ function required(value: unknown, message: string): string {
   return result
 }
 
+function receipt(valid: boolean): void {
+  if (!valid) throw new ApiError(502, 'invalid_response', 'Server yuborilgan o‘zgarishni tasdiqlamadi. Takrorlashdan oldin ro‘yxatdagi joriy holatni tekshiring.')
+}
+function acknowledgement(value: unknown): Row {
+  const result = record(value)
+  receipt(result.ok === true)
+  return result
+}
+function normalizedPartyPhone(value: unknown): string {
+  let clean = text(value, '').trim().replace(/[ ()-]/g, '')
+  if (!clean.startsWith('+') && clean.length === 9) clean = `998${clean}`
+  const digits = clean.replaceAll('+', '')
+  if (!/^\d{9,12}$/.test(digits)) throw new Error('Telefon raqamini tekshiring: 9–12 ta raqam kiriting.')
+  return `+${digits}`
+}
+
 /** Only supported native mutations; identity fields come from the selected row. */
 export async function catalogMutation(client: ApiClient, kind: CatalogKind, row: Row, action: CatalogAction, input: Row, signal?: AbortSignal): Promise<Row> {
   if (kind === 'items') {
     const code = required(row.code, 'Mahsulot kodi topilmadi.')
-    if (action === 'edit') return record(await client.put(`${base}/items/detail`, { original_code: code, code: required(input.code, 'Mahsulot kodini kiriting.'), name: required(input.name, 'Mahsulot nomini kiriting.') }, undefined, signal))
+    if (action === 'edit') {
+      const body = { original_code: code, code: required(input.code, 'Mahsulot kodini kiriting.'), name: required(input.name, 'Mahsulot nomini kiriting.') }
+      const result = record(await client.put(`${base}/items/detail`, body, undefined, signal))
+      receipt(result.code === body.code && result.name === body.name)
+      return result
+    }
     if (action === 'move') {
       const group = required(input.item_group, 'Guruhni tanlang.')
       const result = record(await client.post(`${base}/items/bulk-move-group`, { item_codes: [code], item_group: group }, signal))
       if (result.requested_count !== 1 || result.updated_count !== 1 || result.failed_count !== 0 || result.item_group !== group || !Array.isArray(result.updated_item_codes) || result.updated_item_codes.length !== 1 || text(result.updated_item_codes[0], '').toLowerCase() !== code.toLowerCase()) throw new ApiError(409, 'item_move_failed', 'Mahsulot guruhga ko‘chirilmagan. Ro‘yxatni yangilab, mahsulot va guruhni tekshiring.')
       return result
     }
-    if (action === 'remove') return record(await client.delete(`${base}/items/detail`, { code }, signal))
+    if (action === 'remove') return acknowledgement(await client.delete(`${base}/items/detail`, { code }, signal))
   }
-  if (kind === 'item-groups' && action === 'move') return record(await client.put(`${base}/item-groups`, { name: required(row.name, 'Guruh topilmadi.'), parent: text(input.parent, '').trim() }, undefined, signal))
+  if (kind === 'item-groups' && action === 'move') {
+    const name = required(row.name, 'Guruh topilmadi.'), parent = text(input.parent, '').trim()
+    if (name === 'All Item Groups') throw new Error('Asosiy mahsulot guruhi ko‘chirilmaydi.')
+    const result = record(await client.put(`${base}/item-groups`, { name, parent }, undefined, signal))
+    receipt(result.name === name && result.parent_item_group === (parent || 'All Item Groups'))
+    return result
+  }
   if (kind === 'warehouses') {
     const warehouse = required(row.warehouse, 'Ombor topilmadi.')
-    if (action === 'edit') return record(await client.post(`${base}/warehouses`, { warehouse, company: text(input.company, '').trim(), parent_warehouse: text(input.parent_warehouse, '').trim(), is_group: input.is_group === true }, signal))
+    if (action === 'edit') {
+      const body = { warehouse, company: text(input.company, '').trim(), parent_warehouse: text(input.parent_warehouse, '').trim(), is_group: input.is_group === true }
+      const result = record(await client.post(`${base}/warehouses`, body, signal))
+      receipt(Object.entries(body).every(([key, value]) => result[key] === value))
+      return result
+    }
     // Delete is empty-only. Product removal is never implicit.
-    if (action === 'remove') return record(await client.request(`${base}/warehouses`, 'DELETE', { body: { warehouse, delete_products: false }, signal }))
+    if (action === 'remove') {
+      const result = record(await client.request(`${base}/warehouses`, 'DELETE', { body: { warehouse, delete_products: false }, signal }))
+      receipt(result.warehouse === warehouse && result.deleted_product_count === 0 && Number.isSafeInteger(result.deleted_assignment_count) && Number(result.deleted_assignment_count) >= 0)
+      return result
+    }
   }
   if (kind === 'customers' || kind === 'suppliers') {
     const ref = required(row.ref, 'Foydalanuvchi topilmadi.')
     const endpoint = `${base}/${kind}`
     let result: unknown
-    if (action === 'edit') result = await client.put(`${endpoint}/phone`, { phone: text(input.phone, '').trim() }, { ref }, signal)
+    if (action === 'edit') result = await client.put(`${endpoint}/phone`, { phone: normalizedPartyPhone(input.phone) }, { ref }, signal)
     else if (action === 'assign') result = await client.request(`${endpoint}/items/add`, 'POST', { query: { ref }, body: { item_code: required(input.item_code, 'Mahsulotni tanlang.') }, signal })
     else if (action === 'unassign') result = await client.delete(`${endpoint}/items/remove`, { ref, item_code: required(input.item_code, 'Mahsulotni tanlang.') }, signal)
-    else if (action === 'remove') result = await client.delete(`${endpoint}/remove`, { ref }, signal)
+    else if (action === 'remove') return acknowledgement(await client.delete(`${endpoint}/remove`, { ref }, signal))
     else if (action === 'restore' && kind === 'suppliers') result = await client.request(`${endpoint}/restore`, 'POST', { query: { ref }, signal })
     else if ((action === 'block' || action === 'unblock') && kind === 'suppliers') result = await client.put(`${endpoint}/status`, { blocked: action === 'block' }, { ref }, signal)
     else if (action === 'regenerate') {
       result = record(await client.request(`${endpoint}/code/regenerate`, 'POST', { query: { ref }, signal }))
-      if (!text(record(result).code, '').trim()) throw new ApiError(502, 'invalid_response', 'Yangi kirish kodi olinmadi. Qayta yaratishdan oldin hisobni tekshiring.')
+      if (record(result).ref !== ref || !text(record(result).code, '').trim()) throw new ApiError(502, 'invalid_response', 'Yangi kirish kodi olinmadi. Qayta yaratishdan oldin hisobni tekshiring.')
       return { ...cleanCatalogResult(result), generated_code: record(result).code }
     } else throw new Error('Bu amal mavjud emas.')
+    const detail = record(result)
+    receipt(detail.ref === ref)
+    if (action === 'edit') receipt(detail.phone === normalizedPartyPhone(input.phone))
+    if (action === 'restore') receipt(detail.removed === false)
+    if (action === 'block' || action === 'unblock') receipt(detail.blocked === (action === 'block'))
+    if (action === 'assign' || action === 'unassign') {
+      receipt(Array.isArray(detail.assigned_items) && detail.assigned_items.every(isRecord))
+      const found = assignedItems(detail).some(item => text(item.code, '').toLowerCase() === text(input.item_code, '').trim().toLowerCase())
+      receipt(action === 'assign' ? found : !found)
+    }
     return cleanCatalogResult(result)
   }
   throw new Error('Bu amal mavjud emas.')

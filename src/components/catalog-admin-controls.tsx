@@ -94,7 +94,7 @@ export function CatalogAdminControls({ kind, row, onSaved, onRemoved }: { kind: 
   return <div className="space-y-4 border-t pt-4">
     <div className="flex flex-wrap gap-2">
       {allowed('edit') && kind !== 'item-groups' && <Button variant="outline" disabled={disabled} onClick={() => open('edit')}><Pencil />{party ? 'Telefonni tahrirlash' : 'Tahrirlash'}</Button>}
-      {(kind === 'items' || kind === 'item-groups') && allowed('move') && <Button variant="outline" disabled={disabled || !canViewPage(session, 'item-groups')} onClick={() => open('move', { parent: row.parent_item_group ?? '' })}>{kind === 'item-groups' ? 'Asosiy guruhni o‘zgartirish' : 'Guruhga ko‘chirish'}</Button>}
+      {(kind === 'items' || kind === 'item-groups' && row.name !== 'All Item Groups') && allowed('move') && <Button variant="outline" disabled={disabled || !canViewPage(session, 'item-groups')} onClick={() => open('move', { parent: row.parent_item_group ?? '' })}>{kind === 'item-groups' ? 'Asosiy guruhni o‘zgartirish' : 'Guruhga ko‘chirish'}</Button>}
       {kind === 'suppliers' && allowed('block') && row.removed !== true && <Button variant="outline" disabled={disabled} onClick={() => open(row.blocked === true ? 'unblock' : 'block')}><Ban />{row.blocked === true ? 'Blokdan chiqarish' : 'Bloklash'}</Button>}
       {kind === 'suppliers' && allowed('restore') && row.removed === true && <Button variant="outline" disabled={disabled} onClick={() => open('restore')}><RotateCcw />Tiklash</Button>}
       {party && allowed('regenerate') && <Button variant="outline" disabled={disabled || row.code_locked === true || Number(row.code_retry_after_sec) > 0} onClick={() => open('regenerate')}><KeyRound />Kirish kodini yangilash</Button>}
