@@ -62,6 +62,8 @@ test('opening intake validates rolls and source, replays an exact key, and rejec
   assert.equal((await request('POST', `${pm}/opening-wip`, { ...command, source_apparatus: apparatusIds.cut, source_stage_node_id: 'cut' })).status, 409);
   const result = (await request('POST', `${pm}/opening-wip`, command)).body.record;
   assert.equal(result.intake.source_apparatus, apparatusIds.print); assert.equal(result.intake.resume_stage_node_id, 'print');
+  assert.equal(result.intake.current_location, '', 'Native source-contract opening intake clears a caller location');
+  assert.equal(result.intake.resume_apparatus, '');
   assert.equal(result.intake.actor.ref_, 'qa-admin'); assert.equal(result.batches.length, 2);
   assert.deepEqual((await request('POST', `${pm}/opening-wip`, command)).body.record, result);
   assert.equal((await request('POST', `${pm}/opening-wip`, { ...command, note: 'different' })).status, 409);

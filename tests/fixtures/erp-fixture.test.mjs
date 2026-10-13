@@ -94,13 +94,14 @@ test('fixture control can simulate a concurrent saved-map change and a newly-sta
   assert.equal(state.stage_states[mapId].print, 'in_progress'); assert.equal(state.rev, 2);
 });
 
-test('factory placement uses revision and explicit idempotency, with conflicts on stale changes', async () => {
+test('factory placement commits a canonical revision and command identity without duplicate replay', async () => {
   const { request } = await setup(), path = `${base}/apparatus/${encodeURIComponent(apparatusIds.spare)}`;
   const payload = { expected_revision: 1, patch: { placement: { factory_map_object_id: 'node:18:instance:1' } } };
   const headers = { ...auth, 'idempotency-key': 'qa-placement-request-1' };
   const saved = await request('PATCH', path, payload, headers);
-  assert.equal(saved.status, 200); assert.equal(saved.body.source_revision, 2);
-  assert.deepEqual((await request('PATCH', path, payload, headers)).body, saved.body);
+  assert.equal(saved.status, 200); assert.equal(saved.body.runtime_projection.source_revision, 2);
+  assert.equal(saved.body.revision.revision_metadata.command_id, 'apparatus-command:qa-placement-request-1');
+  assert.equal((await request('PATCH', path, payload, headers)).status, 409);
   assert.equal((await request('PATCH', path, { ...payload, patch: { placement: null } }, headers)).status, 409);
   assert.equal((await request('PATCH', path, payload, { ...auth, 'idempotency-key': 'qa-new-key' })).body.error, 'apparatus_revision_conflict');
 });

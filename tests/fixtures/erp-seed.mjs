@@ -1,8 +1,10 @@
-import { createHash } from 'node:crypto';
+import { refreshFixtureCanonical } from './erp-canonical.mjs';
 
 /** Synthetic data only. Nothing here is copied from an account or database. */
 export const fixtureLogin = { phone: '+998900000001', code: 'QA-CODE' };
 export const fixtureToken = 'fixture-admin-session';
+export const fixtureSecondLogin = { phone: '+998900000002', code: 'QA-SECOND' };
+export const fixtureSecondToken = 'fixture-admin-session-2';
 export const fixtureCapabilities = [
   'admin.access', 'production.map.manage', 'apparatus.queue.read', 'apparatus.queue.manage',
   'catalog.item.read', 'catalog.item.create', 'catalog.item.bulk_move', 'catalog.item_group.read', 'catalog.item_group.manage',
@@ -11,14 +13,17 @@ export const fixtureCapabilities = [
   'role.capability.read', 'role.capability.manage', 'admin.activity.read', 'admin.settings.read', 'admin.settings.manage',
   'raw_material.assign', 'raw_material.rule.manage', 'inventory.movement.manage', 'factory.location.manage', 'rezka.split.manage',
 ];
-export const apparatusIds = { print: 'apparatus:qa:print-1', laminate: 'apparatus:qa:laminate-1', cut: 'apparatus:qa:cut-1', spare: 'apparatus:qa:print-2' };
+export const apparatusIds = { print: 'apparatus:qa:print-1', laminate: 'apparatus:qa:laminate-1', cut: 'apparatus:qa:cut-1', spare: 'apparatus:qa:print-2', laminateSpare: 'apparatus:qa:laminate-2' };
 const timestamp = 1791892800;
 
 function apparatus(id, name, operation, technology, object, order) {
   return { apparatus_id: id, source_revision: 1, display: { display_name: name, description: 'Synthetic QA apparatus', catalog_order: order },
-    source_aasx_sha256: createHash('sha256').update(`synthetic:${id}:1`).digest('hex'), capabilities: { [operation]: 1 },
-    lifecycle: { state: 'active' }, source: 'canonical', sort_order: order,
-    execution_profile: { operation, technology, color_station_count: operation === 'print' ? 8 : null, min_web_width_mm: 150, max_web_width_mm: 1200 },
+    source_aasx_sha256: '', capabilities: { [operation]: 1 },
+    equipment_class_id: `equipment-class:${operation}`, physical_asset_id: `physical-asset:qa:${id.split(':').at(-1)}`,
+    hierarchy: { enterprise_id: 'enterprise:qa', site_id: 'site:qa', area_id: 'area:production', work_center_id: `work-center:${operation}`, work_unit_id: `work-unit:${id.split(':').at(-1)}` },
+    lifecycle: { state: 'active', retirement_reason: null }, source: 'canonical', sort_order: order,
+    training: { enabled: false, queue_enabled: false, material_tracking_enabled: false },
+    execution_profile: { operation, technology, color_station_count: operation === 'print' ? 8 : null, min_web_width_mm: 150, max_web_width_mm: 1200, virtual_tasks: 'disabled', capability_compatible_reroute: true },
     placement: object ? { factory_map_object_id: object } : null };
 }
 function order(number, product, stages) {
@@ -47,10 +52,16 @@ export function createSeed(epoch = 'qa-local-epoch-1') {
   const pendingTemplate = { ...structuredClone(source.template), id: 'qa-pending-template-2001', code: '2001', order_number: '2001', source_map_id: '' };
   const historicalMap = { ...structuredClone(source.map), id: 'zakaz-4001', code: '4001', order_number: '4001', title: 'QA Vaqt tarixi' };
   const timeLogs = id => [[0, 'start', 'pending', 'in_progress'], [100, 'pause', 'in_progress', 'paused'], [150, 'resume', 'paused', 'in_progress'], [250, 'complete', 'in_progress', 'pending'], [300, 'start', 'pending', 'in_progress'], [400, 'complete', 'in_progress', 'completed']].map(([offset, action, from, to], index) => ({ event_id: `qa-time:${id}:${index}`, order_id: id, apparatus: apparatusIds.print, stage_node_id: 'print', action, from_state: from, to_state: to, actor_display_name: 'QA Operator', created_at_unix: timestamp + offset }));
-  return {
+  const state = {
     epoch, rev: 1, nextId: 4, codeCounter: 0, sessions: new Set(), sequenceOverrides: {}, rawAssignments: [], rawHistory: [],
     templates: [routeTemplate], pendingOrders: [{ id: 'zakaz-2001', template: pendingTemplate, completion: null, manager_name: 'QA Administrator' }],
     openingWip: [], openingCommands: {}, downtime: [], reservations: [], planningCommands: [],
+    inventoryTransfers: [], inventoryCommands: {}, canonicalCommands: [],
+    assignmentPolicies: {}, assignmentSessions: [], assignmentHolds: [], assignmentCommands: {},
+    factoryLocations: [
+      { id: 'qa-factory-print', name: 'QA Bosma sexi', active: true, apparatus_ids: [apparatusIds.print], created_at_unix: timestamp, updated_at_unix: timestamp },
+      { id: 'qa-factory-cut', name: 'QA Rezka sexi', active: true, apparatus_ids: [apparatusIds.cut], created_at_unix: timestamp, updated_at_unix: timestamp },
+    ],
     historicalMaps: { 'zakaz-4001': historicalMap }, closedOrders: [{ order_id: 'zakaz-4001', order_number: '4001', title: 'QA Vaqt tarixi', completed_at_unix: timestamp + 500, logs: timeLogs('zakaz-4001'), progress_batches: [] }], timeLogs: timeLogs('zakaz-qa-1003'),
     planning: Object.fromEntries(Object.values(apparatusIds).map(id => [id, { capacity: { capacity_slots: 1, setup_minutes: 5, cleanup_minutes: 5, efficiency_percent: 100, finite_capacity: true, availability: { mode: 'always' } }, discipline: 'strict_sequence' }])),
     materials: [
@@ -59,9 +70,10 @@ export function createSeed(epoch = 'qa-local-epoch-1') {
     ],
     apparatus: [
       apparatus(apparatusIds.print, 'QA Flexo 1', 'print', 'flexographic', 'node:1:instance:0', 10),
-      apparatus(apparatusIds.laminate, 'QA Laminator', 'laminate', 'solventless', 'node:6:instance:6', 20),
+      apparatus(apparatusIds.laminate, 'QA Laminator', 'laminate', 'adhesive_lamination', 'node:6:instance:6', 20),
       apparatus(apparatusIds.cut, 'QA Rezka', 'cut', 'slitting', 'node:18:instance:0', 30),
       apparatus(apparatusIds.spare, 'QA Flexo 2', 'print', 'flexographic', '', 40),
+      apparatus(apparatusIds.laminateSpare, 'QA Laminator 2', 'laminate', 'adhesive_lamination', '', 50),
     ],
     orders: [order(1001, 'QA Kutayotgan plyonka'), order(1002, 'QA Ishdagi plyonka', { print: 'in_progress' }), order(1003, 'QA Pauzadagi plyonka', { print: 'completed', laminate: 'paused' })],
     items: [
@@ -72,7 +84,8 @@ export function createSeed(epoch = 'qa-local-epoch-1') {
     groups: [
       { name: 'QA Materiallar', item_group_name: 'QA Materiallar', parent_item_group: '', is_group: true },
       { name: 'Xomashyo', item_group_name: 'Xomashyo', parent_item_group: 'QA Materiallar', is_group: false },
-      { name: 'Tayyor mahsulot', item_group_name: 'Tayyor mahsulot', parent_item_group: 'QA Materiallar', is_group: false },
+      { name: 'Tayyor mahsulot', item_group_name: 'Tayyor mahsulot', parent_item_group: 'QA Materiallar', is_group: true },
+      { name: 'QA Tayyor paketlar', item_group_name: 'QA Tayyor paketlar', parent_item_group: 'Tayyor mahsulot', is_group: false },
       { name: 'QA Yangi guruh', item_group_name: 'QA Yangi guruh', parent_item_group: 'QA Materiallar', is_group: false },
     ],
     customers: [{ ref: 'QA-CUSTOMER-1', name: 'QA Mijoz', phone: '+998900000011', assigned_item_codes: ['QA-FILM-1'], assigned_item_groups: [], blocked: false, removed: false }],
@@ -102,6 +115,8 @@ export function createSeed(epoch = 'qa-local-epoch-1') {
       { id: 'qa-location-print', name: 'QA Bosma sexi', kind: 'state', active: true, factory_location_id: 'qa-factory-print', apparatus: [{ id: apparatusIds.print, name: 'QA Flexo 1' }] },
       { id: 'qa-location-cut', name: 'QA Rezka sexi', kind: 'state', active: true, factory_location_id: 'qa-factory-cut', apparatus: [{ id: apparatusIds.cut, name: 'QA Rezka' }] },
       { id: 'qa-location-stock', name: 'QA Xomashyo', kind: 'warehouse', active: true, warehouse_id: 'QA Xomashyo', apparatus: [] },
+      { id: 'qa-location-finished', name: 'QA Tayyor mahsulot', kind: 'warehouse', active: true, warehouse_id: 'QA Tayyor mahsulot', apparatus: [] },
+      { id: 'qa-location-empty', name: 'QA Bo‘sh ombor', kind: 'warehouse', active: true, warehouse_id: 'QA Bo‘sh ombor', apparatus: [] },
     ],
     assets: [
       { kind: 'raw_material', asset_ref: 'qa-roll-1', item_code: 'QA-PET-12', item_name: 'QA PET 12 mkm', identifier: 'QA-ROLL-1', qty: 80, uom: 'kg', status: 'available', custody_warehouse_id: 'QA Xomashyo', custody_warehouse: 'QA Xomashyo', physical_location: { id: 'qa-location-print', name: 'QA Bosma sexi', kind: 'state' }, placement_version: 1 },
@@ -111,4 +126,10 @@ export function createSeed(epoch = 'qa-local-epoch-1') {
       action: 'complete', session_id: 'qa-finished-worker-session', worker_role: 'aparatchi', worker_ref: 'qa-worker-1', worker_display_name: 'QA Brigadir', executor_name: 'QA Brigadir', started_at_unix: timestamp - 300, completed_at_unix: timestamp - 100 }],
     settings: { default_target_warehouse: 'QA Tayyor mahsulot', default_uom: 'kg', admin_name: 'QA Administrator', admin_phone: fixtureLogin.phone, werka_name: 'QA Omborchi', werka_phone: '+998900000031', werka_code_locked: false, werka_code_retry_after_sec: 0 },
   };
+  for (const row of state.apparatus) {
+    state.planning[row.apparatus_id] ??= { discipline: 'strict_sequence', capacity: { capacity_slots: 1, setup_minutes: 5, cleanup_minutes: 5, efficiency_percent: 100, finite_capacity: true, availability: { mode: 'always' } } };
+    refreshFixtureCanonical(row, state.planning[row.apparatus_id]);
+  }
+  for (const map of [...state.orders.map(row => row.map), ...Object.values(state.historicalMaps)]) for (const edge of map.edges) edge.branch ??= '';
+  return state;
 }

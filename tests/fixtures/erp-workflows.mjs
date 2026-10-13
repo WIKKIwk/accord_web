@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto';
+import { refreshFixtureCanonical, fixtureCanonicalRevision } from './erp-canonical.mjs';
+import { fixtureManufacturingDemoCohort } from './erp-manufacturing-demo.mjs';
 
 // Synthetic native DTOs only. This module has no listener, filesystem or network.
 const base = '/v1/mobile/admin', pm = `${base}/production-maps`;
@@ -22,7 +24,7 @@ function validCapacity(input) {
   const windows = input.availability.working_windows;
   return input.availability.mode === 'scheduled' && Array.isArray(windows) && windows.length > 0 && windows.every(window => integer(window.weekday, 1, 7) && integer(window.start_minute, 0, 1439) && integer(window.end_minute, 1, 1440) && window.start_minute < window.end_minute) && new Set(windows.map(window => JSON.stringify(window))).size === windows.length;
 }
-export function updateFixtureApparatusHash(row, planning) { row.source_aasx_sha256 = hash({ ...row, source_aasx_sha256: undefined, planning }); }
+export function updateFixtureApparatusHash(row, planning, metadata) { refreshFixtureCanonical(row, planning, metadata); }
 
 export function workflowRoute({ method, path, query, body, headers, state, config, requires, compile, bump, findOrder, profile, equal }) {
   const manage = () => requires('admin.access', 'production.map.manage');
@@ -39,14 +41,15 @@ export function workflowRoute({ method, path, query, body, headers, state, confi
     if (!read() || profile.role !== 'admin') return error(403, 'forbidden');
     return response({ ok: true, batches: query.worker_ref === 'qa-worker-1' ? clone(state.wip.slice(0, Math.min(200, Number(query.limit) || 200))) : [] });
   }
-  if (path === `${pm}/closed-orders` && method === 'GET') return read() ? response({ ok: true, closed_orders: config.emptyClosedHistory ? [] : clone(state.closedOrders) }) : error(403, 'forbidden');
+  if (path === `${pm}/closed-orders` && method === 'GET') return read() ? response({ ok: true, closed_orders: config.emptyClosedHistory ? [] : clone([...state.closedOrders, ...(config.manufacturingDemoCohort ? fixtureManufacturingDemoCohort(state, { invalid: config.manufacturingDemoInvalidRecord }) : [])]) }) : error(403, 'forbidden');
   if (path === pm && method === 'GET' && state.historicalMaps[query.id]) return read() ? response(compile(state.historicalMaps[query.id])) : error(403, 'forbidden');
   if (path === `${pm}/progress-qr/report` && method === 'POST') {
     if (!read()) return error(403, 'forbidden');
     const batch = state.wip.find(row => row.batch_id === body?.progress_batch_id);
     if (!batch) return error(404, 'progress_batch_not_found');
     const order = findOrder(batch.order_id), wrong = config.manufacturingReportMode === 'wrong_identity';
-    return response({ ok: true, history_scope: 'batch_lineage', lineage_complete: config.manufacturingReportMode === 'complete', scanned_batch: { ...clone(batch), ...(wrong ? { order_id: 'zakaz-qa-other' } : {}) }, order: { ...clone(order.map), ...(wrong ? { id: 'zakaz-qa-other' } : {}) }, logs: clone(state.timeLogs.filter(row => row.order_id === batch.order_id)), run_sessions: [], progress_batches: [clone(batch)] });
+    const sessions = state.assignmentSessions.filter(row => row.order_id === batch.order_id);
+    return response({ ok: true, history_scope: 'batch_lineage', lineage_complete: config.manufacturingReportMode === 'complete', scanned_batch: { ...clone(batch), ...(wrong ? { order_id: 'zakaz-qa-other' } : {}) }, order: { ...clone(order.map), ...(wrong ? { id: 'zakaz-qa-other' } : {}) }, logs: clone(state.timeLogs.filter(row => row.order_id === batch.order_id)), run_sessions: clone(sessions), active_sessions: clone(sessions.filter(row => ['active', 'paused'].includes(row.status))), progress_batches: [clone(batch)] });
   }
   if (path === '/v1/mobile/calculate' && method === 'POST') {
     if (!manage()) return error(403, 'forbidden');
@@ -115,7 +118,7 @@ export function workflowRoute({ method, path, query, body, headers, state, confi
       const operation = apparatus.execution_profile.operation;
       if (!key || key.length > 200 || !Array.isArray(body.batches) || !body.batches.length || body.batches.length > 500 || body.batches.some(row => !['measured', 'estimated'].includes(row.quantity_basis) || !['finished_goods_meter', 'finished_goods_kg', 'bobina_kg', ...(operation === 'cut' ? ['diameter'] : [])].every(field => positive(row[field])) || operation !== 'cut' && row.diameter !== undefined)) return error(400, 'invalid_opening_wip');
       const id = `qa-opening-${state.nextId++}`, created = now(state);
-      const intake = { intake_id: id, idempotency_key: key, order_id: order.map.id, entry_apparatus: apparatus.apparatus_id, source_apparatus: apparatus.apparatus_id, source_operation: operation, resume_stage_node_id: node.id, resume_apparatus: '', current_location: state.locations.find(row => row.apparatus.some(item => item.id === apparatus.apparatus_id))?.name || '', history_status: 'unavailable_before_cutover', status: 'confirmed', note: str(body.note), actor: { role: profile.role, ref_: profile.ref, display_name: profile.display_name }, created_at_unix: created, updated_at_unix: created };
+      const intake = { intake_id: id, idempotency_key: key, order_id: order.map.id, entry_apparatus: apparatus.apparatus_id, source_apparatus: apparatus.apparatus_id, source_operation: operation, resume_stage_node_id: node.id, resume_apparatus: '', current_location: '', history_status: 'unavailable_before_cutover', status: 'confirmed', note: str(body.note), actor: { role: profile.role, ref_: profile.ref, display_name: profile.display_name }, created_at_unix: created, updated_at_unix: created };
       const batches = body.batches.map((row, index) => ({ ...clone(row), batch_id: `${id}:batch:${index + 1}`, intake_id: id, order_id: order.map.id, sequence_no: index + 1, qr_payload: `QA-OPENING:${id}:${index + 1}`, quantity: row.finished_goods_meter, uom: 'm', wip_status: 'waiting', used_by_session_id: '', used_by_apparatus: '', processed_by_session_id: '', processed_by_apparatus: '', label_item_code: order.map.product_code, label_item_name: order.map.title, created_at_unix: created, updated_at_unix: created }));
       const record = { intake, batches }; state.openingWip.push(record); state.openingCommands[key] = clone(body); bump(); return response({ record: clone(record) });
     }
@@ -156,8 +159,8 @@ export function workflowRoute({ method, path, query, body, headers, state, confi
     const input = state.planning[row.apparatus_id];
     if (policy ? !['strict_sequence', 'free_pick'].includes(body.discipline) : !validCapacity(body.capacity)) return error(400, 'apparatus_revision_invalid');
     if (policy) input.discipline = body.discipline; else input.capacity = clone(body.capacity);
-    row.source_revision += 1; updateFixtureApparatusHash(row, input); state.planningCommands.push(key); bump();
-    return response({ ok: true, revision: { revision: { apparatus_id: row.apparatus_id, revision_metadata: { revision: row.source_revision, command_id: `apparatus-command:${key}`, actor_id: `principal:${profile.ref}` }, capacity: clone(input.capacity), policies: { queue: input.discipline } }, runtime_projection: clone(row), aasx_sha256: row.source_aasx_sha256 } });
+    row.source_revision += 1; updateFixtureApparatusHash(row, input, { command_id: `apparatus-command:${key}`, actor_id: `principal:${profile.ref}` }); state.planningCommands.push(key); bump();
+    return response({ ok: true, revision: { revision: fixtureCanonicalRevision(row), runtime_projection: clone(row), aasx_sha256: row.source_aasx_sha256 } });
   }
   if (path === `${pm}/capacity/downtime`) {
     if (!manage()) return error(403, 'forbidden');

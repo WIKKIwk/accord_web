@@ -1,8 +1,16 @@
 import http from 'node:http';
 import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
-import { createSeed, fixtureCapabilities, fixtureLogin, fixtureToken } from './erp-seed.mjs';
+import { createSeed, fixtureCapabilities, fixtureLogin, fixtureToken, fixtureSecondLogin, fixtureSecondToken } from './erp-seed.mjs';
 import { updateFixtureApparatusHash, workflowRoute } from './erp-workflows.mjs';
+import { inventoryFixtureRoute } from './erp-inventory.mjs';
+import { canonicalFixtureRoute, fixtureCanonicalRevision, fixtureAasxMime } from './erp-canonical.mjs';
+import { assignmentFixtureRoute, assignmentSnapshotControl, seedAssignmentScenario, advanceFixturePreflight } from './erp-assignment.mjs';
+import { rawRulesFixtureRoute, seedRawRulesScenario } from './erp-raw-rules.mjs';
+import { passportFixtureRoute, seedPassportScenario } from './erp-passport.mjs';
+import { materialIntakeFixtureRoute, materialIntakeSnapshotControl, seedMaterialIntakeScenario } from './erp-material-intake.mjs';
+import { completionFixtureRoute, completionSnapshotControl, seedCompletionScenario } from './erp-completion.mjs';
+import { materialLinkFixtureRoute, materialLinkSnapshotControl, seedMaterialLinkScenario, validMaterialLinkProfile } from './erp-material-link.mjs';
 
 const base = '/v1/mobile/admin';
 const clone = value => structuredClone(value);
@@ -15,10 +23,21 @@ const profile = { role: 'admin', ref: 'qa-admin', display_name: 'QA Administrato
 const response = (body, status = 200) => ({ status, body });
 const error = (status, code, detail) => response({ error: code, ...(detail ? { detail } : {}) }, status);
 const capabilityLabels = Object.fromEntries(fixtureCapabilities.map(code => [code, `QA ${code}`]));
-const configDefaults = () => ({ capabilities: [...fixtureCapabilities], rules: [], partialMoveCodes: [], orderEditLocked: false, workerDeleteBlocked: false, emptyProduction: false, unknownOrderStatuses: [], blockedDeleteCodes: [], emptyClosedHistory: false, manufacturingReportMode: 'partial' });
+const configDefaults = () => ({ capabilities: [...fixtureCapabilities], assignedWarehouses: [], assignedApparatus: [], profileOverride: null, rules: [], partialMoveCodes: [], orderEditLocked: false, workerDeleteBlocked: false, emptyProduction: false, unknownOrderStatuses: [], blockedDeleteCodes: [], emptyClosedHistory: false, manufacturingReportMode: 'partial', manufacturingDemoCohort: false, manufacturingDemoInvalidRecord: false });
 const queueVersion = ids => createHash('sha256').update(JSON.stringify(ids)).digest('hex');
-const fixtureVersion = 4;
+const fixtureVersion = 8;
 const phone = value => { let digits = string(value).replace(/\D/g, ''); if (digits.length === 9) digits = `998${digits}`; return digits ? `+${digits}` : ''; };
+const workerLevels = ['Brigader', 'Master', '1 - darajali', '2 - darajali', '3 - darajali'];
+const systemRoles = ['qolipchi', 'boyoqchi', 'tayyorlov_masteri', 'homashyo_rezkachi'];
+function finishedGroup(name, groups) {
+  const visited = new Set(); let current = string(name).toLowerCase();
+  while (current && !visited.has(current)) {
+    if (current === 'tayyor mahsulot') return true;
+    visited.add(current); const group = groups.find(row => string(row.name).toLowerCase() === current);
+    current = string(group?.parent_item_group).toLowerCase();
+  }
+  return false;
+}
 
 /** Request logs intentionally omit authorization values, phones, login codes and rotated codes. */
 export function sanitize(value) {
@@ -84,19 +103,25 @@ function snapshot(state) {
       queue_states[id][order.map.id] = status;
       if (native !== 'completed') visible_order_ids[id].push(order.map.id);
       const mode = status === 'pending' ? previousReady ? 'fresh_start_blocked' : 'waiting_previous_stage' : status;
-      queue_action_controls[id][order.map.id] = { state: status, stage_node_id: node.id, allowed_actions: status === 'in_progress' ? ['pause'] : status === 'paused' ? ['resume'] : [],
+      const baseline = { state: status, stage_node_id: node.id, allowed_actions: status === 'in_progress' ? ['pause'] : status === 'paused' ? ['resume'] : [],
         previous_stage_ready: previousReady, complete_requires_full_report: false,
         ...(previousNode ? { previous_stage: effectiveApparatus(previousNode) } : {}),
         ...(node.id === 'cut' ? { rezka_output_kadr_counts: node.rezka_frame_groups || [1, 1] } : {}),
         interaction: { mode, start_materials_mode: 'hidden', material_scan_required: false, assigned_materials_display_only: true, material_intake_allowed: false,
-          previous_wip_mode: mode === 'waiting_previous_stage' ? 'waiting' : 'not_required', qolip_mode: 'not_required', resume_input_required: false,
+          previous_wip_mode: mode === 'waiting_previous_stage' ? 'waiting' : 'not_required', opening_wip_mode: 'not_required', qolip_mode: 'not_required', resume_input_required: false,
           ...(status === 'pending' ? { blocking_reason_code: previousReady ? 'waiting_sequence' : 'waiting_previous_stage' } : {}) } };
+      queue_action_controls[id][order.map.id] = assignmentSnapshotControl(state, order, node, baseline);
+      queue_action_controls[id][order.map.id] = completionSnapshotControl(state, order, node, queue_action_controls[id][order.map.id]);
+      queue_action_controls[id][order.map.id] = materialIntakeSnapshotControl(state, order, node, queue_action_controls[id][order.map.id]);
+      queue_action_controls[id][order.map.id] = materialLinkSnapshotControl(state, order, node, queue_action_controls[id][order.map.id]);
+      queue_states[id][order.map.id] = queue_action_controls[id][order.map.id].state;
     }
   }
   const order_statuses = Object.fromEntries(state.orders.map(order => {
     const stages = Object.values(order.stages);
-    const status = order.control === 'frozen' ? 'frozen' : stages.includes('in_progress') ? 'in_progress' : stages.includes('paused') ? 'paused' : stages.length && stages.every(value => value === 'completed') ? 'completed' : 'not_started';
-    return [order.map.id, { lifecycle_status: status === 'not_started' ? 'released' : 'in_progress', order_status: status, work_status: status, flow_status: status === 'not_started' ? 'waiting' : status, completed_with_issue_count: 0 }];
+    const hold = state.assignmentHolds.some(row => row.order_id === order.map.id && ['held', 'running'].includes(row.status));
+    const status = order.control === 'frozen' ? 'frozen' : hold ? 'print_preflight' : order.operational || (stages.includes('in_progress') ? 'in_progress' : stages.includes('paused') ? 'paused' : stages.length && stages.every(value => value === 'completed') ? 'completed' : 'not_started');
+    return [order.map.id, { lifecycle_status: stages.every(stage => stage === 'pending') ? 'released' : 'in_progress', order_status: status, work_status: status, flow_status: status === 'not_started' ? 'waiting' : status, completed_with_issue_count: 0 }];
   }));
   return { ok: true, rev: state.rev, epoch: state.epoch, scope: '', maps, stage_states, queue_states, sequences, visible_order_ids,
     sequence_versions: Object.fromEntries(Object.entries(sequences).map(([id, ids]) => [id, queueVersion(ids)])),
@@ -135,11 +160,16 @@ export function createFixture() {
       const known = new Set(Object.keys(configDefaults()));
       if (Object.keys(body).some(key => !known.has(key))) return error(400, 'unknown_fixture_config_field');
       if (body.capabilities && (!Array.isArray(body.capabilities) || body.capabilities.some(value => typeof value !== 'string'))) return error(400, 'invalid_fixture_capabilities');
+      if (body.assignedWarehouses && (!Array.isArray(body.assignedWarehouses) || body.assignedWarehouses.some(value => typeof value !== 'string'))) return error(400, 'invalid_fixture_warehouses');
+      if (body.assignedApparatus !== undefined && (!Array.isArray(body.assignedApparatus) || new Set(body.assignedApparatus).size !== body.assignedApparatus.length || body.assignedApparatus.some(value => !state.apparatus.some(row => row.apparatus_id === value)))) return error(400, 'invalid_fixture_apparatus_scope');
+      if (body.profileOverride !== undefined && !validMaterialLinkProfile(body.profileOverride)) return error(400, 'invalid_fixture_profile_override');
       if (body.partialMoveCodes && (!Array.isArray(body.partialMoveCodes) || body.partialMoveCodes.some(value => typeof value !== 'string'))) return error(400, 'invalid_fixture_partial_move_codes');
       if (body.manufacturingReportMode !== undefined && !['partial', 'complete', 'wrong_identity'].includes(body.manufacturingReportMode)) return error(400, 'invalid_fixture_report_mode');
+      if (['manufacturingDemoCohort', 'manufacturingDemoInvalidRecord'].some(key => body[key] !== undefined && typeof body[key] !== 'boolean')) return error(400, 'invalid_fixture_demo_cohort');
       if (body.rules && (!Array.isArray(body.rules) || body.rules.some(rule => !object(rule) || !string(rule.path).startsWith('/v1/') || !['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(rule.method)
         || rule.delayMs !== undefined && (!Number.isFinite(rule.delayMs) || rule.delayMs < 0 || rule.delayMs > 30_000)
-        || rule.status !== undefined && ![400, 401, 403, 404, 409, 429, 500, 502, 503].includes(rule.status)))) return error(400, 'invalid_fixture_rule');
+        || rule.status !== undefined && ![400, 401, 403, 404, 409, 429, 500, 502, 503].includes(rule.status)
+        || rule.responseBody !== undefined && !object(rule.responseBody)))) return error(400, 'invalid_fixture_rule');
       config = { ...config, ...clone(body) };
       return response({ ok: true, config: clone(config) });
     }
@@ -161,8 +191,20 @@ export function createFixture() {
       const row = state.apparatus.find(row => row.apparatus_id === body?.apparatus_id);
       if (!row) return error(404, 'apparatus_not_found');
       if (Object.hasOwn(body, 'placement')) row.placement = clone(body.placement);
+      if (object(body.profilePatch)) for (const field of ['display', 'capabilities', 'execution_profile', 'training']) if (Object.hasOwn(body.profilePatch, field)) row[field] = clone(body.profilePatch[field]);
       row.source_revision += 1; updateFixtureApparatusHash(row, state.planning[row.apparatus_id]); bump(); return response(row);
     }
+    if (path === '/__qa/canonical-apparatus' && method === 'POST') {
+      const row = state.apparatus.find(row => row.apparatus_id === body?.apparatus_id);
+      return row ? response({ projection: clone(row), revision: fixtureCanonicalRevision(row) }) : error(404, 'apparatus_not_found');
+    }
+    if (path === '/__qa/assignment' && method === 'POST') return seedAssignmentScenario(state, body);
+    if (path === '/__qa/preflight' && method === 'POST') return advanceFixturePreflight(state, body);
+    if (path === '/__qa/raw-rules' && method === 'POST') return seedRawRulesScenario(state);
+    if (path === '/__qa/passport' && method === 'POST') return seedPassportScenario(state, body);
+    if (path === '/__qa/completion' && method === 'POST') return seedCompletionScenario(state, body);
+    if (path === '/__qa/material-intake' && method === 'POST') return seedMaterialIntakeScenario(state, body);
+    if (path === '/__qa/material-link' && method === 'POST') return seedMaterialLinkScenario(state, body);
     if (path === '/__qa/opening-wip' && method === 'POST') {
       const record = state.openingWip.find(record => record.batches.some(batch => batch.batch_id === body?.batch_id)), batch = record?.batches.find(batch => batch.batch_id === body.batch_id);
       if (!batch) return error(404, 'opening_wip_not_found');
@@ -176,6 +218,12 @@ export function createFixture() {
       if (object(body.batchPatch)) Object.assign(batch, clone(body.batchPatch));
       bump(); return response({ ok: true });
     }
+    if (path === '/__qa/asset' && method === 'POST') {
+      const asset = state.assets.find(row => row.kind === body?.kind && row.asset_ref === body?.asset_ref);
+      if (!asset) return error(404, 'inventory_asset_not_found');
+      if (object(body.patch)) Object.assign(asset, clone(body.patch));
+      asset.placement_version++; bump(); return response({ ok: true });
+    }
     if (path === '/__qa/dependencies' && method === 'POST') {
       if (!state.workers.some(worker => worker.id === body?.worker_id)) return error(404, 'worker_not_found');
       state.dependencies[body.worker_id] = { active_work: clone(body.active_work || []), connections: clone(body.connections || []) };
@@ -186,15 +234,30 @@ export function createFixture() {
 
   function route(method, path, query, body, headers) {
     if (path === '/v1/mobile/auth/login' && method === 'POST') {
-      if (body?.phone !== fixtureLogin.phone || body?.code !== fixtureLogin.code) return error(401, 'invalid_credentials');
-      state.sessions.add(fixtureToken);
-      return response({ token: fixtureToken, profile, capabilities: [...config.capabilities], assigned_apparatus: [], assigned_apparatus_labels: [], assigned_item_groups: [], assigned_warehouses: [] });
+      const second = body?.phone === fixtureSecondLogin.phone && body?.code === fixtureSecondLogin.code;
+      if (!second && (body?.phone !== fixtureLogin.phone || body?.code !== fixtureLogin.code)) return error(401, 'invalid_credentials');
+      const token = second ? fixtureSecondToken : fixtureToken, actor = second ? { ...profile, ref: 'qa-admin-2', display_name: 'QA Second Administrator' } : config.profileOverride ? { ...profile, ...config.profileOverride } : profile;
+      state.sessions.add(token);
+      return response({ token, profile: actor, capabilities: [...config.capabilities], assigned_apparatus: clone(config.assignedApparatus), assigned_apparatus_labels: config.assignedApparatus.map(id => state.apparatus.find(row => row.apparatus_id === id)?.display.display_name || id), assigned_item_groups: [], assigned_warehouses: clone(config.assignedWarehouses) });
     }
     const token = string(headers.authorization).replace(/^Bearer\s+/i, '');
     if (!state.sessions.has(token)) return error(401, 'unauthorized');
-    if (path === '/v1/mobile/me' && method === 'GET') return response(profile);
+    const actorProfile = token === fixtureSecondToken ? { ...profile, ref: 'qa-admin-2', display_name: 'QA Second Administrator' } : config.profileOverride ? { ...profile, ...config.profileOverride } : profile;
+    if (path === '/v1/mobile/me' && method === 'GET') return response(actorProfile);
     if (path === '/v1/mobile/auth/logout' && method === 'POST') { state.sessions.delete(token); return response({ ok: true }); }
-    const workflow = workflowRoute({ method, path, query, body, headers, state, config, requires, compile, bump, findOrder, profile, equal });
+    const extensionContext = { method, path, query, body, headers, state, config, requires, profile: actorProfile, bump, findOrder, compile, snapshot, equal };
+    const materialLink = materialLinkFixtureRoute(extensionContext); if (materialLink) return materialLink;
+    const rawRules = rawRulesFixtureRoute(extensionContext); if (rawRules) return rawRules;
+    const passport = passportFixtureRoute(extensionContext); if (passport) return passport;
+    const completion = completionFixtureRoute(extensionContext); if (completion) return completion;
+    const materialIntake = materialIntakeFixtureRoute(extensionContext); if (materialIntake) return materialIntake;
+    const canonicalRoute = canonicalFixtureRoute({ method, path, query, body, headers, state, requires, profile: actorProfile, bump, equal });
+    if (canonicalRoute) return canonicalRoute;
+    const assignmentRoute = assignmentFixtureRoute({ method, path, query, body, state, requires, profile: actorProfile, bump, findOrder, compile, snapshot, equal });
+    if (assignmentRoute) return assignmentRoute;
+    const inventory = inventoryFixtureRoute({ method, path, query, body, state, config, requires, profile: actorProfile, bump, equal });
+    if (inventory) return inventory;
+    const workflow = workflowRoute({ method, path, query, body, headers, state, config, requires, compile, bump, findOrder, profile: actorProfile, equal });
     if (workflow) return workflow;
     if (path === `${base}/production-maps/sequence` && method === 'GET') {
       if (!requires('admin.access', 'production.map.manage', 'apparatus.queue.read')) return error(403, 'forbidden');
@@ -282,25 +345,6 @@ export function createFixture() {
       }
       return error(405, 'method_not_allowed');
     }
-    if (path.startsWith(`${base}/apparatus/`)) {
-      if (!requires('admin.access', 'production.map.manage')) return error(403, 'forbidden');
-      const row = state.apparatus.find(row => row.apparatus_id === path.slice(`${base}/apparatus/`.length));
-      if (!row) return error(404, 'apparatus_not_found');
-      if (method === 'GET') return response(row);
-      if (method === 'PATCH') {
-        const key = headers['idempotency-key'];
-        if (!key) return error(400, 'idempotency_key_required');
-        const prior = idempotency.get(key), payload = JSON.stringify(body);
-        if (prior) return prior.payload === payload ? response(clone(prior.saved)) : error(409, 'apparatus_idempotency_conflict');
-        if (body?.expected_revision !== row.source_revision) return error(409, 'apparatus_revision_conflict');
-        if (!object(body.patch) || !Object.hasOwn(body.patch, 'placement')) return error(400, 'placement_patch_required');
-        const target = body.patch.placement?.factory_map_object_id;
-        if (target && state.apparatus.some(other => other !== row && other.placement?.factory_map_object_id === target)) return error(409, 'apparatus_placement_conflict');
-        row.placement = body.patch.placement === null ? null : clone(body.patch.placement); row.source_revision += 1; updateFixtureApparatusHash(row, state.planning[row.apparatus_id]); bump();
-        idempotency.set(key, { payload, saved: clone(row) }); return response(row);
-      }
-      return error(405, 'method_not_allowed');
-    }
     if (path === `${base}/apparatus` && method === 'GET') return requires('admin.access', 'production.map.manage', 'catalog.item.read', 'apparatus.queue.read', 'raw_material.assign') ? response(page(state.apparatus, query)) : error(403, 'forbidden');
     if (path === `${base}/items/uoms` && method === 'GET') return response(['kg', 'dona', 'metr']);
     if (path === `${base}/items/bulk-move-group` && method === 'POST') {
@@ -335,9 +379,16 @@ export function createFixture() {
       }
       if (method === 'POST') {
         if (!requires('catalog.item.create')) return error(403, 'forbidden');
-        if (!string(body?.code) || !string(body.name) || !string(body.uom)) return error(400, 'invalid_item');
-        if (state.items.some(row => row.code === body.code)) return error(409, 'duplicate_item_code');
-        const row = { ...clone(body), item_group: body.item_group || 'Xomashyo' }; state.items.push(row); return detail('items', row);
+        if (!object(body)) return error(400, 'invalid_item');
+        const group = string(body.item_group) || 'All Item Groups', finished = finishedGroup(group, state.groups), customer = state.customers.find(row => row.ref === string(body.customer_ref));
+        if (finished && !string(body.customer_ref)) return error(400, 'finished_goods_customer_required');
+        if (string(body.customer_ref) && !customer) return error(404, 'customer_not_found');
+        if ((!finished && !string(body.code)) || !string(body.name) || !string(body.uom)) return error(400, 'invalid_item');
+        const code = finished ? createHash('sha256').update(`synthetic:item:${state.nextId++}`).digest('hex').slice(0, 24).toUpperCase() : string(body.code);
+        if (state.items.some(row => row.code === code)) return error(409, 'duplicate_item_code');
+        const row = { code, name: string(body.name), uom: string(body.uom), item_group: group, is_finished_goods: finished }; state.items.push(row);
+        if (customer) customer.assigned_item_codes.push(code);
+        return response({ code, name: row.name, uom: row.uom, item_group: group });
       }
     }
     if (path === `${base}/item-groups/tree` && method === 'GET') return requires('catalog.item_group.read', 'gscale.catalog.read') ? response(clone(state.groups)) : error(403, 'forbidden');
@@ -345,7 +396,7 @@ export function createFixture() {
       if (!requires('catalog.item_group.manage')) return error(403, 'forbidden');
       if (method === 'POST') {
         if (!string(body?.name) || state.groups.some(row => row.name === body.name)) return error(409, 'duplicate_group');
-        const row = { name: body.name, item_group_name: body.name, parent_item_group: body.parent || '', is_group: body.is_group === true }; state.groups.push(row); return response(row);
+        const row = { name: string(body.name), item_group_name: string(body.name), parent_item_group: string(body.parent) || 'All Item Groups', is_group: body.is_group === true }; state.groups.push(row); return response(row);
       }
       if (method === 'PUT') {
         const row = state.groups.find(row => row.name === body?.name);
@@ -364,8 +415,8 @@ export function createFixture() {
       if (action === 'list' && method === 'GET') return response(page(rows.filter(row => kind !== 'suppliers' || !row.removed).map(row => ({ ...row, assigned_item_count: row.assigned_item_codes.length })), query, false));
       if (!action && method === 'POST') {
         if (!string(body?.name)) return error(400, 'invalid_party');
-        const next = { ref: `QA-${capability.toUpperCase()}-${state.nextId++}`, name: body.name, phone: phone(body.phone), assigned_item_codes: [], blocked: false, removed: false };
-        rows.push(next); return detail(kind, next);
+        const next = { ref: `QA-${capability.toUpperCase()}-${state.nextId++}`, name: string(body.name), phone: phone(body.phone), assigned_item_codes: [], blocked: false, removed: false };
+        rows.push(next); return response(kind === 'suppliers' ? { ...clone(next), assigned_item_count: 0, code: 'QA-CREATED-SUPPLIER-CODE' } : { ref: next.ref, name: next.name, phone: next.phone });
       }
       if (!row) return error(404, 'party_not_found');
       if (action === 'detail' && method === 'GET') return detail(kind, row);
@@ -399,7 +450,8 @@ export function createFixture() {
         if (!string(body?.warehouse)) return error(400, 'warehouse_required');
         let row = state.warehouses.find(row => row.warehouse === body.warehouse);
         if (!row) { row = { product_count: 0, reserved_count: 0 }; state.warehouses.push(row); }
-        Object.assign(row, clone(body)); return response(row);
+        Object.assign(row, { warehouse: string(body.warehouse), company: string(body.company), parent_warehouse: string(body.parent_warehouse), is_group: body.is_group === true });
+        return response({ warehouse: row.warehouse, company: row.company, parent_warehouse: row.parent_warehouse, is_group: row.is_group });
       }
       if (method === 'DELETE') {
         if (!requires('admin.access')) return error(403, 'forbidden');
@@ -420,12 +472,21 @@ export function createFixture() {
       const row = data.find(row => (row.id || row.ref) === ref);
       const permission = kind === 'material-taminotchilar' ? action === 'phone' ? 'party.customer.manage' : action === 'code/regenerate' ? 'party.customer.code.manage' : action === 'item-groups' ? 'admin.access' : 'party.customer.read' : 'admin.access';
       if (!requires(permission)) return error(403, 'forbidden');
-      if (!action && method === 'GET') return response(page(data, query));
+      if (!action && method === 'GET') return response(page(kind === 'system-users' && query.role ? data.filter(row => row.role === query.role) : data, query));
       if (!action && method === 'POST') {
-        if (!string(body?.name) || !string(body.phone)) return error(400, 'invalid_identity');
-        const next = { ...clone(body), id: `qa-${kind}-${state.nextId++}`, code_locked: false, code_retry_after_sec: 0 };
-        if (kind === 'workers') next.level ||= 'Master';
-        data.push(next); return response(next);
+        if (!string(body?.name) || kind !== 'workers' && !string(body.phone)) return error(400, 'invalid_identity');
+        if (kind === 'material-taminotchilar') {
+          const next = { ...clone(body), id: `qa-${kind}-${state.nextId++}`, code_locked: false, code_retry_after_sec: 0 };
+          data.push(next); return response(next);
+        }
+        const level = workerLevels.find(level => level.toLowerCase() === string(body.level).toLowerCase());
+        if (kind === 'workers' && !level || kind === 'system-users' && !systemRoles.includes(body.role)) return error(400, 'invalid_identity');
+        if (string(body.phone) && data.some(row => row.id !== string(body.id) && row.phone === string(body.phone) && (kind !== 'system-users' || row.role === body.role))) return error(409, 'duplicate_phone');
+        const prefix = kind === 'workers' ? 'worker' : body.role;
+        const id = string(body.id) || `${prefix}_${createHash('sha256').update(`synthetic:${prefix}:${state.nextId++}`).digest('hex').slice(0, 24)}`;
+        const next = { id, name: string(body.name), phone: string(body.phone), ...(kind === 'workers' ? { level } : { role: body.role }) };
+        const previous = data.findIndex(row => row.id === id); if (previous < 0) data.push(next); else data[previous] = next;
+        return response(next);
       }
       if (!row) return error(404, 'identity_not_found');
       if (action === 'detail' && method === 'GET') return detail(kind, row);
@@ -480,8 +541,6 @@ export function createFixture() {
       const selected = users.filter(row => (!query.source || row.source === query.source) && (!query.principal_role || row.principal_role === query.principal_role));
       return response({ items: page(selected, query), has_more: (Number(query.offset) || 0) + (Number(query.limit) || 50) < selected.length });
     }
-    if (path === `${base}/inventory/locations` && method === 'GET') return response(state.locations);
-    if (path === `${base}/inventory/assets` && method === 'GET') return response(page(state.assets, query));
     if (path === `${base}/warehouses/items` && method === 'GET') return response(page(state.assets.filter(row => !query.warehouse || row.custody_warehouse === query.warehouse).map(row => ({ warehouse: row.custody_warehouse, code: row.item_code, name: row.item_name, item_group: 'Xomashyo', on_hand_qty: row.qty, package_count: 1, uom: row.uom, order_id: '' })), query));
     if (path === `${base}/warehouses/items/rolls` && method === 'GET') return response(page(state.assets.filter(row => row.item_code === query.item_code), query));
     const rawStock = () => state.assets.map(row => ({ id: row.asset_ref, barcode: row.identifier, warehouse: row.custody_warehouse, item_code: row.item_code, item_name: row.item_name, qty: row.qty, uom: row.uom, width_mm: 515, micron: row.item_code === 'QA-PE-50' ? 50 : 12, status: row.status, reserved_order_id: '' }));
@@ -560,9 +619,11 @@ export function createFixture() {
     if (rule?.status && rule.applyBeforeFailure) Object.assign(result, error(rule.status, rule.error || `http_${rule.status}`, rule.detail));
     if (rule?.dropResponse) result.dropResponse = true;
     if (rule?.invalidJson) result.invalidJson = true;
-    logs.push({ sequence: ++sequence, method, path, query: sanitize(query), body: sanitize(body ?? null),
+    if (rule?.responseBody !== undefined && result.status === 200) { result.body = clone(rule.responseBody); result.responseOverridden = true; }
+    logs.push({ sequence: ++sequence, method, path, query: sanitize(query), body: body instanceof Uint8Array ? { syntheticBinary: true, byteLength: body.byteLength } : sanitize(body ?? null),
       authorized: Boolean(normalizedHeaders.authorization), idempotencyKeyPresent: Boolean(normalizedHeaders['idempotency-key']),
-      status: result.dropResponse ? 'lost' : result.status, error: result.body?.error || null, invalidJson: result.invalidJson || false });
+      expectedRevisionHeader: normalizedHeaders['if-match'] || null,
+      status: result.dropResponse ? 'lost' : result.status, error: result.body?.error || null, invalidJson: result.invalidJson || false, responseOverridden: result.responseOverridden || false });
     if (logs.length > 500) logs.shift();
     return clone(result);
   }
@@ -578,13 +639,13 @@ export function createFixtureServer({ webPorts = [5186, 5184, 5174, 4174], fixtu
     const cors = origin ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {};
     res.setHeader('Cache-Control', 'no-store');
     if (req.method === 'OPTIONS') {
-      res.writeHead(204, { ...cors, 'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Authorization, Content-Type, Idempotency-Key, X-File-Name', 'Access-Control-Max-Age': '0' }); res.end(); return;
+      res.writeHead(204, { ...cors, 'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Authorization, Content-Type, Idempotency-Key, X-File-Name, If-Match, Accept', 'Access-Control-Max-Age': '0' }); res.end(); return;
     }
     try {
-      const chunks = []; let bytes = 0;
-      for await (const chunk of req) { bytes += chunk.length; if (bytes > 1_048_576) throw new Error('fixture_body_too_large'); chunks.push(chunk); }
-      const raw = Buffer.concat(chunks).toString('utf8');
-      const result = await fixture.dispatch({ method: req.method, url: req.url, headers: req.headers, body: raw ? JSON.parse(raw) : undefined });
+      const binary = req.headers['content-type']?.split(';')[0] === fixtureAasxMime, chunks = []; let bytes = 0;
+      for await (const chunk of req) { bytes += chunk.length; if (bytes > (binary ? 16 * 1024 * 1024 : 1_048_576)) throw new Error('fixture_body_too_large'); chunks.push(chunk); }
+      const raw = Buffer.concat(chunks);
+      const result = await fixture.dispatch({ method: req.method, url: req.url, headers: req.headers, body: binary ? new Uint8Array(raw) : raw.length ? JSON.parse(raw.toString('utf8')) : undefined });
       if (result.dropResponse) {
         // Flush a response before losing its body. A socket closed before headers
         // lets Chromium transparently retransmit an idempotent PUT in transport.
@@ -594,8 +655,8 @@ export function createFixtureServer({ webPorts = [5186, 5184, 5174, 4174], fixtu
         res.write(partial, () => setTimeout(() => res.destroy(), 20));
         return;
       }
-      res.writeHead(result.status, { ...cors, 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(result.invalidJson ? '{synthetic-invalid-json' : JSON.stringify(result.body));
+      res.writeHead(result.status, { ...cors, ...(result.headers || {}), 'Content-Type': result.contentType || 'application/json; charset=utf-8', ...(result.body instanceof Uint8Array ? { 'Content-Length': result.body.byteLength } : {}) });
+      res.end(result.body instanceof Uint8Array ? Buffer.from(result.body) : result.invalidJson ? '{synthetic-invalid-json' : JSON.stringify(result.body));
     } catch (caught) {
       if (!res.headersSent) res.writeHead(400, { ...cors, 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: caught.message === 'fixture_body_too_large' ? caught.message : 'invalid_fixture_request' }));
