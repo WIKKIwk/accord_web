@@ -42,6 +42,7 @@ import { ResourceCreateNotice, useResourceCreate } from "@/components/resource-c
 import { ProductionAssignmentControls } from "@/components/production-assignment-controls";
 import { ApparatusAdminControls, ApparatusAdminToolbar } from "@/components/apparatus-admin-controls";
 import { RawMaterialRuleToolbar } from "@/components/raw-material-rule-controls";
+import { ProgressPassportControls } from "@/components/progress-passport-controls";
 import { resourceCreateItemCodePolicy } from "@/lib/resource-create";
 import type { CatalogKind } from "@/lib/catalog-admin";
 import type { MutationLease } from "@/lib/mutation-scope";
@@ -914,6 +915,7 @@ function DetailSheet({
               {row && !detail.isPending && !detail.error && (kind === 'orders' || kind === 'maps') && <ProductionOrderControls row={value} />}
               {row && !detail.isPending && !detail.error && (kind === 'orders' || kind === 'maps') && <ProductionAssignmentControls row={value} />}
               {row && !detail.isPending && !detail.error && (kind === 'wip' || kind === 'opening-wip') && <WipAdminControls kind={kind} row={value} onSaved={refreshMaterialDetail} />}
+              {row && !detail.isPending && !detail.error && (kind === 'wip' || kind === 'opening-wip') && <ProgressPassportControls kind={kind} row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderWipAdminControls row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && kind === 'apparatus' && <ApparatusPlanningControls row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && kind === 'apparatus' && <ApparatusAdminControls row={value} onSaved={refreshMaterialDetail} onRetired={onClose} />}
