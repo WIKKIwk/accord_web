@@ -111,13 +111,34 @@ describe('actual order route stage navigation', () => {
   })
 })
 
-interface VisibleNode { visible: boolean; userData: Record<string, unknown>; parent: VisibleNode | null; children: VisibleNode[]; isInstancedMesh?: boolean; count?: number; traverse: (visit: (object: VisibleNode) => void) => void }
+interface VisibleNode { visible: boolean; userData: Record<string, unknown>; parent: VisibleNode | null; children: VisibleNode[]; isInstancedMesh?: boolean; count?: number; material?: unknown; traverse: (visit: (object: VisibleNode) => void) => void }
 function tree(children: VisibleNode[] = [], patch: Partial<VisibleNode> = {}): VisibleNode {
   const node: VisibleNode = { visible: true, userData: {}, parent: null, children, traverse(visit) { visit(this); for (const child of this.children) child.traverse(visit) }, ...patch }
   for (const child of children) child.parent = node
   return node
 }
 describe('same-scene apparatus isolation and overview restoration', () => {
+  it('adjusts only isolated CAD surface brightness and restores shared materials without cumulative darkening', () => {
+    class Color {
+      r: number; g: number; b: number
+      constructor(r: number, g = r, b = r) { this.r = r; this.g = g; this.b = b }
+      clone() { return new Color(this.r, this.g, this.b) }
+      copy(value: Color) { this.r = value.r; this.g = value.g; this.b = value.b; return this }
+      multiplyScalar(value: number) { this.r *= value; this.g *= value; this.b *= value; return this }
+    }
+    const texture = {}, surface = { isMeshBasicMaterial: true, color: new Color(.9, .85, .8), opacity: .26, map: texture, vertexColors: true }, contours = { isMeshBasicMaterial: true, color: new Color(.008) }, lit = { color: new Color(.9) }
+    const first = tree([tree([], { material: [surface, contours, lit] }), tree([], { material: surface })]), second = tree([], { material: surface }), root = tree([first, second])
+    const target = (id: string) => ({ object: id === 'first' ? first : second, instanceId: null })
+    const view = createFactoryStageView(root, target, { cadContrast: true })
+    view.setObject('first')
+    expect([surface.color.r, surface.color.g, surface.color.b]).toEqual([.54, .51, .48])
+    expect(contours.color.r).toBe(.008); expect(lit.color.r).toBe(.9)
+    expect(surface.opacity).toBe(.26); expect(surface.map).toBe(texture); expect(surface.vertexColors).toBe(true)
+    view.setObject('first'); expect(surface.color.r).toBe(.54)
+    view.setObject('second'); expect(surface.color.r).toBe(.54)
+    view.restore(); expect([surface.color.r, surface.color.g, surface.color.b]).toEqual([.9, .85, .8])
+    createFactoryStageView(root, target).setObject('first'); expect(surface.color.r).toBe(.9)
+  })
   it('shows only the actual apparatus subtree and restores every original visibility bit', () => {
     const part = tree(), first = tree([part]), second = tree([tree()]), hidden = tree([], { visible: false }), ground = tree()
     const root = tree([first, second, hidden, ground]), targets = { first: { object: first, instanceId: null }, second: { object: second, instanceId: null } }

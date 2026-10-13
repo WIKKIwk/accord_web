@@ -8,7 +8,7 @@ import { buildPickBounds, closestMapHits, loadMapBytes, optimizeStaticMap } from
 import { apparatusHit, apparatusObjectId, cleanFactoryMapGeometry, FACTORY_MAP_CLUTTER_BASE_IDS, isFactoryMapApparatus } from './factory-map-scene-policy.js?v=20260907live2';
 import { createFactoryLive, FrameBudget } from './factory-map-live.js?v=20261013stages1';
 import { createFactoryStock } from './factory-map-stock.js?v=20261013stages1';
-import { createFactoryStageView } from './factory-map-stage-view.js?v=20261013stages1';
+import { createFactoryStageView } from './factory-map-stage-view.js?v=20261013stages2';
 import { lockFactoryMapGestures } from './factory-map-gestures.js?v=20260907touch1';
 
 // The module is cached by the browser; mounting is explicit so route re-entry
@@ -814,6 +814,7 @@ function handleRendererState() {
     canvas.dataset.stageView = stageView?.isolatedObjectId ? 'isolated' : 'overview';
     canvas.dataset.isolatedObjectId = stageView?.isolatedObjectId || '';
     canvas.dataset.visibleApparatusIds = JSON.stringify(stageView?.isolatedObjectId ? [stageView.isolatedObjectId] : []);
+    canvas.dataset.cadStageContrast = String(canvas.dataset.factoryMapStyle === 'cad-line-art' && Boolean(stageView?.isolatedObjectId));
     liveView?.setState(state);
     stockView?.setState(state);
   }
@@ -1115,7 +1116,7 @@ async function loadModel() {
           stageView = createFactoryStageView(root, id => {
             const target = selectableTargetForId(id);
             return target && isFactoryMapApparatus(target.object) ? target : null;
-          });
+          }, { cadContrast: root.userData.factory_map_style === 'cad-line-art' });
           canvas.dataset.instancesBefore = String(optimized.instancesBefore);
           canvas.dataset.instancesAfter = String(optimized.instancesAfter);
           canvas.dataset.batchedMeshes = String(optimized.meshesBefore);

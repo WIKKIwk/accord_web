@@ -1,10 +1,13 @@
 // Stage browsing reuses the loaded scene. No model clone, asset fetch or second
 // canvas is needed; optimized original meshes remain available for exact views.
-export function createFactoryStageView(root, getTarget) {
+export function createFactoryStageView(root, getTarget, { cadContrast = false } = {}) {
   const visibility = new Map();
+  const materialColors = new Map();
   root.traverse(object => visibility.set(object, object.visible));
   let current = '';
   function restore() {
+    for (const [material, color] of materialColors) material.color.copy(color);
+    materialColors.clear();
     for (const [object, visible] of visibility) object.visible = visible;
     current = '';
   }
@@ -25,6 +28,19 @@ export function createFactoryStageView(root, getTarget) {
     for (let parent = rendered; parent; parent = parent.parent) parent.visible = true;
     rendered.traverse(object => { object.visible = visibility.get(object) === true || Boolean(object.userData.factoryMapRenderProxy); });
     rendered.visible = true;
+    if (cadContrast) rendered.traverse(object => {
+      for (const material of [].concat(object.material || [])) {
+        if (!material?.isMeshBasicMaterial || !material.color || materialColors.has(material)) continue;
+        const originalColor = material.color.clone();
+        // The export's unlit grey surfaces are close to the light canvas.
+        // Adjust their brightness only while isolated, retaining hue, alpha,
+        // textures, vertex shading and black contours. Overview restores exact
+        // original values even when materials are shared with hidden objects.
+        if (Math.max(originalColor.r, originalColor.g, originalColor.b) < 0.05) continue;
+        materialColors.set(material, originalColor);
+        material.color.multiplyScalar(0.6);
+      }
+    });
     current = id;
     return { changed: true, isolated: current };
   }
