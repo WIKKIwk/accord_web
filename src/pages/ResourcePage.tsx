@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
@@ -38,9 +38,11 @@ import { OrderWipAdminControls, WipAdminControls, WipAdminToolbar } from "@/comp
 import { ApparatusPlanningControls, OrderSchedulingControls } from "@/components/apparatus-planning-controls";
 import { WorkerProfileControls } from "@/components/worker-profile-controls";
 import { InventoryAdminControls, InventoryAdminToolbar } from "@/components/inventory-admin-controls";
+import { ResourceCreateNotice, useResourceCreate } from "@/components/resource-create-controls";
+import { resourceCreateItemCodePolicy } from "@/lib/resource-create";
 import type { CatalogKind } from "@/lib/catalog-admin";
 import type { MutationLease } from "@/lib/mutation-scope";
-import type { CreateResourceKind, ResourceKind, Row } from "@/lib/api-types";
+import type { ResourceKind, Row } from "@/lib/api-types";
 import type { NavigationPage } from "@/lib/navigation";
 import { cellLabel, completionDecisionRequired, display, numberLabel, statusFilterLabel, views } from "@/lib/presentation";
 import { Badge } from "@/components/ui/badge";
@@ -587,73 +589,44 @@ function CreateDialog({
   onSaved: () => void;
 }) {
   const { client, demo, scope, session } = useSession();
-  const [mutations] = useState(() => new MutationScope());
-  const currentScope = useRef(scope);
-  currentScope.current = scope;
-  useEffect(() => () => mutations.cancelAll(), [scope, mutations]);
   const view = views[kind],
     fields = view.fields || [];
+  const initialValues = useMemo(() => Object.fromEntries((views[kind].fields ?? []).map(field => [field.key, field.type === 'checkbox' ? false : field.initial || ''])), [kind]);
   const [validation, setValidation] = useState('');
+  const creation = useResourceCreate(kind, initialValues, receipt => {
+    toast.success(receipt.disposition === 'existing' ? 'Mavjud yozuv tanlandi.' : `${view.singular} ${receipt.disposition === 'saved' ? 'saqlandi' : 'yaratildi'}.`);
+    setValidation('');
+    onSaved();
+    onOpenChange(false);
+  });
+  const { values, setValues } = creation;
+  useEffect(() => setValidation(''), [kind, scope]);
   const groups = useQuery({ queryKey: ['catalog-admin-groups', scope], queryFn: ({ signal }) => demo ? getDemoPage('item-groups', { limit: 500 }) : client!.listSnapshot('item-groups', {}, signal), enabled: open && ['items', 'item-groups'].includes(kind) && canViewPage(session, 'item-groups') });
   const warehouseChoices = useQuery({ queryKey: ['warehouses-picker', scope], queryFn: ({ signal }) => demo ? getDemoPage('warehouses', { limit: 500 }) : client!.list('warehouses', { limit: 500 }, signal), enabled: open && kind === 'warehouses' });
   const uoms = useQuery({ queryKey: ['item-uoms', scope], queryFn: async ({ signal }) => { if (demo) return ['kg', 'dona', 'metr']; const result = await client!.get<unknown>('/v1/mobile/admin/items/uoms', undefined, signal); if (!Array.isArray(result) || result.some(value => typeof value !== 'string')) throw new Error('O‘lchov birliklari olinmadi.'); return result as string[] }, enabled: open && kind === 'items' });
-  const [values, setValues] = useState<Row>(() =>
-    Object.fromEntries(
-      fields.map((f) => [
-        f.key,
-        f.type === "checkbox" ? false : f.initial || "",
-      ]),
-    ),
-  );
-  const mutation = useMutation({
-    mutationFn: async ({ body, request }: { body: Row; request: ScopedRequest }) => {
-      if (request.demo || !request.client)
-        throw new Error("Ko‘rish rejimida ma’lumot saqlanmaydi.");
-      return kind === "users"
-        ? request.client.createSystemUser({
-            role: text(body.role, ""),
-            name: text(body.name, ""),
-            phone: text(body.phone, ""),
-          }, request.lease.controller.signal)
-        : request.client.create(kind as CreateResourceKind, body, request.lease.controller.signal);
-    },
-    onSuccess: (_data, { request }) => {
-      if (request.scope !== currentScope.current || !mutations.isCurrent(request.lease)) return;
-      toast.success(`${view.singular} yaratildi.`);
-      onSaved();
-      onOpenChange(false);
-      setValues(
-        Object.fromEntries(
-          fields.map((f) => [
-            f.key,
-            f.type === "checkbox" ? false : f.initial || "",
-          ]),
-        ),
-      );
-    },
-    onSettled: (_data, _error, { request }) => mutations.finish(request.lease),
-  });
+  let generatedCode = false, policyError = '';
+  try { generatedCode = kind === 'items' && resourceCreateItemCodePolicy(text(values.item_group, ''), groups.data?.items) === 'generated'; }
+  catch (error) { policyError = error instanceof Error ? error.message : 'Material guruhlari to‘liq yuklanmagan. Qayta yuklang.'; }
+  const fieldRequired = (field: typeof fields[number]) => kind === 'items' && field.key === 'code' ? !generatedCode : kind === 'items' && field.key === 'customer_ref' ? generatedCode : !!field.required;
+  const dependenciesBlocked = ['items', 'item-groups'].includes(kind) && canViewPage(session, 'item-groups') && (groups.isPending || !!groups.error) || kind === 'items' && (uoms.isPending || !!uoms.error) || kind === 'warehouses' && (warehouseChoices.isPending || !!warehouseChoices.error);
   function submit(event: FormEvent) {
     event.preventDefault();
-    if (demo || mutation.isPending || !resourceCanCreate(session, kind)) return;
-    if (fields.some(field => field.required && !text(values[field.key], '').trim())) { setValidation('Majburiy maydonlarni to‘ldiring.'); return; }
+    if (creation.blocked || dependenciesBlocked || policyError) return;
+    if (fields.some(field => fieldRequired(field) && !text(values[field.key], '').trim())) { setValidation(generatedCode && !text(values.customer_ref, '').trim() ? 'Tayyor mahsulot uchun mijozni tanlang.' : 'Majburiy maydonlarni to‘ldiring.'); return; }
     setValidation('');
     const body = Object.fromEntries(
-      fields.map(field => [field.key, typeof values[field.key] === 'string' ? String(values[field.key]).trim() : values[field.key]]),
+      fields.map(field => [field.key, kind === 'items' && field.key === 'code' && generatedCode ? '' : typeof values[field.key] === 'string' ? String(values[field.key]).trim() : values[field.key]]),
     );
-    mutation.mutate({ body, request: { scope, client, demo, lease: mutations.begin() } });
+    void creation.submit(body, { groups: groups.data?.items });
   }
   return (
     <Dialog
       open={open}
       onOpenChange={(value) => {
-        if (!mutation.isPending) {
-          mutation.reset();
-          onOpenChange(value);
-        }
+        if (!creation.pending) onOpenChange(value);
       }}
     >
-      <DialogContent>
+      <DialogContent onEscapeKeyDown={event => { if (creation.pending) event.preventDefault() }} onInteractOutside={event => { if (creation.pending) event.preventDefault() }} showCloseButton={!creation.pending}>
         <DialogHeader>
           <DialogTitle>
             Yangi {view.singular.toLocaleLowerCase("uz")}
@@ -672,7 +645,7 @@ function CreateDialog({
                   <Checkbox
                     id={`create-${f.key}`}
                     checked={values[f.key] === true}
-                    disabled={mutation.isPending}
+                    disabled={creation.blocked}
                     onCheckedChange={(v) =>
                       setValues((old) => ({ ...old, [f.key]: v === true }))
                     }
@@ -683,13 +656,13 @@ function CreateDialog({
                 <>
                   <Label htmlFor={`create-${f.key}`}>
                     {f.label}
-                    {f.required && " *"}
+                    {fieldRequired(f) && " *"}
                   </Label>
-                  {kind === 'items' && f.key === 'customer_ref' ? <CatalogPicker id="create-customer-ref" kind="customers" label="Mijoz" value={text(values.customer_ref, '')} selectedLabel={text(values.customer_name, '')} disabled={mutation.isPending || !hasCapability(session, 'party.customer.read')} onSelect={customer => setValues(old => ({ ...old, customer_ref: customer.ref, customer_name: customer.name }))} /> :
-                  ((['items', 'item-groups'].includes(kind) && ['item_group', 'parent'].includes(f.key)) || (kind === 'warehouses' && f.key === 'parent_warehouse')) ? <Select value={text(values[f.key], '') || '__none__'} disabled={mutation.isPending} onValueChange={value => setValues(old => ({ ...old, [f.key]: value === '__none__' ? '' : value }))}><SelectTrigger id={`create-${f.key}`}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="__none__">{f.key === 'item_group' ? 'Guruhni tanlang' : 'Asosiy daraja'}</SelectItem>{(kind === 'warehouses' ? warehouseChoices.data?.items.filter(row => row.is_group) : groups.data?.items.filter(row => f.key === 'item_group' ? !row.is_group : row.is_group))?.map(row => <SelectItem key={text(row.warehouse ?? row.name)} value={text(row.warehouse ?? row.name)}>{text(row.warehouse ?? row.item_group_name ?? row.name)}</SelectItem>)}</SelectContent></Select> : kind === 'items' && f.key === 'uom' ? <Select value={text(values.uom, '')} disabled={mutation.isPending} onValueChange={value => setValues(old => ({ ...old, uom: value }))}><SelectTrigger id="create-uom"><SelectValue /></SelectTrigger><SelectContent>{[...new Set([text(values.uom, 'kg'), ...(uoms.data ?? [])])].filter(Boolean).map(uom => <SelectItem key={uom} value={uom}>{uom}</SelectItem>)}</SelectContent></Select> : f.type === "select" ? (
+                  {kind === 'items' && f.key === 'customer_ref' ? <><CatalogPicker id="create-customer-ref" kind="customers" label="Mijoz" value={text(values.customer_ref, '')} selectedLabel={text(values.customer_name, '')} disabled={creation.blocked || !hasCapability(session, 'party.customer.read')} onSelect={customer => setValues(old => ({ ...old, customer_ref: customer.ref, customer_name: customer.name }))} />{generatedCode && <p className="text-xs text-muted-foreground">Tayyor mahsulot uchun mijoz tanlanishi shart.</p>}{!hasCapability(session, 'party.customer.read') && <p className="text-xs text-muted-foreground">Mijoz tanlash uchun ko‘rish ruxsati yetarli emas.</p>}</> :
+                  ((['items', 'item-groups'].includes(kind) && ['item_group', 'parent'].includes(f.key)) || (kind === 'warehouses' && f.key === 'parent_warehouse')) ? <Select value={text(values[f.key], '') || '__none__'} disabled={creation.blocked || (kind !== 'warehouses' && (!canViewPage(session, 'item-groups') || !!policyError || groups.isPending || !!groups.error)) || (kind === 'warehouses' && (warehouseChoices.isPending || !!warehouseChoices.error))} onValueChange={value => setValues(old => ({ ...old, [f.key]: value === '__none__' ? '' : value }))}><SelectTrigger id={`create-${f.key}`}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="__none__">{f.key === 'item_group' ? 'Guruhni tanlang' : 'Asosiy daraja'}</SelectItem>{(kind === 'warehouses' ? warehouseChoices.data?.items.filter(row => row.is_group) : groups.data?.items.filter(row => f.key === 'item_group' ? !row.is_group : row.is_group))?.map(row => <SelectItem key={text(row.warehouse ?? row.name)} value={text(row.warehouse ?? row.name)}>{text(row.warehouse ?? row.item_group_name ?? row.name)}</SelectItem>)}</SelectContent></Select> : kind === 'items' && f.key === 'uom' ? <Select value={text(values.uom, '')} disabled={creation.blocked || uoms.isPending || !!uoms.error} onValueChange={value => setValues(old => ({ ...old, uom: value }))}><SelectTrigger id="create-uom"><SelectValue /></SelectTrigger><SelectContent>{[...new Set([text(values.uom, 'kg'), ...(uoms.data ?? [])])].filter(Boolean).map(uom => <SelectItem key={uom} value={uom}>{uom}</SelectItem>)}</SelectContent></Select> : f.type === "select" ? (
                     <Select
                       value={text(values[f.key], "")}
-                      disabled={mutation.isPending}
+                      disabled={creation.blocked}
                       onValueChange={(v) =>
                         setValues((old) => ({ ...old, [f.key]: v }))
                       }
@@ -709,9 +682,10 @@ function CreateDialog({
                     <Input
                       id={`create-${f.key}`}
                       type={f.type || "text"}
-                      value={text(values[f.key], "")}
-                      required={f.required}
-                      disabled={mutation.isPending}
+                      value={kind === 'items' && f.key === 'code' && generatedCode ? '' : text(values[f.key], "")}
+                      placeholder={kind === 'items' && f.key === 'code' && generatedCode ? 'Server yaratadi' : undefined}
+                      required={fieldRequired(f)}
+                      disabled={creation.blocked || kind === 'items' && f.key === 'code' && generatedCode}
                       onChange={(e) =>
                         setValues((old) => ({
                           ...old,
@@ -724,22 +698,23 @@ function CreateDialog({
               )}
             </div>
           ))}
-          {(validation || mutation.error || groups.error || warehouseChoices.error || uoms.error) && (
+          {(validation || policyError || groups.error || warehouseChoices.error || uoms.error) && (
             <Alert variant="destructive">
-              <AlertDescription>{validation || mutation.error?.message || groups.error?.message || warehouseChoices.error?.message || uoms.error?.message}{(groups.error || warehouseChoices.error || uoms.error) && <Button type="button" variant="outline" onClick={() => { if (groups.error) void groups.refetch(); if (warehouseChoices.error) void warehouseChoices.refetch(); if (uoms.error) void uoms.refetch() }}>Qayta urinish</Button>}</AlertDescription>
+              <AlertDescription>{validation || policyError || groups.error?.message || warehouseChoices.error?.message || uoms.error?.message}{(policyError || groups.error || warehouseChoices.error || uoms.error) && <Button type="button" variant="outline" onClick={() => { if (policyError || groups.error) void groups.refetch(); if (warehouseChoices.error) void warehouseChoices.refetch(); if (uoms.error) void uoms.refetch() }}>Qayta urinish</Button>}</AlertDescription>
             </Alert>
           )}
+          <ResourceCreateNotice state={creation} />
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
-              disabled={mutation.isPending}
+              disabled={creation.pending}
               onClick={() => onOpenChange(false)}
             >
               Bekor qilish
             </Button>
-            <Button type="submit" disabled={demo || mutation.isPending || !resourceCanCreate(session, kind)}>
-              {mutation.isPending && <Loader2 className="animate-spin" />}
+            <Button type="submit" disabled={creation.blocked || dependenciesBlocked || !!policyError}>
+              {creation.pending && <Loader2 className="animate-spin" />}
               Saqlash
             </Button>
           </DialogFooter>
