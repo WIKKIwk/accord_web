@@ -58,6 +58,10 @@ function AssignmentPanel({ row, orderId }: { row: Row; orderId: string }) {
     if (activeAttempt.current) productionAssignmentAttempts.interrupt(activeAttempt.current)
     activeAttempt.current = null
     pending.current = false; setBusy(false); setForm(null); setReview(null)
+    // Reconnect replaces the verified session/client and cancels the old read
+    // lease. Its previous permission refusal must not keep this panel locked;
+    // the order ledger still retains every dispatched unresolved command.
+    setBlocked(false)
   }, [client, session, mutationScope])
   const policies = productionAssignmentPolicies(snapshot.data, orderId, session, apparatus.data?.items)
   const fresh = Boolean(snapshot.data && !snapshot.isError && Date.now() - snapshot.dataUpdatedAt < 30000)
