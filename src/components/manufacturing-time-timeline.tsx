@@ -8,6 +8,7 @@ import {
 } from '@/lib/manufacturing-time'
 import type { ManufacturingEvent, ManufacturingStage, ManufacturingTimeline, ManufacturingWindow } from '@/lib/manufacturing-time'
 import { DashboardMetric, DashboardNote, DashboardSurface } from '@/components/dashboard-surface'
+import { Timeline, TimelineConnector, TimelineContent as TimelineEventContent, TimelineItem, TimelineMarker, TimelineRail, TimelineTime } from '@/components/dashboardcn/timeline'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -175,19 +176,24 @@ function railInterval(timeline: ManufacturingTimeline, event: ManufacturingEvent
 export function ManufacturingEventRail({ timeline, events, selectedId, timeZone, onSelect }: { timeline: ManufacturingTimeline; events: readonly ManufacturingEvent[]; selectedId: string; timeZone: string; onSelect: (event: ManufacturingEvent) => void }) {
   return <div>
     <div className="flex items-center justify-between gap-3 border-b border-border/65 pb-2 text-[10px] text-muted-foreground"><span>Vaqt · {timeZone}</span><span>Qayd oralig‘i</span></div>
-    <ol aria-label={`Hodisalar ketma-ketligi · ${timeZone}`} className="pb-2">{events.map((event, index) => {
+    <Timeline aria-label={`Hodisalar ketma-ketligi · ${timeZone}`} className="pb-2">{events.map((event, index) => {
       const interval = railInterval(timeline, event, events[index + 1])
-      return <li key={event.id} className="relative">
+      return <TimelineItem key={event.id}>
         {(index === 0 || stageTitle(timeline, event) !== stageTitle(timeline, events[index - 1])) && <p className="ml-[6.9rem] pb-1 pt-4 text-[11px] font-medium text-muted-foreground">{stageTitle(timeline, event)}</p>}
         <div className="relative grid grid-cols-[4.7rem_1rem_minmax(0,1fr)] gap-x-3 gap-y-1.5 py-3 sm:grid-cols-[4.7rem_1rem_minmax(0,1fr)_7.5rem]">
-          <span className="pt-0.5 text-right font-mono text-[11px] tabular-nums text-muted-foreground" title={manufacturingTimeLabel(event.atUnix, timeZone)}>{shortTime(event.atUnix, timeZone)}<span className="sr-only"> · {manufacturingTimeLabel(event.atUnix, timeZone)}</span></span>
-          <span className="relative row-span-2 flex justify-center sm:row-span-1" aria-hidden="true"><span className="absolute -bottom-7 -top-3 w-px bg-border" />{interval && <span data-rail-interval-state={interval.state} data-rail-start={interval.startEventId} data-rail-end={interval.endEventId} className={cn('absolute top-[.4rem] z-10 h-[calc(100%+1.5rem)] w-[7px] rounded-full', spanClasses[interval.state])} />}<span className={cn('relative z-20 mt-1 size-1.5 rounded-full bg-muted-foreground/70', event.id === selectedId && 'size-2 bg-foreground ring-4 ring-card')} /></span>
-          <div className="min-w-0"><Button variant="ghost" size="sm" className="h-auto max-w-full justify-start whitespace-normal px-0 text-left text-xs font-medium" aria-pressed={event.id === selectedId} onClick={() => onSelect(event)}>{event.label}</Button>{event.transition && event.fromState && event.toState && <p className="mt-1 text-[11px] text-muted-foreground">{manufacturingStateLabels[event.fromState]} → {manufacturingStateLabels[event.toState]}</p>}{event.actor && <p className="mt-1 text-[11px] text-muted-foreground">{event.actor}</p>}</div>
+          <TimelineTime dateTime={isoTime(event.atUnix)} title={manufacturingTimeLabel(event.atUnix, timeZone)}>{shortTime(event.atUnix, timeZone)}<span className="sr-only"> · {manufacturingTimeLabel(event.atUnix, timeZone)}</span></TimelineTime>
+          <TimelineRail aria-hidden="true"><TimelineConnector />{interval && <span data-rail-interval-state={interval.state} data-rail-start={interval.startEventId} data-rail-end={interval.endEventId} className={cn('absolute top-[.4rem] z-10 h-[calc(100%+1.5rem)] w-[7px] rounded-full', spanClasses[interval.state])} />}<TimelineMarker className={event.id === selectedId ? 'size-2 bg-foreground ring-4 ring-card' : undefined} /></TimelineRail>
+          <TimelineEventContent><Button variant="ghost" size="sm" className="h-auto max-w-full justify-start whitespace-normal px-0 text-left text-xs font-medium" aria-pressed={event.id === selectedId} onClick={() => onSelect(event)}>{event.label}</Button>{event.transition && event.fromState && event.toState && <p className="mt-1 text-[11px] text-muted-foreground">{manufacturingStateLabels[event.fromState]} → {manufacturingStateLabels[event.toState]}</p>}{event.actor && <p className="mt-1 text-[11px] text-muted-foreground">{event.actor}</p>}</TimelineEventContent>
           <p className="col-start-3 min-w-0 break-words font-mono text-[11px] tabular-nums text-muted-foreground sm:col-start-4 sm:pt-0.5 sm:text-right" title={interval ? `${manufacturingStateLabels[interval.state]} · ${manufacturingTimeLabel(interval.startUnix, timeZone)} — ${manufacturingTimeLabel(interval.endUnix, timeZone)}` : undefined}>{interval ? <><span className="sr-only">Qayd oralig‘i: {manufacturingStateLabels[interval.state]} · </span>{manufacturingDurationLabel(interval.endUnix - interval.startUnix)}</> : <><span className="sr-only">Qayd oralig‘i baholanmagan</span>—</>}</p>
         </div>
-      </li>
-    })}</ol>
+      </TimelineItem>
+    })}</Timeline>
   </div>
+}
+
+function isoTime(unix: number) {
+  const date = new Date(unix * 1000)
+  return Number.isFinite(unix) && Number.isFinite(date.getTime()) ? date.toISOString() : undefined
 }
 
 function shortTime(unix: number, timeZone: string) {

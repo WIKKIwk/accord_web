@@ -69,7 +69,7 @@ describe('Home executive manufacturing view', () => {
     const { scope, queryClient } = setup(); seed(queryClient, scope)
     const html = render(queryClient)
     expect(html).toContain('Yuklangan qism · + kamida shuncha')
-    expect(html).toContain('>2+</p>')
+    expect(html).toContain('>2+</span>')
     expect(html).toContain('1+ ta ombor')
     expect(html).toContain('Partiyalar soni · keyingi bosqich yoki ombor kutilmoqda')
     expect(html).toContain('Yuklangan qism · + kamida shuncha · Partiyalar soni · keyingi bosqich yoki ombor kutilmoqda')
@@ -91,6 +91,21 @@ describe('Home executive manufacturing view', () => {
     for (const match of valueDescriptions) expect(html).toContain(`id="dashboard-value-${match[1]}"`)
     expect(html).toContain('Kamida shuncha')
     expect(html).toContain('aria-label="Yuklangan buyurtmalar holati:')
+  })
+
+  it('uses the adapted metric primitives for actual KPI values and the exclusive loaded-status legend', () => {
+    const { scope, queryClient, fetch } = setup(); seed(queryClient, scope)
+    const html = render(queryClient)
+    expect((html.match(/data-slot="kpi-card"/g) ?? []).length).toBe(6)
+    expect(html).toContain('data-slot="metric-value"')
+    expect(html).toContain('data-slot="metric-list"')
+    expect((html.match(/data-slot="metric-list-row"/g) ?? []).length).toBe(4)
+    expect(html).toContain('aria-label="Yuklangan buyurtmalar holatlari"')
+    expect(html).toContain('grid grid-cols-3')
+    expect(html).not.toContain('data-slot="sparkline"')
+    expect(html).not.toContain('data-slot="delta-badge"')
+    expect(html).not.toContain('recharts')
+    expect(fetch).not.toHaveBeenCalled()
   })
 
   it('keeps role-gated sections and links hidden even when their data is already cached', () => {
