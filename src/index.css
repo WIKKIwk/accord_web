@@ -129,3 +129,22 @@
     @apply font-sans;
     }
 }
+
+/* Keep Radix presence, positioning and focus behavior; only motion is reduced. */
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="dialog-overlay"],
+  [data-slot="dialog-content"],
+  [data-slot="sheet-overlay"],
+  [data-slot="sheet-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="dropdown-menu-sub-content"],
+  [data-slot="select-content"],
+  [data-slot="tooltip-content"],
+  [data-slot="skeleton"],
+  .animate-spin,
+  .animate-pulse,
+  .shimmer {
+    animation: none !important;
+    transition: none !important;
+  }
+}
