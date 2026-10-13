@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowDown, ArrowUp, CheckCircle2, CircleHelp, Loader2, Pause, Play, RefreshCw, Snowflake, TriangleAlert, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -19,6 +19,8 @@ import { MutationScope } from '@/lib/mutation-scope'
 import { canViewPage } from '@/lib/permissions'
 import { executeProductionCommand, ProductionControlError, productionActionLabels, productionControlOrderId, productionOrderCommand, productionOrderPolicy, productionQueueCommand, productionQueuePolicies, productionReorderCommand, type ProductionCommand, type ProductionOrderAction, type ProductionQueuePolicy } from '@/lib/production-controls'
 import { useSession } from '@/lib/session'
+import { productionOperationLedger } from '@/lib/production-operation-ledger'
+import type { ProductionOperationLease } from '@/lib/production-operation-ledger'
 
 interface Confirmation {
   kind: ProductionCommand['kind']
@@ -33,11 +35,13 @@ const lines = (value: string) => value.split(/\r?\n/).map(line => line.trim()).f
 const emptyFrame = () => ({ metres: '', grossKg: '', diameter: '', tareKg: '' })
 const message = (error: unknown) => error instanceof Error ? error.message : 'Amal bajarilmadi.'
 const interrupted = (error: unknown) => error instanceof DOMException && error.name === 'AbortError'
+interface ControlProof { actor: { role: string; ref: string } }
 
 /** Keyed by identity/order so dialogs and requests cannot migrate to another order. */
 export function ProductionOrderControls({ row }: { row: Row }) {
   const { scope } = useSession()
   const orderId = productionControlOrderId(row)
+  productionOperationLedger.activate(scope)
   return <ProductionOrderControlsPanel key={`${scope}:${orderId}`} row={row} orderId={orderId} />
 }
 
@@ -58,10 +62,14 @@ function ProductionOrderControlsPanel({ row, orderId }: { row: Row; orderId: str
   const identityRef = useRef({ client, scope, orderId, session })
   identityRef.current = { client, scope, orderId, session }
   const pendingRef = useRef(false)
+  const activeAttempt = useRef<ProductionOperationLease | null>(null)
+  useSyncExternalStore(productionOperationLedger.subscribe, productionOperationLedger.getRevision, productionOperationLedger.getRevision)
+  const orderAttempt = productionOperationLedger.get(scope, orderId)
+  const ownAttempt = productionOperationLedger.get<ProductionCommand, ControlProof>(scope, orderId, 'legacy-control')
+  const uncertain = ownAttempt?.phase === 'uncertain' ? ownAttempt : null
   const [saving, setSaving] = useState(false)
   const [confirm, setConfirm] = useState<Confirmation | null>(null)
   const [error, setError] = useState('')
-  const [uncertain, setUncertain] = useState<ProductionCommand | null>(null)
   const [blocked, setBlocked] = useState(false)
   const [comment, setComment] = useState('')
   const [quantity, setQuantity] = useState('')
@@ -71,12 +79,23 @@ function ProductionOrderControlsPanel({ row, orderId }: { row: Row; orderId: str
   const [batchId, setBatchId] = useState('')
   const [materials, setMaterials] = useState('')
   const [qolips, setQolips] = useState('')
-  useEffect(() => () => mutationScope.cancelAll(), [mutationScope])
+  useEffect(() => () => {
+    mutationScope.cancelAll()
+    if (activeAttempt.current) productionOperationLedger.interrupt(activeAttempt.current)
+    activeAttempt.current = null
+  }, [mutationScope])
+  useEffect(() => {
+    mutationScope.cancelAll()
+    if (activeAttempt.current) productionOperationLedger.interrupt(activeAttempt.current)
+    activeAttempt.current = null
+    pendingRef.current = false; setSaving(false); setConfirm(null)
+  }, [client, session, mutationScope])
 
   const order = productionOrderPolicy(snapshot.data, orderId, session)
   const queues = productionQueuePolicies(snapshot.data, orderId, session, apparatus.data?.items)
   const fresh = Boolean(snapshot.data && !snapshot.isError && Date.now() - snapshot.dataUpdatedAt < 30_000)
-  const canChange = !demo && Boolean(client) && fresh && !snapshot.isFetching && !saving && !uncertain && !blocked && connection !== 'offline'
+  const canChange = !demo && Boolean(client) && fresh && !snapshot.isFetching && !saving && !orderAttempt && !blocked && connection !== 'offline'
+  const displayedError = uncertain?.error || error
   const map = isRecord(row.map) ? row.map : row
   const orderLabel = text(map.order_number || map.code || orderId)
 
@@ -101,7 +120,7 @@ function ProductionOrderControlsPanel({ row, orderId }: { row: Row; orderId: str
       const result = await snapshot.refetch()
       if (!mutationScope.isCurrent(lease)) return
       void apparatus.refetch()
-      if (result.isSuccess) { setUncertain(null); setBlocked(false); setError('') }
+      if (result.isSuccess) { setBlocked(false); setError('') }
     } finally { mutationScope.finish(lease) }
   }
   const open = (kind: Confirmation['kind'], action: Confirmation['action'], queue?: ProductionQueuePolicy) => {
@@ -111,36 +130,52 @@ function ProductionOrderControlsPanel({ row, orderId }: { row: Row; orderId: str
     setConfirm({ kind, action, queue, snapshot: snapshot.data, apparatusRows: apparatus.data?.items ?? [], apparatusId: queue?.apparatusId ?? '' })
   }
   const run = async (recovery?: ProductionCommand) => {
-    if (!client || demo || pendingRef.current || !recovery && !confirm) return
+    if (!client || demo || pendingRef.current || blocked || connection === 'offline' || !recovery && (!confirm || !canChange)) return
     let plan: ProductionCommand
+    let attemptLease: ProductionOperationLease
+    const actor = { role: String(session?.profile.role ?? '').trim(), ref: String(session?.profile.ref ?? '').trim() }
     try {
-      if (recovery) plan = recovery
+      if (recovery) {
+        if (!uncertain || recovery.kind !== 'reorder' || uncertain.proof.actor.role !== actor.role || uncertain.proof.actor.ref !== actor.ref) throw new ProductionControlError('blocked', 'Avvalgi buyruq aynan shu sessiya va asl navbat identifikatori bilan tekshiriladi.')
+        plan = recovery
+      }
       else if (confirm!.kind === 'order') plan = productionOrderCommand(confirm!.snapshot, orderId, session, confirm!.action as ProductionOrderAction, comment)
       else if (confirm!.kind === 'reorder') plan = productionReorderCommand(confirm!.snapshot, orderId, session, confirm!.apparatusId, confirm!.action as 'move_up' | 'move_down')
       else plan = productionQueueCommand(confirm!.snapshot, orderId, session, confirm!.apparatusRows, confirm!.apparatusId, confirm!.action as 'pause' | 'resume', { quantity, uom, description: comment, frames, qr, batchId, materialBarcodes: lines(materials), qolipCodes: lines(qolips) })
+      attemptLease = productionOperationLedger.begin(scope, { channel: 'legacy-control', orderId, plan, proof: recovery ? uncertain!.proof : { actor } }, Boolean(recovery))
     } catch (failure) { setError(message(failure)); return }
+    activeAttempt.current = attemptLease
     const lease = mutationScope.begin()
     const capturedClient = client, capturedScope = scope, capturedSession = session
     const current = () => mutationScope.isCurrent(lease) && identityRef.current.client === capturedClient && identityRef.current.scope === capturedScope && identityRef.current.orderId === plan.orderId && identityRef.current.session === capturedSession
     pendingRef.current = true; setSaving(true); setError('')
     try {
-      const result = await executeProductionCommand(client, session, plan, lease.controller.signal, current, Boolean(recovery))
+      const result = await executeProductionCommand(client, session, plan, lease.controller.signal, current, Boolean(recovery), () => {
+        if (!productionOperationLedger.dispatched(attemptLease)) throw new DOMException('Amalning buyurtma doirasi o‘zgargan.', 'AbortError')
+      })
+      productionOperationLedger.finish(attemptLease, { confirmed: true })
       if (!current()) return
       await publish(result.snapshot, current)
       if (!current()) return
-      setConfirm(null); setUncertain(null); setBlocked(false)
+      setConfirm(null); setBlocked(false)
       toast.success(result.adjusted ? 'Navbat server ruxsat qilgan eng yaqin o‘ringa surildi.' : result.message)
       if (!result.snapshot) setError('Amal serverda tasdiqlandi. Joriy holat hali yangilanmadi; ma’lumotlarni yangilang.')
       invalidate()
     } catch (failure) {
-      if (!current() || interrupted(failure)) return
+      if (!current() || interrupted(failure)) { productionOperationLedger.interrupt(attemptLease); return }
+      // A dispatched legacy write can fail after a native partial commit. A
+      // refresh or rejection during recovery is not proof that it did nothing.
+      const dispatched = productionOperationLedger.get(scope, orderId, 'legacy-control')?.dispatched === true
+      productionOperationLedger.finish(attemptLease, { error: message(failure), uncertain: dispatched })
       if (failure instanceof ProductionControlError) await publish(failure.snapshot, current)
       if (!current()) return
       setError(message(failure))
-      if (failure instanceof ProductionControlError && failure.kind === 'uncertain') { setUncertain(plan); setConfirm(null) }
+      if (dispatched) setConfirm(null)
       if (failure instanceof ProductionControlError && failure.kind === 'conflict' || failure instanceof ApiError && failure.status === 409) { setConfirm(null); invalidate() }
       if (failure instanceof ApiError && failure.status === 403 || failure instanceof ProductionControlError && failure.kind === 'forbidden') { setBlocked(true); setConfirm(null) }
     } finally {
+      productionOperationLedger.interrupt(attemptLease)
+      if (activeAttempt.current === attemptLease) activeAttempt.current = null
       if (mutationScope.isCurrent(lease)) { pendingRef.current = false; setSaving(false) }
       mutationScope.finish(lease)
     }
@@ -153,7 +188,9 @@ function ProductionOrderControlsPanel({ row, orderId }: { row: Row; orderId: str
 
   return <section className="space-y-4 rounded-lg border p-4" aria-label="Buyurtma va apparat navbatini boshqarish">
     <div className="flex flex-wrap items-start justify-between gap-2"><div className="space-y-1"><h3 className="text-sm font-semibold">Ishlab chiqarishni boshqarish</h3><p className="text-xs text-muted-foreground">Amallar № {orderLabel} buyurtmaga va tanlangan apparatga tegishli.</p></div><Button size="sm" variant="outline" disabled={snapshot.isFetching || saving} onClick={() => void refresh()}><RefreshCw className={snapshot.isFetching ? 'animate-spin' : undefined} />Yangilash</Button></div>
-    {error && <Alert variant={uncertain ? 'default' : 'destructive'}><TriangleAlert /><AlertTitle>{uncertain ? 'Amal natijasi noaniq' : 'Amal bajarilmadi yoki holat yangilanmadi'}</AlertTitle><AlertDescription>{error}{uncertain?.kind === 'reorder' && <Button size="sm" variant="outline" className="mt-2 self-start" disabled={saving} onClick={() => void run(uncertain)}>{saving ? <Loader2 className="animate-spin" /> : <RefreshCw />}Navbat buyrug‘i natijasini qayta tekshirish</Button>}</AlertDescription></Alert>}
+    {orderAttempt && orderAttempt.channel !== 'legacy-control' && <Alert><AlertDescription>Shu buyurtmaning boshqa ishlab chiqarish amali natijasi kutilmoqda. Buyurtmani o‘zgartirishdan oldin avvalgi amal holatini tekshiring.</AlertDescription></Alert>}
+    {ownAttempt?.phase === 'pending' && <p role="status" className="text-xs text-muted-foreground">Buyurtma amali tekshirilmoqda. Shu buyurtmaning boshqa ishlab chiqarish amallari natija aniqlanguncha yopiq.</p>}
+    {displayedError && <Alert variant={uncertain ? 'default' : 'destructive'}><TriangleAlert /><AlertTitle>{uncertain ? 'Amal natijasi noaniq' : 'Amal bajarilmadi yoki holat yangilanmadi'}</AlertTitle><AlertDescription>{displayedError}{uncertain && <><span>Avvalgi amal: {productionActionLabels[uncertain.plan.action]}. Asl buyruq va kiritilgan miqdorlar shu sessiya xotirasida saqlanmoqda.</span>{uncertain.plan.kind === 'reorder' ? <Button size="sm" variant="outline" className="mt-2 self-start" disabled={saving || blocked || connection === 'offline'} onClick={() => void run(uncertain.plan)}>{saving ? <Loader2 className="animate-spin" /> : <RefreshCw />}Navbat buyrug‘i natijasini qayta tekshirish</Button> : <><Button size="sm" variant="outline" className="mt-2 self-start" disabled={saving || snapshot.isFetching} onClick={() => void refresh()}><RefreshCw />Joriy holatni o‘qish</Button><span>Joriy holatni o‘qish avvalgi amalning aniq hisobotini tasdiqlamaydi. Native API bu buyruq uchun qayta yuborish identifikatorini bermaydi; yangi amal yopiq.</span></>}</>}</AlertDescription></Alert>}
     {(snapshot.isError || connection === 'offline') && <Alert><TriangleAlert /><AlertTitle>Joriy boshqaruv holati olinmadi</AlertTitle><AlertDescription>{connection === 'offline' ? 'Server bilan aloqa uzilgan. Holat yangilangach amallar ochiladi.' : message(snapshot.error)}</AlertDescription></Alert>}
     {demo && <p className="flex items-start gap-2 text-xs text-muted-foreground"><CircleHelp className="size-4 shrink-0" />Ko‘rish rejimida ishlab chiqarish amallari serverga yuborilmaydi. Boshqarish uchun serverga ulaning.</p>}
     {snapshot.isLoading ? <Skeleton className="h-16 w-full" /> : <>
@@ -184,7 +221,7 @@ function ProductionOrderControlsPanel({ row, orderId }: { row: Row; orderId: str
         {resume && interaction.material_scan_required === true && <div className="space-y-2"><Label htmlFor="production-resume-materials">Xomashyo kodlari · har qatorda bittadan</Label><Textarea id="production-resume-materials" value={materials} onChange={event => setMaterials(event.target.value)} disabled={saving} /></div>}
         {resume && interaction.qolip_mode === 'scan_required' && <div className="space-y-2"><Label htmlFor="production-resume-qolips">Qolip kodlari · har qatorda bittadan</Label><Textarea id="production-resume-qolips" value={qolips} onChange={event => setQolips(event.target.value)} disabled={saving} /></div>}
         {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-        <DialogFooter><Button variant="outline" disabled={saving} onClick={() => { setConfirm(null); setError('') }}>Bekor qilish</Button><Button variant={closeEarly ? 'destructive' : 'default'} disabled={saving || closeEarly && (!comment.trim() || Array.from(comment.trim()).length > 2000)} onClick={() => void run()}>{saving && <Loader2 className="animate-spin" />}{saving ? 'Server tekshirmoqda…' : 'Tasdiqlash'}</Button></DialogFooter>
+        <DialogFooter><Button variant="outline" disabled={saving} onClick={() => { setConfirm(null); setError('') }}>Bekor qilish</Button><Button variant={closeEarly ? 'destructive' : 'default'} disabled={!canChange || closeEarly && (!comment.trim() || Array.from(comment.trim()).length > 2000)} onClick={() => void run()}>{saving && <Loader2 className="animate-spin" />}{saving ? 'Server tekshirmoqda…' : 'Tasdiqlash'}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   </section>

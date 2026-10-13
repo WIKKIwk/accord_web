@@ -39,6 +39,7 @@ import { ApparatusPlanningControls, OrderSchedulingControls } from "@/components
 import { WorkerProfileControls } from "@/components/worker-profile-controls";
 import { InventoryAdminControls, InventoryAdminToolbar } from "@/components/inventory-admin-controls";
 import { ResourceCreateNotice, useResourceCreate } from "@/components/resource-create-controls";
+import { ProductionAssignmentControls } from "@/components/production-assignment-controls";
 import { ApparatusAdminControls, ApparatusAdminToolbar } from "@/components/apparatus-admin-controls";
 import { RawMaterialRuleToolbar } from "@/components/raw-material-rule-controls";
 import { resourceCreateItemCodePolicy } from "@/lib/resource-create";
@@ -911,6 +912,7 @@ function DetailSheet({
               {row && !detail.isPending && !detail.error && kind === 'raw-materials' && <RawMaterialControls row={value} onSaved={() => void detail.refetch()} />}
               {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderRawMaterialControls row={value} onSaved={() => void detail.refetch()} />}
               {row && !detail.isPending && !detail.error && (kind === 'orders' || kind === 'maps') && <ProductionOrderControls row={value} />}
+              {row && !detail.isPending && !detail.error && (kind === 'orders' || kind === 'maps') && <ProductionAssignmentControls row={value} />}
               {row && !detail.isPending && !detail.error && (kind === 'wip' || kind === 'opening-wip') && <WipAdminControls kind={kind} row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderWipAdminControls row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && kind === 'apparatus' && <ApparatusPlanningControls row={value} onSaved={refreshMaterialDetail} />}

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ApiClient, ApiError } from './api'
 import type { ProductionSnapshot, Row, Session } from './api-types'
+import { ProductionOperationLedger } from './production-operation-ledger'
 import { executeProductionCommand, productionControlOrderId, productionOrderCommand, productionOrderControlState, productionOrderPolicy, productionQueueCommand, productionQueuePolicies, productionReorderCommand } from './production-controls'
 
 const orderId = 'zakaz-1048'
@@ -168,10 +169,10 @@ describe('production mutation preflight, receipts and session scope', () => {
     expect(changed.request).not.toHaveBeenCalled()
   })
 
-  it('never retries an order or queue mutation after a lost response, and reconciles only observed changed state', async () => {
+  it('never retries or clears an unkeyed mutation merely because its target state is observed', async () => {
     const plan = productionOrderCommand(snapshot(), orderId, session(), 'freeze')
     const committed = fakeClient([snapshot(), freezingSnapshot()], () => { throw new ApiError(0, 'network') })
-    expect(await executeProductionCommand(committed.client, session(), plan, signal())).toMatchObject({ reconciled: true, snapshot: freezingSnapshot() })
+    await expect(executeProductionCommand(committed.client, session(), plan, signal())).rejects.toMatchObject({ kind: 'uncertain', snapshot: freezingSnapshot(), message: expect.stringContaining('kutilgan holatga mos') })
     expect(committed.request).toHaveBeenCalledTimes(1)
     const missing = fakeClient([snapshot()], () => { throw new ApiError(0, 'network') })
     await expect(executeProductionCommand(missing.client, session(), plan, signal())).rejects.toMatchObject({ kind: 'uncertain' })
@@ -180,6 +181,23 @@ describe('production mutation preflight, receipts and session scope', () => {
     const queue = fakeClient([snapshot()], () => { throw new ApiError(0, 'timeout') })
     await expect(executeProductionCommand(queue.client, session(), queuePlan, signal())).rejects.toMatchObject({ kind: 'uncertain' })
     expect(queue.request).toHaveBeenCalledTimes(1)
+    const paused = snapshot({ rev: 2, queue_states: { [apparatusId]: { [orderId]: 'paused' } }, queue_action_controls: { [apparatusId]: { [orderId]: control('paused') } } })
+    const observedPause = fakeClient([snapshot(), paused], () => ({ ok: false }))
+    await expect(executeProductionCommand(observedPause.client, session(), queuePlan, signal())).rejects.toMatchObject({ kind: 'uncertain', snapshot: paused })
+    expect(observedPause.request).toHaveBeenCalledTimes(1)
+  })
+
+  it('marks dispatch after preflight and before each exact keyed request, never for rejected preflight', async () => {
+    const plan = productionOrderCommand(snapshot(), orderId, session(), 'freeze'), events: string[] = []
+    const server = fakeClient([snapshot()], () => { events.push('write'); return { ok: true, control: { order_id: orderId, state: 'frozen' } } })
+    server.productionSnapshot.mockImplementation(async () => { events.push('read'); return snapshot() })
+    await executeProductionCommand(server.client, session(), plan, signal(), undefined, false, () => { events.push('dispatch') })
+    expect(events.slice(0, 3)).toEqual(['read', 'dispatch', 'write'])
+    const dispatched = vi.fn(), conflict = fakeClient([pendingSnapshot()], () => ({}))
+    await expect(executeProductionCommand(conflict.client, session(), plan, signal(), undefined, false, dispatched)).rejects.toMatchObject({ kind: 'conflict' })
+    expect(dispatched).not.toHaveBeenCalled(); expect(conflict.request).not.toHaveBeenCalled()
+    await expect(executeProductionCommand(server.client, session(), plan, signal(), undefined, true, dispatched)).rejects.toMatchObject({ kind: 'blocked' })
+    expect(dispatched).not.toHaveBeenCalled()
   })
 
   it('reuses the identical idempotent reorder body after a lost receipt, with no whole-list PUT or fresh key', async () => {
@@ -224,6 +242,25 @@ describe('production mutation preflight, receipts and session scope', () => {
     const abort = new AbortController(); abort.abort()
     await expect(executeProductionCommand(server.client, session(), plan, abort.signal)).rejects.toMatchObject({ name: 'AbortError' })
     expect(server.request).not.toHaveBeenCalled()
+  })
+
+  it('keeps the exact dispatched legacy intent when navigation aborts before a late native receipt', async () => {
+    const plan = productionOrderCommand(snapshot(), orderId, session(), 'freeze'), ledger = new ProductionOperationLedger(), scope = 'controlled-scope'
+    ledger.activate(scope)
+    const operation = ledger.begin(scope, { channel: 'legacy-control', orderId, plan, proof: { actor: { role: 'admin' } } })
+    let resolveWrite!: (response: unknown) => void, started!: () => void
+    const wrote = new Promise<void>(resolve => { started = resolve })
+    const server = fakeClient([snapshot()], () => new Promise(resolve => { resolveWrite = resolve; started() }))
+    const controller = new AbortController()
+    const execution = executeProductionCommand(server.client, session(), plan, controller.signal, undefined, false, () => { expect(ledger.dispatched(operation)).toBe(true) })
+    await wrote
+    expect(() => ledger.begin(scope, { channel: 'assignment', orderId, plan: {}, proof: {} })).toThrow('Avvalgi amal')
+    controller.abort(); ledger.interrupt(operation)
+    resolveWrite({ ok: true, control: { order_id: orderId, state: 'frozen' } })
+    await expect(execution).rejects.toMatchObject({ name: 'AbortError' })
+    ledger.finish(operation, { confirmed: true })
+    expect(ledger.get(scope, orderId)).toMatchObject({ phase: 'uncertain', plan: { body: plan.body } })
+    expect(server.request).toHaveBeenCalledTimes(1)
   })
 
   it('does not publish or reconcile a late write response after its session has been retired', async () => {

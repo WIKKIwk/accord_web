@@ -269,8 +269,9 @@ function observedResult(snapshot: ProductionSnapshot, plan: ProductionCommand): 
 }
 
 /** Native order/queue writes have no revision/idempotency parameter; never invent or replay one. */
-export async function executeProductionCommand(client: ApiClient, session: Session | null, plan: ProductionCommand, signal: AbortSignal, isCurrent: () => boolean = () => true, recoverReorder = false): Promise<ProductionCommandResult> {
+export async function executeProductionCommand(client: ApiClient, session: Session | null, plan: ProductionCommand, signal: AbortSignal, isCurrent: () => boolean = () => true, recoverReorder = false, onDispatch?: () => void): Promise<ProductionCommandResult> {
   checkCurrent(signal, isCurrent)
+  if (recoverReorder && plan.kind !== 'reorder') throw new ProductionControlError('blocked', 'Bu amal uchun native qayta yuborish identifikatori yo‘q. Avvalgi buyruq saqlanmoqda.')
   if (!(plan.kind === 'queue' ? productionCanManageQueue(session) : productionCanManageOrders(session))) throw new ProductionControlError('forbidden', 'Bu amal uchun ruxsat yo‘q.')
   const fresh = await client.productionSnapshot(signal)
   checkCurrent(signal, isCurrent)
@@ -290,6 +291,7 @@ export async function executeProductionCommand(client: ApiClient, session: Sessi
   checkCurrent(signal, isCurrent)
   const path = plan.kind === 'order' ? `${base}/order-control` : plan.kind === 'queue' ? `${base}/queue-action` : `${base}/sequence`
   let response: unknown, writeError: unknown
+  onDispatch?.(); checkCurrent(signal, isCurrent)
   try { response = await client.request(path, 'POST', { body: plan.body, signal }) }
   catch (error) { writeError = error }
   checkCurrent(signal, isCurrent)
@@ -297,6 +299,7 @@ export async function executeProductionCommand(client: ApiClient, session: Sessi
   if (definitive(writeError)) throw writeError
   if (plan.kind === 'reorder' && (writeError || !responseValid(response, plan))) {
     // The service stores the exact command receipt; retry this body/key only.
+    onDispatch?.(); checkCurrent(signal, isCurrent)
     try { response = await client.request(path, 'POST', { body: plan.body, signal }); writeError = undefined }
     catch (error) { writeError = error }
     checkCurrent(signal, isCurrent)
@@ -314,8 +317,9 @@ export async function executeProductionCommand(client: ApiClient, session: Sessi
     if (!integer(revision) || revision < Number(object(response).revision)) readback = undefined
   }
   if (!confirmed) {
-    if (readback && observedResult(readback, plan)) return { snapshot: readback, reconciled: true, adjusted: false, message: plan.action === 'pause' ? 'Serverda to‘xtatilgan holat tasdiqlandi. Hisobotni WIP bo‘limida tekshiring.' : 'Serverdagi yangi holat qayta o‘qib tasdiqlandi.' }
-    throw new ProductionControlError('uncertain', plan.kind === 'reorder' ? 'Navbat buyrug‘i natijasi tasdiqlanmadi. Bir xil buyruq identifikatori saqlandi; natijani qayta tekshirish mumkin.' : 'Amal natijasi tasdiqlanmadi. Holatni yangilang; tasdiqlanmagan amal avtomatik qayta yuborilmadi.', readback)
+    const observed = readback && observedResult(readback, plan)
+    throw new ProductionControlError('uncertain', plan.kind === 'reorder' ? 'Navbat buyrug‘i natijasi tasdiqlanmadi. Bir xil buyruq identifikatori saqlandi; natijani qayta tekshirish mumkin.' :
+      `${observed ? 'Joriy server holati kutilgan holatga mos. ' : ''}Avvalgi amalning aniq natijasi yoki hisoboti tasdiqlanmadi. Buyruq saqlanmoqda va avtomatik qayta yuborilmaydi.`, readback)
   }
   return { snapshot: readback, reconciled: false, adjusted: object(response).adjusted === true,
     message: plan.action === 'close_early' ? 'Erta yopish so‘rovi qabul qilindi. Yakuniy holat serverdan olinadi.' : plan.action === 'unfreeze' ? 'Muzlatish olib tashlandi. Ishni apparat navbatida davom ettirish mumkin.' : plan.action === 'pause' ? 'Ish to‘xtatildi va WIP hisoboti saqlandi.' : 'Amal serverda tasdiqlandi.' }
