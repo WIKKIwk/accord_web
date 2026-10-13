@@ -1,4 +1,5 @@
 import type { CalculateOrderTemplate, CalculateProductQuery, CalculatorInput, CreateResourceKind, Page, Profile, ProductionSnapshot, Query, ResourceKind, Row, Session, SettingsInput } from './api-types'
+import { qaMutationAllowed } from './qa-safety'
 export type { CalculateLayerInput, CalculateOrderTemplate, CalculateProductionOptions, CalculateProductQuery, CalculatorInput, CreateResourceKind, Page, Profile, ProductionSnapshot, Query, ResourceKind, Row, SavedMap, Session, SettingsInput } from './api-types'
 
 const base = '/v1/mobile/admin'
@@ -50,13 +51,29 @@ const errorMessages: Record<string, string> = {
   'too many login attempts; try again later': 'Kirishga urinishlar ko‘payib ketdi. Birozdan keyin qayta urinib ko‘ring.',
   unauthorized: 'Sessiya tugagan. Qayta kiring.',
   forbidden: 'Bu amal uchun ruxsat berilmagan.',
+  'item is used by active order': 'Mahsulot faol buyurtmada ishlatilmoqda. Uni o‘chirib bo‘lmaydi.',
+  'item is used by active rps batch': 'Mahsulot faol partiyada ishlatilmoqda. Uni o‘chirib bo‘lmaydi.',
+  'item is used by active qolip operation': 'Mahsulot faol qolip ishida ishlatilmoqda. Uni o‘chirib bo‘lmaydi.',
+  'item is used by quick order template': 'Mahsulot tezkor buyurtma shablonida ishlatilmoqda. Uni o‘chirib bo‘lmaydi.',
+  'item is used by unresolved material assignment': 'Mahsulotning yakunlanmagan material biriktirishi mavjud. Uni o‘chirib bo‘lmaydi.',
+  'item is still referenced': 'Mahsulotga bog‘liq yozuvlar mavjud. Uni o‘chirib bo‘lmaydi.',
+  'item code already exists': 'Bu mahsulot kodi allaqachon mavjud. Boshqa kodni tanlang.',
+  'warehouse contains child warehouses': 'Omborning ichki omborlari mavjud. Uni o‘chirib bo‘lmaydi.',
+}
+
+function knownBusinessError(code: string): string | undefined {
+  if (errorMessages[code]) return errorMessages[code]
+  const products = /^warehouse contains (\d+) products$/.exec(code)
+  if (products) return `Omborda ${products[1]} ta mahsulot mavjud. Faqat bo‘sh omborni o‘chirish mumkin.`
+  const reservations = /^warehouse contains (\d+) active reservations$/.exec(code)
+  return reservations ? `Omborda ${reservations[1]} ta faol band qilish mavjud. Uni o‘chirib bo‘lmaydi.` : undefined
 }
 
 export class ApiError extends Error {
   readonly status: number
   readonly code: string
   constructor(status: number, code: string, message?: string) {
-    super(message || errorMessages[code] || (status === 401 ? errorMessages.unauthorized : status === 403 ? errorMessages.forbidden : status === 404 ? 'Ma’lumot topilmadi.' : status === 409 ? 'Ma’lumot o‘zgargan. Yangilab qayta urinib ko‘ring.' : status >= 500 ? 'Serverda xatolik yuz berdi.' : 'So‘rov bajarilmadi.'))
+    super(message || knownBusinessError(code) || (status === 401 ? errorMessages.unauthorized : status === 403 ? errorMessages.forbidden : status === 404 ? 'Ma’lumot topilmadi.' : status === 409 ? 'Ma’lumot o‘zgargan. Yangilab qayta urinib ko‘ring.' : status >= 500 ? 'Serverda xatolik yuz berdi.' : 'So‘rov bajarilmadi.'))
     this.name = 'ApiError'
     this.status = status
     this.code = code
@@ -207,6 +224,7 @@ export class ApiClient {
 
   async request<T = unknown>(path: string, method = 'GET', options: RequestOptions = {}): Promise<T> {
     if (!path.startsWith('/') || path.startsWith('//')) throw new Error('API yo‘li noto‘g‘ri.')
+    if (!qaMutationAllowed(this.endpoint, method, path, import.meta.env.VITE_QA_API_ORIGIN)) throw new ApiError(403, 'qa_remote_read_only', 'Bu lokal ko‘rishda haqiqiy serverdagi ma’lumotlar o‘zgartirilmaydi. Saqlash faqat lokal sinov serverida yoqilgan.')
     const url = new URL(`${this.endpoint}${path}`)
     for (const [key, value] of Object.entries(options.query || {})) if (value !== undefined && value !== '') url.searchParams.set(key, String(value))
     const headers = new Headers(options.headers)
@@ -282,12 +300,16 @@ export class ApiClient {
 
   /** Retain the complete response for endpoints without server-side paging. */
   async listSnapshot(kind: ResourceKind, query: Query = {}, signal?: AbortSignal): Promise<Page> {
-    if (['offset', 'envelope'].includes(resourceDefinitions[kind].pagination)) throw new Error('Bu ro‘yxat server orqali qismlarga bo‘lib yuklanadi.')
+    if (['offset', 'envelope'].includes(resourceDefinitions[kind].pagination) && !(kind === 'suppliers' && query.inactive === true)) throw new Error('Bu ro‘yxat server orqali qismlarga bo‘lib yuklanadi.')
     return this.readResourceList(kind, query, signal, false)
   }
 
   private async readResourceList(kind: ResourceKind, query: Query, signal: AbortSignal | undefined, paginate: boolean): Promise<Page> {
     const definition = resourceDefinitions[kind]
+    if (kind === 'suppliers' && query.inactive === true) {
+      const items = rows(await this.get(`${base}/suppliers/inactive`, undefined, signal)).map(row => stripCredentials(kind, row))
+      return { ...(paginate ? pageRows(items, query) : { items, hasMore: false }), bounded: items.length >= 300 }
+    }
     for (const required of definition.required || []) if (!text(query[required], '').trim()) throw new Error('Omborni tanlang.')
     const serverQuery: Query = {}
     for (const param of definition.params || []) if (query[param] !== undefined) serverQuery[param] = query[param]

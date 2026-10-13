@@ -398,6 +398,7 @@ function AppShellContent() {
             </Button>
           </div>
         )}
+        {import.meta.env.VITE_QA_API_ORIGIN && !demo && endpoint !== import.meta.env.VITE_QA_API_ORIGIN && <div className="px-6 pt-4"><Alert><ShieldCheck /><AlertTitle>Lokal ko‘rish — o‘zgarishlar saqlanmaydi</AlertTitle><AlertDescription>Haqiqiy serverdagi ma’lumotlarni ko‘rishingiz mumkin. Bu ko‘rishda saqlash amallari faqat lokal sinov serverida yoqilgan.</AlertDescription></Alert></div>}
         {connection === "offline" && !demo && (
           <div className="px-6 pt-4">
             <Alert>

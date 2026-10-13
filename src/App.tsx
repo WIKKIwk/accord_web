@@ -14,15 +14,16 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AppShell } from "@/components/app-shell";
 import { LoginPage } from "@/pages/LoginPage";
 import { WorkspacePage } from "@/pages/WorkspacePage";
-import { DashboardPage } from "@/pages/DashboardPage";
-import { ResourcePage } from "@/pages/ResourcePage";
-import { SettingsPage, ServerPage } from "@/pages/SystemPages";
-import { CalculatorPage } from "@/pages/CalculatorPage";
-import { ProductionMapPage } from "@/pages/ProductionMapPage";
 import { ProductionWorkflowProvider } from "@/lib/production-workflow";
 import { Loader2 } from "lucide-react";
 import { lazy, Suspense } from "react";
 const FactoryMapPage = lazy(() => import("@/pages/FactoryMapPage"));
+const DashboardPage = lazy(() => import('@/pages/DashboardPage').then(module => ({ default: module.DashboardPage })));
+const ResourcePage = lazy(() => import('@/pages/ResourcePage').then(module => ({ default: module.ResourcePage })));
+const SettingsPage = lazy(() => import('@/pages/SystemPages').then(module => ({ default: module.SettingsPage })));
+const ServerPage = lazy(() => import('@/pages/SystemPages').then(module => ({ default: module.ServerPage })));
+const CalculatorPage = lazy(() => import('@/pages/CalculatorPage').then(module => ({ default: module.CalculatorPage })));
+const ProductionMapPage = lazy(() => import('@/pages/ProductionMapPage').then(module => ({ default: module.ProductionMapPage })));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -81,7 +82,7 @@ export default function App() {
               <Route path="/kirish" element={<LoginPage />} />
               <Route path="/app" element={<Guard />}>
                 <Route index element={<Navigate to="/app/home" replace />} />
-                <Route path=":pageId" element={<Page />} />
+                <Route path=":pageId" element={<Suspense fallback={<div className="flex min-h-72 items-center justify-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" />Sahifa yuklanmoqda…</div>}><Page /></Suspense>} />
               </Route>
               <Route path="*" element={<Navigate to="/app/home" replace />} />
             </Routes>

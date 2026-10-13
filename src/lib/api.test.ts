@@ -15,6 +15,18 @@ function calledBody(fetch: ReturnType<typeof respond>, index = 0): Row { return 
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks() })
 
 describe('ERP transport and session authority', () => {
+  it('explains protected deletion blockers without exposing arbitrary server error text', () => {
+    expect(new ApiError(409, 'item is used by active order').message).toContain('faol buyurtmada')
+    expect(new ApiError(409, 'warehouse contains 3 products').message).toContain('3 ta mahsulot')
+    expect(new ApiError(409, 'untrusted private payload').message).not.toContain('private payload')
+  })
+  it('uses the inactive supplier snapshot and strips access credentials', async () => {
+    const fetch = respond([{ ref: 'removed-1', name: 'Removed', removed: true, code: 'secret' }])
+    const page = await client().listSnapshot('suppliers', { inactive: true })
+    expect(calledUrl(fetch).pathname).toBe('/v1/mobile/admin/suppliers/inactive')
+    expect(page.items).toEqual([{ ref: 'removed-1', name: 'Removed', removed: true }])
+    expect(page.hasMore).toBe(false)
+  })
   it('reports recovered connectivity from an ERP response, including a rejected operation', async () => {
     const onConnectionChange = vi.fn()
     const api = new ApiClient({ endpoint, token: 'session-token', onConnectionChange })

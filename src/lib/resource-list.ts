@@ -22,7 +22,7 @@ export function resourceListOptions({
 }) {
   const limit = 20;
   const local =
-    demo || ["all", "limit"].includes(resourceDefinitions[kind].pagination);
+    demo || (kind === 'suppliers' && query.inactive === true) || ["all", "limit"].includes(resourceDefinitions[kind].pagination);
   return infiniteQueryOptions({
     queryKey: ["resource", scope, kind, "infinite", query],
     initialPageParam: 0,
