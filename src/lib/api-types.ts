@@ -110,7 +110,7 @@ export interface CalculateProductQuery {
   limit?: number
 }
 
-export type CreateResourceKind = 'warehouses' | 'items' | 'customers' | 'suppliers' | 'workers'
+export type CreateResourceKind = 'warehouses' | 'items' | 'item-groups' | 'customers' | 'suppliers' | 'workers'
 
 export interface SettingsInput {
   default_target_warehouse: string

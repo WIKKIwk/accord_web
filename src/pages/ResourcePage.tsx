@@ -27,6 +27,11 @@ import { getDemoPage } from "@/lib/demo";
 import { isRecord, resourceDefinitions, text, valueAt } from "@/lib/api";
 import type { ApiClient } from "@/lib/api";
 import { MutationScope } from "@/lib/mutation-scope";
+import { canManageResource, canViewPage, hasCapability, resourceCanCreate } from "@/lib/permissions";
+import { CatalogAdminControls } from "@/components/catalog-admin-controls";
+import { CatalogPicker } from "@/components/catalog-picker";
+import { AdminIdentityControls, AdminRoleCreateButton } from "@/components/admin-identity-controls";
+import type { CatalogKind } from "@/lib/catalog-admin";
 import type { MutationLease } from "@/lib/mutation-scope";
 import type { CreateResourceKind, ResourceKind, Row } from "@/lib/api-types";
 import type { NavigationPage } from "@/lib/navigation";
@@ -82,20 +87,25 @@ import {
 
 export function ResourcePage({ page }: { page: NavigationPage }) {
   const kind = page.resource!;
-  const { client, demo, scope } = useSession();
+  const { client, demo, scope, session } = useSession();
   const queryClient = useQueryClient();
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const q = useDeferredValue(search.trim());
-  const [status, setStatus] = useState(kind === "wip" ? "waiting" : "all"),
+  const [status, setStatus] = useState(kind === "wip" && ['waiting', 'in_use', 'processed', 'all'].includes(params.get('status') ?? '') ? params.get('status')! : kind === "wip" ? "waiting" : "all"),
     [sort, setSort] = useState<{ key: string; descending: boolean } | null>(
       null,
     );
   const [hidden, setHidden] = useState<string[]>([]),
     [createOpen, setCreateOpen] = useState(false);
   const warehouse = params.get("warehouse") || "";
+  const userRoles = ['supplier', 'customer', 'material_taminotchi', 'worker', 'qolipchi', 'boyoqchi', 'tayyorlov_masteri', 'homashyo_rezkachi'];
+  const role = kind === 'users' && userRoles.includes(params.get('role') ?? '') ? params.get('role')! : '';
   const view = views[kind],
     def = resourceDefinitions[kind];
+  useEffect(() => {
+    if (kind === 'wip') setStatus(['waiting', 'in_use', 'processed', 'all'].includes(params.get('status') ?? '') ? params.get('status')! : 'waiting');
+  }, [kind, params]);
   const warehouses = useQuery({
     queryKey: ["warehouses-picker", scope],
     queryFn: ({ signal }) =>
@@ -111,7 +121,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
       demo,
       scope,
       kind,
-      query: { q, warehouse, ...(kind === "wip" ? { status } : {}) },
+      query: { q, warehouse, ...(kind === "wip" ? { status } : {}), ...(role ? { role } : {}) },
     }),
   );
   const items = data.data?.pages.flatMap((page) => page.items) || [];
@@ -201,7 +211,8 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
             <ArrowDownToLine />
             Eksport
           </Button>
-          {kind === "orders" || kind === "templates" ? (
+          {kind === 'roles' && <AdminRoleCreateButton onSaved={refreshList} />}
+          {(kind === "orders" || kind === "templates") && canViewPage(session, 'calculate') ? (
             <Button asChild>
               <Link to="/app/calculate">
                 <Plus />
@@ -209,7 +220,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
               </Link>
             </Button>
           ) : (
-            view.fields && (
+            view.fields && resourceCanCreate(session, kind) && (
               <Button onClick={() => setCreateOpen(true)}>
                 <Plus />
                 Yangi {view.singular.toLocaleLowerCase("uz")}
@@ -262,6 +273,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
         <TabsContent value="list" className="space-y-4 pt-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+              {kind === 'users' && <Select value={role || 'all'} onValueChange={value => { const next = new URLSearchParams(params); value === 'all' ? next.delete('role') : next.set('role', value); next.delete('selected'); setParams(next); }}><SelectTrigger className="w-48" aria-label="Foydalanuvchi vazifasi"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Barcha vazifalar</SelectItem>{userRoles.map(role => <SelectItem key={role} value={role}>{role === 'worker' ? 'Apparatchi / ishchi' : display(role)}</SelectItem>)}</SelectContent></Select>}
               {def.search !== "none" && (
                 <div className="relative w-full sm:w-72">
                   <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
@@ -275,7 +287,10 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
                 </div>
               )}
               {(filterStates.length > 1 || status !== "all") && (
-                <Select value={status} onValueChange={setStatus}>
+                <Select value={status} onValueChange={value => {
+                  setStatus(value);
+                  if (kind === 'wip') { const next = new URLSearchParams(params); next.set('status', value); next.delete('selected'); setParams(next); }
+                }}>
                   <SelectTrigger
                     className="w-44"
                     aria-label="Holat bo‘yicha filtr"
@@ -515,6 +530,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
         }}
       />
       <DetailSheet
+        key={`${scope}:${kind}:${selectedId ?? ''}`}
         kind={kind}
         row={selected}
         warehouse={warehouse}
@@ -525,7 +541,8 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
 }
 
 function identity(kind: ResourceKind, row: Row) {
-  if (kind === "stock") return JSON.stringify([row.code, row.order_id || ""]);
+  if (kind === "stock") return JSON.stringify([row.warehouse || "", row.code, row.order_id || "", row.uom || ""]);
+  if (kind === "assets") return JSON.stringify([row.kind, row.asset_ref]);
   if (kind === "completed")
     return JSON.stringify([row.order_id, row.apparatus]);
   return text(
@@ -555,13 +572,17 @@ function CreateDialog({
   onOpenChange: (open: boolean) => void;
   onSaved: () => void;
 }) {
-  const { client, demo, scope } = useSession();
+  const { client, demo, scope, session } = useSession();
   const [mutations] = useState(() => new MutationScope());
   const currentScope = useRef(scope);
   currentScope.current = scope;
   useEffect(() => () => mutations.cancelAll(), [scope, mutations]);
   const view = views[kind],
     fields = view.fields || [];
+  const [validation, setValidation] = useState('');
+  const groups = useQuery({ queryKey: ['catalog-admin-groups', scope], queryFn: ({ signal }) => demo ? getDemoPage('item-groups', { limit: 500 }) : client!.listSnapshot('item-groups', {}, signal), enabled: open && ['items', 'item-groups'].includes(kind) && hasCapability(session, 'catalog.item_group.read') });
+  const warehouseChoices = useQuery({ queryKey: ['warehouses-picker', scope], queryFn: ({ signal }) => demo ? getDemoPage('warehouses', { limit: 500 }) : client!.list('warehouses', { limit: 500 }, signal), enabled: open && kind === 'warehouses' });
+  const uoms = useQuery({ queryKey: ['item-uoms', scope], queryFn: async ({ signal }) => { if (demo) return ['kg', 'dona', 'metr']; const result = await client!.get<unknown>('/v1/mobile/admin/items/uoms', undefined, signal); if (!Array.isArray(result) || result.some(value => typeof value !== 'string')) throw new Error('O‘lchov birliklari olinmadi.'); return result as string[] }, enabled: open && kind === 'items' });
   const [values, setValues] = useState<Row>(() =>
     Object.fromEntries(
       fields.map((f) => [
@@ -600,8 +621,11 @@ function CreateDialog({
   });
   function submit(event: FormEvent) {
     event.preventDefault();
+    if (demo || mutation.isPending || !resourceCanCreate(session, kind)) return;
+    if (fields.some(field => field.required && !text(values[field.key], '').trim())) { setValidation('Majburiy maydonlarni to‘ldiring.'); return; }
+    setValidation('');
     const body = Object.fromEntries(
-      Object.entries(values).map(([k, v]) => [k, typeof v === "string" ? v.trim() : v]),
+      fields.map(field => [field.key, typeof values[field.key] === 'string' ? String(values[field.key]).trim() : values[field.key]]),
     );
     mutation.mutate({ body, request: { scope, client, demo, lease: mutations.begin() } });
   }
@@ -634,6 +658,7 @@ function CreateDialog({
                   <Checkbox
                     id={`create-${f.key}`}
                     checked={values[f.key] === true}
+                    disabled={mutation.isPending}
                     onCheckedChange={(v) =>
                       setValues((old) => ({ ...old, [f.key]: v === true }))
                     }
@@ -646,9 +671,11 @@ function CreateDialog({
                     {f.label}
                     {f.required && " *"}
                   </Label>
-                  {f.type === "select" ? (
+                  {kind === 'items' && f.key === 'customer_ref' ? <CatalogPicker id="create-customer-ref" kind="customers" label="Mijoz" value={text(values.customer_ref, '')} selectedLabel={text(values.customer_name, '')} disabled={mutation.isPending || !hasCapability(session, 'party.customer.read')} onSelect={customer => setValues(old => ({ ...old, customer_ref: customer.ref, customer_name: customer.name }))} /> :
+                  ((['items', 'item-groups'].includes(kind) && ['item_group', 'parent'].includes(f.key)) || (kind === 'warehouses' && f.key === 'parent_warehouse')) ? <Select value={text(values[f.key], '') || '__none__'} disabled={mutation.isPending} onValueChange={value => setValues(old => ({ ...old, [f.key]: value === '__none__' ? '' : value }))}><SelectTrigger id={`create-${f.key}`}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="__none__">{f.key === 'item_group' ? 'Guruhni tanlang' : 'Asosiy daraja'}</SelectItem>{(kind === 'warehouses' ? warehouseChoices.data?.items.filter(row => row.is_group) : groups.data?.items.filter(row => f.key === 'item_group' ? !row.is_group : row.is_group))?.map(row => <SelectItem key={text(row.warehouse ?? row.name)} value={text(row.warehouse ?? row.name)}>{text(row.warehouse ?? row.item_group_name ?? row.name)}</SelectItem>)}</SelectContent></Select> : kind === 'items' && f.key === 'uom' ? <Select value={text(values.uom, '')} disabled={mutation.isPending} onValueChange={value => setValues(old => ({ ...old, uom: value }))}><SelectTrigger id="create-uom"><SelectValue /></SelectTrigger><SelectContent>{[...new Set([text(values.uom, 'kg'), ...(uoms.data ?? [])])].filter(Boolean).map(uom => <SelectItem key={uom} value={uom}>{uom}</SelectItem>)}</SelectContent></Select> : f.type === "select" ? (
                     <Select
                       value={text(values[f.key], "")}
+                      disabled={mutation.isPending}
                       onValueChange={(v) =>
                         setValues((old) => ({ ...old, [f.key]: v }))
                       }
@@ -670,6 +697,7 @@ function CreateDialog({
                       type={f.type || "text"}
                       value={text(values[f.key], "")}
                       required={f.required}
+                      disabled={mutation.isPending}
                       onChange={(e) =>
                         setValues((old) => ({
                           ...old,
@@ -682,9 +710,9 @@ function CreateDialog({
               )}
             </div>
           ))}
-          {mutation.error && (
+          {(validation || mutation.error || groups.error || warehouseChoices.error || uoms.error) && (
             <Alert variant="destructive">
-              <AlertDescription>{mutation.error.message}</AlertDescription>
+              <AlertDescription>{validation || mutation.error?.message || groups.error?.message || warehouseChoices.error?.message || uoms.error?.message}{(groups.error || warehouseChoices.error || uoms.error) && <Button type="button" variant="outline" onClick={() => { if (groups.error) void groups.refetch(); if (warehouseChoices.error) void warehouseChoices.refetch(); if (uoms.error) void uoms.refetch() }}>Qayta urinish</Button>}</AlertDescription>
             </Alert>
           )}
           <DialogFooter>
@@ -696,7 +724,7 @@ function CreateDialog({
             >
               Bekor qilish
             </Button>
-            <Button type="submit" disabled={demo || mutation.isPending}>
+            <Button type="submit" disabled={demo || mutation.isPending || !resourceCanCreate(session, kind)}>
               {mutation.isPending && <Loader2 className="animate-spin" />}
               Saqlash
             </Button>
@@ -718,7 +746,7 @@ function DetailSheet({
   warehouse: string;
   onClose: () => void;
 }) {
-  const { client, demo, scope } = useSession();
+  const { client, demo, scope, session } = useSession();
   const queryClient = useQueryClient();
   const [mutations] = useState(() => new MutationScope());
   const currentScope = useRef(scope);
@@ -728,10 +756,10 @@ function DetailSheet({
   const sheetRef = useRef<HTMLDivElement>(null);
   const detail = useQuery({
     queryKey: ["detail", scope, kind, row && identity(kind, row)],
-    queryFn: ({ signal }) => (demo ? row! : client!.detail(kind, row!, signal)),
-    enabled: !!row,
+    queryFn: ({ signal }) => (demo || (kind === 'warehouses' && !canViewPage(session, 'stock')) ? row! : client!.detail(kind, row!, signal)),
+    enabled: !!row && Boolean(demo || client),
   });
-  const value = { ...row, ...detail.data };
+  const value = kind === 'roles' || kind === 'item-groups' ? { ...row } : { ...row, ...detail.data };
   const map = isRecord(value.map) ? value.map : value;
   const nodes = Array.isArray(map.nodes) ? map.nodes.filter(isRecord) : [];
   const capabilities = Array.isArray(value.capability_codes)
@@ -781,6 +809,7 @@ function DetailSheet({
     onSettled: (_data, _error, { request }) => mutations.finish(request.lease),
   });
   function decide(action: "approve" | "reject") {
+    if (decision.isPending || !canManageResource(session, 'completion')) return;
     decision.mutate({ action, selected: row, request: { scope, client, demo, lease: mutations.begin() } });
   }
   return (
@@ -818,6 +847,7 @@ function DetailSheet({
               <AlertDescription>{detail.error.message}</AlertDescription>
             </Alert>
           )}
+          {detail.isPending && <Skeleton className="h-20 w-full" />}
           <Tabs value={tab} onValueChange={setTab}>
             <TabsList>
               <TabsTrigger value="details">Umumiy</TabsTrigger>
@@ -865,7 +895,7 @@ function DetailSheet({
                     </div>
                   ))}
               </dl>
-              {kind === "warehouses" && !value.is_group && (
+              {kind === "warehouses" && !value.is_group && canViewPage(session, 'stock') && (
                 <Button asChild className="w-full">
                   <Link
                     to={`/app/stock?warehouse=${encodeURIComponent(text(value.warehouse, ""))}`}
@@ -876,7 +906,10 @@ function DetailSheet({
                   </Link>
                 </Button>
               )}
-              {kind === "completion" && completionDecisionRequired(value) && (
+              {(kind === 'orders' || kind === 'maps') && canViewPage(session, 'map-editor') && !detail.isPending && !detail.error && <Button asChild className="w-full"><Link to={`/app/map-editor?mapId=${encodeURIComponent(text(map.id, ''))}`} onClick={onClose}>Ish xaritasini tahrirlash<ChevronRight /></Link></Button>}
+              {row && !detail.isPending && !detail.error && (['items', 'item-groups', 'customers', 'suppliers', 'warehouses'].includes(kind) || (kind === 'users' && ['supplier', 'customer'].includes(text(value.principal_role, '')))) && <CatalogAdminControls key={`${scope}:${kind}:${identity(kind, row)}`} kind={(kind === 'users' ? value.principal_role === 'supplier' ? 'suppliers' : 'customers' : kind) as CatalogKind} row={value} onSaved={() => { void detail.refetch() }} onRemoved={onClose} />}
+              {row && !detail.isPending && !detail.error && ['users', 'workers', 'roles'].includes(kind) && <AdminIdentityControls key={`identity:${scope}:${kind}:${identity(kind, row)}`} kind={kind} row={kind === 'roles' ? row : value} onSaved={() => { void detail.refetch() }} onRemoved={onClose} />}
+              {kind === "completion" && completionDecisionRequired(value) && canManageResource(session, 'completion') && (
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground">
                     Hisobotni ko‘rib chiqib, qaroringizni tasdiqlang.
@@ -890,7 +923,7 @@ function DetailSheet({
                   )}
                   <div className="flex gap-2">
                     <Button
-                      disabled={demo || decision.isPending}
+                      disabled={demo || decision.isPending || detail.isPending || detail.isError}
                       onClick={() => decide("approve")}
                     >
                       <Check />
@@ -898,7 +931,7 @@ function DetailSheet({
                     </Button>
                     <Button
                       variant="outline"
-                      disabled={demo || decision.isPending}
+                      disabled={demo || decision.isPending || detail.isPending || detail.isError}
                       onClick={() => decide("reject")}
                     >
                       <X />

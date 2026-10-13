@@ -26,6 +26,7 @@ export function CatalogPicker({
   onSelect,
   calculateProducts = false,
   customerRef = "",
+  disabled = false,
 }: {
   id: string;
   kind: "customers" | "items" | "materials";
@@ -35,6 +36,7 @@ export function CatalogPicker({
   onSelect: (row: Row) => void;
   calculateProducts?: boolean;
   customerRef?: string;
+  disabled?: boolean;
 }) {
   const { client, demo, scope } = useSession();
   const [open, setOpen] = useState(false);
@@ -98,6 +100,7 @@ export function CatalogPicker({
         type="button"
         id={id}
         variant="outline"
+        disabled={disabled}
         className="w-full justify-between font-normal"
         aria-haspopup="dialog"
         aria-expanded={open}
