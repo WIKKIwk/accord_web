@@ -24,6 +24,7 @@ import { useFactoryMap } from '@/lib/use-factory-map'
 import { hasCapability } from '@/lib/permissions'
 import { factoryStageForObject, factoryStageOrderChoices, factoryStageRoute } from '@/lib/factory-stage-navigation'
 import type { FactoryRouteStage } from '@/lib/factory-stage-navigation'
+import { factoryMapIsolatedObjectId, type FactoryMapSelectionSource } from '@/lib/factory-map-selection'
 
 const message = (error: unknown) => typeof error === 'string' && error ? error : error instanceof Error ? error.message : 'Amal bajarilmadi.'
 
@@ -33,6 +34,7 @@ export default function FactoryMapPage() {
   const requestedOrderId = params.get('orderId')?.trim() ?? ''
   const data = useFactoryMap()
   const [selected, setSelected] = useState<FactoryMapObject | null>(null)
+  const [selectionSource, setSelectionSource] = useState<FactoryMapSelectionSource>('overview')
   const [modelObjects, setModelObjects] = useState<FactoryMapObject[]>(() => factoryModelObjects.map(object => ({ ...object, aliases: [...object.aliases] })))
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FactoryMapListFilter>('all')
@@ -55,7 +57,7 @@ export default function FactoryMapPage() {
   const queueRef = useRef<HTMLDivElement>(null)
   const mapTitleId = useId()
   useEffect(() => {
-    setRouteOrderId(requestedOrderId); setViewedStageKey(''); setStageSelectionIssue(''); setSelected(null)
+    setRouteOrderId(requestedOrderId); setViewedStageKey(''); setStageSelectionIssue(''); setSelected(null); setSelectionSource('overview')
     setResetRevision(value => value + 1)
   }, [scope, requestedOrderId])
   useEffect(() => setListLimit(20), [search, filter])
@@ -92,8 +94,7 @@ export default function FactoryMapPage() {
   const stageRoute = useMemo(() => factoryStageRoute(data.snapshot, effectiveRouteOrderId, data.apparatusRows, modelObjects, data.fresh), [data.snapshot, effectiveRouteOrderId, data.apparatusRows, modelObjects, data.fresh])
   const orderChoices = useMemo(() => factoryStageOrderChoices(data.snapshot), [data.snapshot])
   const viewedStage = stageRoute.stages.find(stage => stage.key === viewedStageKey)
-  // A refreshed/edited route cannot leave the previous machine isolated.
-  const isolatedObjectId = viewedStage?.objectId && selected?.objectId === viewedStage.objectId ? viewedStage.objectId : ''
+  const isolatedObjectId = factoryMapIsolatedObjectId(selectionSource, selected?.objectId ?? '', viewedStage)
   const queueIds = apparatus ? factoryMapQueueOrderIds(data.snapshot, apparatus.id) : []
   const apparatusKnown = !data.loading && !data.apparatusError
   const queueKnown = Boolean(data.snapshot && isRecord(data.snapshot.visible_order_ids))
@@ -112,28 +113,31 @@ export default function FactoryMapPage() {
     const route = factoryStageRoute(data.snapshot, nextOrderId, data.apparatusRows, modelObjects, data.fresh)
     const step = factoryStageForObject(route.stages, objectId, nextOrderId === effectiveRouteOrderId ? viewedStageKey : '')
     setRouteOrderId(nextOrderId); setViewedStageKey(step.key); setStageSelectionIssue(nextOrderId ? step.issue : '')
+    setSelectionSource('apparatus')
     setSelected({ ...object, objectId })
     setFocusRevision(value => value + 1)
     setExpanded(false)
   }, [machines, routeOrderId, data.snapshot, data.apparatusRows, modelObjects, data.fresh, effectiveRouteOrderId, viewedStageKey])
-  const showOverview = useCallback(() => { setSelected(null); setViewedStageKey(''); setStageSelectionIssue(''); setResetRevision(value => value + 1) }, [])
+  const showOverview = useCallback(() => { setSelected(null); setSelectionSource('overview'); setViewedStageKey(''); setStageSelectionIssue(''); setResetRevision(value => value + 1) }, [])
   const selectStage = useCallback((stage: FactoryRouteStage | null) => {
     if (!stage) { showOverview(); return }
     const currentStage = stageRoute.stages.find(candidate => candidate.key === stage.key)
+    setSelectionSource('stage')
     setViewedStageKey(stage.key); setStageSelectionIssue('')
     const object = currentStage?.objectId ? modelObjects.find(object => canonicalFactoryMapObjectId(object.objectId) === currentStage.objectId) : undefined
     if (!object) { setSelected(null); setResetRevision(value => value + 1); return }
     setSelected({ ...object, objectId: currentStage!.objectId }); setFocusRevision(value => value + 1)
   }, [stageRoute.stages, modelObjects, showOverview])
   useEffect(() => {
-    if (!viewedStageKey) return
+    // Only an explicit stage selection follows subsequent route edits.
+    if (selectionSource !== 'stage' || !viewedStageKey) return
     if (!viewedStage) { showOverview(); return }
     if (viewedStage.objectId === (selected?.objectId ?? '')) return
     const object = modelObjects.find(object => canonicalFactoryMapObjectId(object.objectId) === viewedStage.objectId)
     setSelected(object ? { ...object, objectId: viewedStage.objectId } : null)
     if (object) setFocusRevision(value => value + 1)
     else setResetRevision(value => value + 1)
-  }, [viewedStageKey, viewedStage?.objectId, selected?.objectId, modelObjects, showOverview, viewedStage])
+  }, [selectionSource, viewedStageKey, viewedStage?.objectId, selected?.objectId, modelObjects, showOverview, viewedStage])
   const confirmPlacement = (row: Row, target: string) => { setSaveError(''); setConfirm({ row, target }) }
   const save = async () => {
     if (!confirm) return
@@ -172,7 +176,7 @@ export default function FactoryMapPage() {
             </div>
           </div>
           <FactoryMapViewer className={expanded ? 'min-h-0 flex-1' : 'h-[min(65vh,680px)] min-h-[360px] sm:min-h-[480px]'} liveState={live} stockState={stock} selectedObjectId={selected?.objectId ?? ''} focusedObjectId={selected?.objectId ?? ''} isolatedObjectId={isolatedObjectId} stageMotionAllowed={!viewedStage || viewedStage.activeExecution} resetRevision={resetRevision} focusRevision={focusRevision} showLabels={showLabels} renderSuspended={Boolean(confirm)} onObjectTap={selectObject} onObjectsReady={objects => { setModelObjects(objects); setModelLoading(false); setModelError('') }} onError={reason => { setModelError(reason); setModelLoading(false) }} onLoading={() => { setModelLoading(true); setModelError('') }} onClearSelection={showOverview} />
-          <FactoryStageStrip route={stageRoute} orderChoices={orderChoices} viewedKey={viewedStageKey} selectionIssue={stageSelectionIssue} onOrderChange={orderId => { setRouteOrderId(orderId); showOverview() }} onStageChange={selectStage} />
+          <FactoryStageStrip route={stageRoute} orderChoices={orderChoices} viewedKey={viewedStageKey} apparatusSelection={selectionSource === 'apparatus' && selected ? { objectId: selected.objectId, label: apparatus?.name || selected.label } : undefined} selectionIssue={stageSelectionIssue} onOrderChange={orderId => { setRouteOrderId(orderId); showOverview() }} onStageChange={selectStage} />
           <div className="flex flex-wrap gap-x-4 gap-y-2 border-t px-4 py-3 text-xs" aria-label="Xarita holatlari izohi">{legendStates.map(state => <span key={state} className="inline-flex items-center gap-1.5"><span className="size-2.5 rounded-full border border-black/10" style={{ backgroundColor: factoryMapStatuses[state].color }} />{factoryMapStatuses[state].label}<span className="tabular-nums text-muted-foreground">{machines.filter(machine => machine.state === state).length}</span></span>)}{apparatusKnown && unboundCount > 0 && <span className="inline-flex items-center gap-1.5 text-muted-foreground"><span className="size-2.5 rounded-full border border-dashed border-muted-foreground" />Biriktirilmagan {unboundCount}</span>}{!apparatusKnown && <span className="text-muted-foreground">Biriktirish ma’lumotlari kutilmoqda</span>}</div>
           <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-3 text-xs text-muted-foreground">
             <span>Aylantirish: sichqoncha · Zoom: scroll · Siljitish: o‘ng tugma · Tanlash: ro‘yxat yoki klaviatura ← →</span>

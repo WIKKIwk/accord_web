@@ -10,6 +10,7 @@ export interface FactoryStageStripProps {
   route: FactoryStageRoute
   orderChoices: { id: string; label: string }[]
   viewedKey: string
+  apparatusSelection?: { objectId: string; label: string }
   selectionIssue?: string
   onOrderChange: (orderId: string) => void
   onStageChange: (stage: FactoryRouteStage | null) => void
@@ -20,25 +21,27 @@ function StageIcon({ stage }: { stage: FactoryRouteStage }) {
 }
 
 /** Selected/viewed is a browsing state; the ERP execution marker is independent. */
-export function FactoryStageStrip({ route, orderChoices, viewedKey, selectionIssue, onOrderChange, onStageChange }: FactoryStageStripProps) {
+export function FactoryStageStrip({ route, orderChoices, viewedKey, apparatusSelection, selectionIssue, onOrderChange, onStageChange }: FactoryStageStripProps) {
   const id = useId(), track = useRef<HTMLDivElement>(null)
-  const viewed = route.stages.find(stage => stage.key === viewedKey), index = viewed ? route.stages.indexOf(viewed) + 1 : 0
+  const routeViewed = route.stages.find(stage => stage.key === viewedKey)
+  const directView = apparatusSelection && apparatusSelection.objectId !== routeViewed?.objectId ? apparatusSelection : undefined
+  const viewed = directView ? undefined : routeViewed, index = viewed ? route.stages.indexOf(viewed) + 1 : 0
   const active = route.stages.filter(stage => stage.activeExecution)
   const steps: (FactoryRouteStage | null)[] = [null, ...route.stages]
   useEffect(() => {
     const button = track.current?.querySelector<HTMLElement>('[aria-current="step"]')
     const row = track.current
     if (button && row) row.scrollTo({ left: Math.max(0, row.scrollLeft + button.getBoundingClientRect().left - row.getBoundingClientRect().left - (row.clientWidth - button.clientWidth) / 2), behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
-  }, [viewedKey, route.orderId])
+  }, [viewedKey, viewed?.key, route.orderId])
   function navigate(position: number, focus = false) {
     const next = Math.max(0, Math.min(steps.length - 1, position))
     onStageChange(steps[next])
     if (focus) track.current?.querySelectorAll<HTMLButtonElement>('button')[next]?.focus({ preventScroll: true })
   }
-  return <section className="space-y-4 border-t bg-card px-4 py-4" aria-label="Buyurtma bosqichlari" data-factory-stage-strip>
-    <div className="grid items-center gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(180px,280px)]"><div className="min-w-0 space-y-1"><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-semibold tabular-nums">{viewed ? `${String(index).padStart(2, '0')} / ${String(route.stages.length).padStart(2, '0')}` : 'Umumiy ko‘rinish'}</p>{viewed && <span className="text-sm font-medium">{viewed.title}</span>}{viewed?.branch && <Badge variant="outline">Rejalashtirilgan tarmoq</Badge>}</div><p className="text-xs leading-relaxed text-muted-foreground">{viewed ? `${viewed.apparatusName || 'Apparat tanlovi tasdiqlanmagan'} · ${viewed.statusLabel}` : route.orderId ? 'Zavodning to‘liq modeli. Bosqichni tanlab uning haqiqiy apparatini alohida ko‘ring.' : 'Buyurtmani tanlab uning haqiqiy bosqichlarini ko‘ring.'}</p></div><div className="space-y-1.5"><Label className="text-xs text-muted-foreground" htmlFor={`${id}-order`}>Buyurtma yo‘li</Label><Select value={route.orderId || '__none__'} disabled={!orderChoices.length} onValueChange={value => onOrderChange(value === '__none__' ? '' : value)}><SelectTrigger id={`${id}-order`} className="w-full"><SelectValue placeholder="Buyurtmani tanlang" /></SelectTrigger><SelectContent><SelectItem value="__none__">Buyurtmani tanlang</SelectItem>{orderChoices.map(order => <SelectItem key={order.id} value={order.id}>{order.label}</SelectItem>)}</SelectContent></Select></div></div>
+  return <section className="space-y-4 border-t bg-card px-4 py-4" aria-label="Buyurtma bosqichlari" data-factory-stage-strip data-factory-apparatus-view={directView?.objectId}>
+    <div className="grid items-center gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(180px,280px)]"><div className="min-w-0 space-y-1"><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-semibold tabular-nums">{directView ? 'Apparat ko‘rinishi' : viewed ? `${String(index).padStart(2, '0')} / ${String(route.stages.length).padStart(2, '0')}` : 'Umumiy ko‘rinish'}</p>{(directView || viewed) && <span className="text-sm font-medium">{directView?.label || viewed?.title}</span>}{viewed?.branch && <Badge variant="outline">Rejalashtirilgan tarmoq</Badge>}</div><p className="text-xs leading-relaxed text-muted-foreground">{directView ? 'Tanlangan apparat alohida ko‘rsatilmoqda.' : viewed ? `${viewed.apparatusName || 'Apparat tanlovi tasdiqlanmagan'} · ${viewed.statusLabel}` : route.orderId ? 'Zavodning to‘liq modeli. Bosqichni tanlab uning haqiqiy apparatini alohida ko‘ring.' : 'Buyurtmani tanlab uning haqiqiy bosqichlarini ko‘ring.'}</p></div><div className="space-y-1.5"><Label className="text-xs text-muted-foreground" htmlFor={`${id}-order`}>Buyurtma yo‘li</Label><Select value={route.orderId || '__none__'} disabled={!orderChoices.length} onValueChange={value => onOrderChange(value === '__none__' ? '' : value)}><SelectTrigger id={`${id}-order`} className="w-full"><SelectValue placeholder="Buyurtmani tanlang" /></SelectTrigger><SelectContent><SelectItem value="__none__">Buyurtmani tanlang</SelectItem>{orderChoices.map(order => <SelectItem key={order.id} value={order.id}>{order.label}</SelectItem>)}</SelectContent></Select></div></div>
     {route.stages.length > 0 && <div className="flex items-center gap-2"><Button type="button" size="icon" variant="outline" className="shrink-0 rounded-full" aria-label="Oldingi bosqich" disabled={index === 0} onClick={() => navigate(index - 1)}><ArrowLeft /></Button><div ref={track} className="min-w-0 flex-1 overflow-x-auto overscroll-x-contain pb-1" aria-label="Bosqichlar bo‘yicha o‘tish"><ol className="flex min-w-max items-start">{steps.map((stage, position) => {
-      const selected = stage ? stage.key === viewedKey : !viewed
+      const selected = stage ? stage.key === viewed?.key : !viewed && !directView
       return <li key={stage?.key ?? 'overview'} className="relative w-24 shrink-0 sm:w-28">{position < steps.length - 1 && <span className="pointer-events-none absolute top-5 left-1/2 h-px w-full bg-border" aria-hidden="true" />}<button type="button" className="relative flex min-h-20 w-full flex-col items-center gap-2 rounded-lg px-1 py-1 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label={stage ? `${position}. ${stage.title}: ${stage.apparatusName || 'Apparat tanlanmagan'}, ${stage.statusLabel}${stage.activeExecution ? ', hozir bajarilmoqda' : ''}` : 'Umumiy ko‘rinish: zavodning to‘liq modeli'} aria-current={selected ? 'step' : undefined} data-stage-key={stage?.key ?? 'overview'} onClick={() => navigate(position)} onKeyDown={event => {
         const target = event.key === 'ArrowRight' ? position + 1 : event.key === 'ArrowLeft' ? position - 1 : event.key === 'Home' ? 0 : event.key === 'End' ? steps.length - 1 : null
         if (target !== null) { event.preventDefault(); navigate(target, true) }
