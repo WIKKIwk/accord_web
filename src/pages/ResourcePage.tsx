@@ -34,6 +34,7 @@ import { AdminIdentityControls, AdminRoleCreateButton } from "@/components/admin
 import { MaterialCatalogControls, MaterialCatalogToolbar } from "@/components/material-catalog-controls";
 import { RawMaterialControls, OrderRawMaterialControls } from "@/components/raw-material-controls";
 import { ProductionOrderControls } from "@/components/production-order-controls";
+import { OrderWipAdminControls, WipAdminControls, WipAdminToolbar } from "@/components/wip-admin-controls";
 import type { CatalogKind } from "@/lib/catalog-admin";
 import type { MutationLease } from "@/lib/mutation-scope";
 import type { CreateResourceKind, ResourceKind, Row } from "@/lib/api-types";
@@ -206,7 +207,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
             {page.description}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             onClick={exportRows}
@@ -217,6 +218,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
           </Button>
           {kind === 'roles' && <AdminRoleCreateButton onSaved={refreshList} />}
           {kind === 'materials' && <MaterialCatalogToolbar onSaved={refreshList} />}
+          {kind === 'opening-wip' && <WipAdminToolbar onSaved={refreshList} />}
           {(kind === "orders" || kind === "templates") && canViewPage(session, 'calculate') ? (
             <Button asChild>
               <Link to="/app/calculate">
@@ -920,6 +922,8 @@ function DetailSheet({
               {row && !detail.isPending && !detail.error && kind === 'raw-materials' && <RawMaterialControls row={value} onSaved={() => void detail.refetch()} />}
               {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderRawMaterialControls row={value} onSaved={() => void detail.refetch()} />}
               {row && !detail.isPending && !detail.error && (kind === 'orders' || kind === 'maps') && <ProductionOrderControls row={value} />}
+              {row && !detail.isPending && !detail.error && (kind === 'wip' || kind === 'opening-wip') && <WipAdminControls kind={kind} row={value} onSaved={refreshMaterialDetail} />}
+              {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderWipAdminControls row={value} onSaved={refreshMaterialDetail} />}
               {kind === "completion" && completionDecisionRequired(value) && canManageResource(session, 'completion') && (
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground">
