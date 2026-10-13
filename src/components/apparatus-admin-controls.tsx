@@ -129,8 +129,22 @@ function ApparatusMaintenanceDialog({ id, name, action, write, onClose, onDone }
   const query = useQuery({ queryKey: ['apparatus-admin-source', scope, id], queryFn: ({ signal }) => api!.read(id, signal), enabled: !!api, staleTime: 0, retry: false, refetchOnWindowFocus: false })
   const options = useQuery({ queryKey: ['apparatus-admin-options', scope], queryFn: ({ signal }) => api!.options(signal), enabled: action === 'edit' && !!api, staleTime: 60_000, retry: false })
   const references = useQuery({ queryKey: ['apparatus-admin-references', scope, id], queryFn: ({ signal }) => api!.references(id, signal), enabled: !!api, staleTime: 0, retry: false, refetchOnWindowFocus: false })
-  const pending = query.isPending || action === 'edit' && options.isPending
-  return <AdminDialog title={action === 'edit' ? 'Apparat profilini tahrirlash' : action === 'retire' ? 'Foydalanishdan chiqarish' : 'AASX faylidan yangilash'} description={name} locked={write.pending || Boolean(write.unknown)} onClose={onClose}><ReadState loading={pending} error={query.error || action === 'edit' && options.error} retry={() => { void query.refetch(); if (action === 'edit') void options.refetch() }}>{query.data && (action !== 'edit' || options.data) && <MaintenanceForm initial={query.data} action={action} options={options.data} references={references.data} referencesError={references.error} referencesLoading={references.isPending || references.isFetching} write={write} onDone={onDone} />}</ReadState></AdminDialog>
+  return <AdminDialog title={action === 'edit' ? 'Apparat profilini tahrirlash' : action === 'retire' ? 'Foydalanishdan chiqarish' : 'AASX faylidan yangilash'} description={name} locked={write.pending || Boolean(write.unknown)} onClose={onClose}><ApparatusMaintenanceReadView source={query} action={action} options={options} references={references} write={write} onDone={onDone} retry={() => { void query.refetch(); if (action === 'edit') void options.refetch() }} /></AdminDialog>
+}
+type MaintenanceRead<T> = { data?: T; error: unknown; isPending: boolean }
+export function ApparatusMaintenanceReadView({ source, action, options, references, write, onDone, retry }: {
+  source: MaintenanceRead<ApparatusAdminSnapshot> & { isFetchedAfterMount: boolean }
+  action: Action
+  options: MaintenanceRead<ApparatusAdminOptions>
+  references: MaintenanceRead<ApparatusReferences> & { isFetching: boolean }
+  write: ReturnType<typeof useApparatusWrite>
+  onDone: (result: ApparatusAdminResult) => void
+  retry: () => void
+}) {
+  // Cached data cannot seed a new command until this dialog's canonical read finishes.
+  // Later background reads leave the mounted form's reviewed draft intact.
+  const pending = source.isPending || !source.isFetchedAfterMount || action === 'edit' && options.isPending
+  return <ReadState loading={pending} error={source.error || action === 'edit' && options.error} retry={retry}>{source.data && (action !== 'edit' || options.data) && <MaintenanceForm initial={source.data} action={action} options={options.data} references={references.data} referencesError={references.error} referencesLoading={references.isPending || references.isFetching} write={write} onDone={onDone} />}</ReadState>
 }
 function ReferenceNotice({ references, error, loading }: { references?: ApparatusReferences; error: unknown; loading: boolean }) {
   if (loading) return <p className="text-xs text-muted-foreground" role="status">Bog‘liq buyurtmalar tekshirilmoqda…</p>
