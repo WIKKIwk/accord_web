@@ -1,4 +1,4 @@
-export type ProductionOperationChannel = 'assignment' | 'legacy-control' | 'completion' | 'material-intake'
+export type ProductionOperationChannel = 'assignment' | 'legacy-control' | 'completion' | 'material-intake' | 'material-link'
 
 export interface ProductionOperation<Plan = unknown, Proof = unknown> {
   channel: ProductionOperationChannel

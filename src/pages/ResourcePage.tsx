@@ -101,6 +101,7 @@ const ApparatusAdminToolbar = lazy(() => import('@/components/apparatus-admin-co
 const ProgressPassportControls = lazy(() => import('@/components/progress-passport-controls').then(module => ({ default: module.ProgressPassportControls })));
 const ProductionCompletionControls = lazy(() => import('@/components/production-completion-controls').then(module => ({ default: module.ProductionCompletionControls })));
 const MaterialIntakeControls = lazy(() => import('@/components/material-intake-controls').then(module => ({ default: module.MaterialIntakeControls })));
+const MaterialLinkRequestControls = lazy(() => import('@/components/material-link-request-controls').then(module => ({ default: module.MaterialLinkRequestControls })));
 
 function DeferredResourceControls({ children }: { children: ReactNode }) {
   return <Suspense fallback={<p role="status" className="py-2 text-xs text-muted-foreground">Boshqaruv yuklanmoqda…</p>}>{children}</Suspense>;
@@ -924,6 +925,7 @@ function DetailSheet({
               {row && !detail.isPending && !detail.error && (kind === 'orders' || kind === 'maps') && <ProductionAssignmentControls row={value} />}
               {row && !detail.isPending && !detail.error && (kind === 'orders' || kind === 'maps') && <DeferredResourceControls><ProductionCompletionControls row={value} /></DeferredResourceControls>}
               {row && !detail.isPending && !detail.error && kind === 'orders' && <DeferredResourceControls><MaterialIntakeControls row={value} onSaved={refreshMaterialDetail} /></DeferredResourceControls>}
+              {row && !detail.isPending && !detail.error && kind === 'orders' && <DeferredResourceControls><MaterialLinkRequestControls row={value} onSaved={refreshMaterialDetail} /></DeferredResourceControls>}
               {row && !detail.isPending && !detail.error && (kind === 'wip' || kind === 'opening-wip') && <WipAdminControls kind={kind} row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && (kind === 'wip' || kind === 'opening-wip') && <DeferredResourceControls><ProgressPassportControls kind={kind} row={value} onSaved={refreshMaterialDetail} /></DeferredResourceControls>}
               {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderWipAdminControls row={value} onSaved={refreshMaterialDetail} />}

@@ -3,7 +3,7 @@ import { ProductionOperationLedger } from './production-operation-ledger'
 import type { ProductionOperationChannel } from './production-operation-ledger'
 
 const scope = 'fixture-auth-scope', orderId = 'zakaz-ledger-1'
-const channels = ['assignment', 'legacy-control', 'completion', 'material-intake'] as const
+const channels = ['assignment', 'legacy-control', 'completion', 'material-intake', 'material-link'] as const
 function operation(channel: ProductionOperationChannel, id = orderId) {
   return { channel, orderId: id, plan: { orderId: id, kind: 'reorder', body: { order_id: id, idempotency_key: 'original-command', before_order_id: 'original-anchor' } }, proof: { actor: { role: 'admin', ref: 'fixture-user' } } }
 }
