@@ -2,6 +2,8 @@ import { isRecord } from './api'
 import type { ProductionSnapshot, Row } from './api-types'
 import { isCanonicalApparatusId, productionMapFromRow } from './production-map'
 import type { ProductionMapDefinition, ProductionMapNode } from './production-map'
+import { productionOrderControlState } from './production-controls'
+import type { ProductionControlState } from './production-controls'
 
 export const manufacturingStates = ['pending', 'print_preflight', 'in_progress', 'paused', 'frozen', 'completed'] as const
 export type ManufacturingState = typeof manufacturingStates[number]
@@ -79,6 +81,9 @@ export interface ManufacturingTimeline {
   source: 'closed_order' | 'batch_lineage' | 'snapshot_only' | 'unavailable'
   asOfUnix: number | null
   fresh: boolean
+  orderControlState?: ProductionControlState | null
+  earlyClosed?: boolean
+  hasIssue?: boolean
   closedAtUnix: number | null
   window: ManufacturingWindow | null
   observedWindowSeconds: number | null
@@ -193,11 +198,13 @@ export function buildManufacturingTimeline(input: ManufacturingTimelineInput): M
   const rawLogs = acceptedClosed ? closed.logs as unknown[] : acceptedReport && Array.isArray(report.logs) ? report.logs : []
   const logById = new Map<string, Row>()
   const conflictKeys = new Set<string>()
+  const conflictApparatus = new Set<string>()
+  let conflictOrderChronology = false
   const invalidKeys = new Set<string>(), invalidApparatus = new Set<string>()
   let invalidOrderChronology = false
   for (const value of rawLogs) {
-    const row = object(value), id = string(row.event_id)
-    if (!id || row.order_id !== orderId || !manufacturingUnix(row.created_at_unix)) {
+    const row = object(value), id = string(row.event_id), timestamp = manufacturingUnix(row.created_at_unix)
+    if (!id || row.order_id !== orderId || timestamp === null || asOfUnix !== null && timestamp > asOfUnix) {
       discardedRecords += 1
       // A malformed boundary cannot simply disappear between valid events.
       if (!isRecord(value) || !string(row.order_id)) invalidOrderChronology = true
@@ -215,8 +222,15 @@ export function buildManufacturingTimeline(input: ManufacturingTimelineInput): M
       if (signature(existing) === signature(row)) duplicateRecords += 1
       else {
         conflictingRecords += 1
-        conflictKeys.add(stageKey(string(existing.stage_node_id), string(existing.apparatus)))
-        conflictKeys.add(stageKey(string(row.stage_node_id), string(row.apparatus)))
+        for (const entry of [existing, row]) {
+          const nodeId = string(entry.stage_node_id), apparatus = string(entry.apparatus)
+          conflictKeys.add(stageKey(nodeId, apparatus))
+          if (!apparatus) conflictOrderChronology = true
+          else if (!nodeId) conflictApparatus.add(apparatus)
+        }
+        // Retain each conflicting raw timestamp as an unknown fact. Choosing
+        // only the first would hide a boundary inside another stage's span.
+        logById.set(`${id}:conflict:${conflictingRecords}`, row)
       }
     } else logById.set(id, row)
   }
@@ -328,7 +342,7 @@ export function buildManufacturingTimeline(input: ManufacturingTimelineInput): M
       const previous = history[index - 1], next = history[index]
       if (next.atUnix <= previous.atUnix) continue
       while (barrierIndex < barriers.length && barriers[barrierIndex] < previous.atUnix) barrierIndex += 1
-      const reason: ManufacturingGap['reason'] | null = conflictKeys.has(stage.key) ? 'conflict' : invalidOrderChronology || invalidKeys.has(stage.key) || invalidApparatus.has(stage.apparatus) ? 'inconsistent' :
+      const reason: ManufacturingGap['reason'] | null = conflictOrderChronology || conflictApparatus.has(stage.apparatus) || conflictKeys.has(stage.key) ? 'conflict' : invalidOrderChronology || invalidKeys.has(stage.key) || invalidApparatus.has(stage.apparatus) ? 'inconsistent' :
         (timestampCounts.get(previous.atUnix) ?? 0) > 1 || (timestampCounts.get(next.atUnix) ?? 0) > 1 ? 'same_second' :
         !previous.transition || !next.transition || previous.toState !== next.fromState ? 'inconsistent' :
         barrierIndex < barriers.length && barriers[barrierIndex] <= next.atUnix ? 'unattributed' : null
@@ -350,7 +364,8 @@ export function buildManufacturingTimeline(input: ManufacturingTimelineInput): M
   if (conflictingRecords) issues.add('Takrorlangan identifikatorli yozuvlar o‘zaro mos emas; tegishli vaqt hisoblari chiqarildi.')
   const window = events.length ? { startUnix: events[0].atUnix, endUnix: events.at(-1)!.atUnix } : null
   return { orderId, orderNumber: string(acceptedClosed ? closed.order_number : map?.order_number), title: string(acceptedClosed ? closed.title : map?.title) || orderId,
-    source, asOfUnix, fresh: input.fresh !== false, closedAtUnix, window, observedWindowSeconds: events.length > 1 && window ? window.endUnix - window.startUnix : null,
+    source, asOfUnix, fresh: input.fresh !== false, orderControlState: input.snapshot && saved ? productionOrderControlState(input.snapshot, orderId) : null,
+    earlyClosed: acceptedClosed && isRecord(closed.early_close), hasIssue: events.some(event => event.issue), closedAtUnix, window, observedWindowSeconds: events.length > 1 && window ? window.endUnix - window.startUnix : null,
     events: events.map(({ responseIndex: _, ...event }) => event), stages: stageValues,
     coverage: { logsReceived: rawLogs.length, duplicateRecords, discardedRecords, conflictingRecords, unattributedEvents, gapCount,
       measuredStageCount: stageValues.filter(stage => stage.recordedSeconds !== null).length, lineageComplete: acceptedReport && typeof report.lineage_complete === 'boolean' ? report.lineage_complete : null, issues: [...issues] } }
@@ -373,6 +388,11 @@ export function manufacturingEventPosition(unix: number, window: ManufacturingWi
   if (window.endUnix <= window.startUnix) return .5
   return Math.max(0, Math.min(1, (unix - window.startUnix) / (window.endUnix - window.startUnix)))
 }
+export function manufacturingNextEventIndex(selectedIndex: number, count: number, direction: number): number {
+  if (count < 1) return -1
+  if (selectedIndex < 0) return 0
+  return Math.max(0, Math.min(count - 1, selectedIndex + direction))
+}
 export function manufacturingZoomWindow(window: ManufacturingWindow, extent: ManufacturingWindow, factor: number, centerUnix?: number): ManufacturingWindow {
   const total = extent.endUnix - extent.startUnix
   if (total <= 0 || !Number.isFinite(factor) || factor <= 0) return { ...extent }
@@ -391,6 +411,8 @@ export interface ManufacturingRanking {
   apparatus: string
   inProgressSeconds: number
   gapCount: number
+  earlyClosed: boolean
+  hasIssue: boolean
 }
 /** Rankings describe the loaded retained cohort, never the whole factory or all-time productivity. */
 export function manufacturingOverview(timelines: readonly ManufacturingTimeline[]) {
@@ -402,7 +424,7 @@ export function manufacturingOverview(timelines: readonly ManufacturingTimeline[
   const orders = [...unique.values()]
   const eligibleOrders = orders.filter(timeline => timeline.coverage.measuredStageCount > 0)
   const rankings: ManufacturingRanking[] = orders.flatMap(timeline => timeline.stages.flatMap(stage => stage.inProgressSeconds !== null ? [{ orderId: timeline.orderId, orderNumber: timeline.orderNumber, title: timeline.title,
-    stageKey: stage.key, stageTitle: stage.title, apparatus: stage.apparatus, inProgressSeconds: stage.inProgressSeconds, gapCount: stage.gaps.length }] : []))
+    stageKey: stage.key, stageTitle: stage.title, apparatus: stage.apparatus, inProgressSeconds: stage.inProgressSeconds, gapCount: stage.gaps.length, earlyClosed: timeline.earlyClosed === true, hasIssue: timeline.hasIssue === true }] : []))
     .sort((a, b) => b.inProgressSeconds - a.inProgressSeconds || a.orderId.localeCompare(b.orderId) || a.stageKey.localeCompare(b.stageKey))
   return { loadedOrders: orders.length, eligibleOrders: eligibleOrders.length, excludedOrders: orders.length - eligibleOrders.length,
     ordersWithGaps: orders.filter(timeline => timeline.coverage.measuredStageCount === 0 || timeline.coverage.gapCount > 0 || timeline.coverage.unattributedEvents > 0 || timeline.coverage.discardedRecords > 0 || timeline.coverage.conflictingRecords > 0).length,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ProductionSnapshot, Row } from './api-types'
-import { buildManufacturingTimeline, manufacturingDurationLabel, manufacturingEventPosition, manufacturingOverview, manufacturingTimeLabel, manufacturingUnionSeconds, manufacturingUnix, manufacturingZoomWindow } from './manufacturing-time'
+import { buildManufacturingTimeline, manufacturingDurationLabel, manufacturingEventPosition, manufacturingNextEventIndex, manufacturingOverview, manufacturingTimeLabel, manufacturingUnionSeconds, manufacturingUnix, manufacturingZoomWindow } from './manufacturing-time'
 
 const orderId = 'zakaz-time-fixture', apparatus = 'apparatus:print:fixture', base = 1_800_000_000
 function log(id: string, offset: number, action: string, from: string, to: string, patch: Row = {}): Row {
@@ -73,6 +73,14 @@ describe('manufacturing time native evidence', () => {
     expect(result).toMatchObject({ source: 'snapshot_only', observedWindowSeconds: null })
     expect(result.stages[0]).toMatchObject({ currentState: 'in_progress', lastActivityAtUnix: base + 100, inProgressSeconds: null, intervals: [] })
     expect(result.events[0].label).toBe('Oxirgi saqlangan faollik')
+  })
+  it('preserves underlying stage facts while disclosing the separate native order hold', () => {
+    for (const state of ['frozen', 'freeze_requested'] as const) {
+      const live = snapshot({ stage_states: { [orderId]: { 'print-stage': 'in_progress' } }, order_controls: { [orderId]: { order_id: orderId, state, ...(state === 'freeze_requested' ? { freeze_request: { request_id: 'freeze-1', status: 'pending', target_apparatus: apparatus } } : {}) } } })
+      const result = buildManufacturingTimeline({ orderId, snapshot: live, asOfUnix: base + 1000 })
+      expect(result.orderControlState).toBe(state)
+      expect(result.stages[0]).toMatchObject({ currentState: 'in_progress', inProgressSeconds: null, intervals: [] })
+    }
   })
 
   it('keeps a state mismatch as a visible gap and never bridges it', () => {
@@ -167,9 +175,36 @@ describe('manufacturing time native evidence', () => {
     expect(result.coverage.discardedRecords).toBe(1)
     expect(result.stages[0].gaps[0].reason).toBe('inconsistent')
   })
+
+  it('does not erase a future-only queue boundary and bridge the remaining matching states', () => {
+    const result = timeline([log('start', 0, 'start', 'pending', 'in_progress'),
+      log('future-pause', 1001, 'pause', 'in_progress', 'paused'), log('complete', 200, 'complete', 'in_progress', 'completed')])
+    expect(result.stages[0].inProgressSeconds).toBeNull()
+    expect(result.stages[0].recordedSeconds).toBeNull()
+    expect(result.coverage.discardedRecords).toBe(1)
+    expect(result.stages[0].gaps).toEqual([{ startUnix: base, endUnix: base + 200, reason: 'inconsistent' }])
+    expect(result.events.some(event => event.id === 'queue:future-pause')).toBe(false)
+  })
+
+  it('invalidates an apparatus for stage-less duplicate conflicts and retains both unknown facts', () => {
+    const result = timeline([log('start', 0, 'start', 'pending', 'in_progress'), log('complete', 200, 'complete', 'in_progress', 'completed'),
+      log('ambiguous-pause', 300, 'pause', 'in_progress', 'paused', { stage_node_id: '' }), log('ambiguous-pause', 100, 'pause', 'in_progress', 'paused', { stage_node_id: '' })])
+    expect(result.stages[0].recordedSeconds).toBeNull()
+    expect(result.stages[0].gaps).toEqual([{ startUnix: base, endUnix: base + 200, reason: 'conflict' }])
+    expect(result.coverage).toMatchObject({ conflictingRecords: 1, unattributedEvents: 2, gapCount: 1 })
+    const facts = result.events.filter(event => event.id.startsWith('queue:ambiguous-pause'))
+    expect(facts.map(event => event.atUnix)).toEqual([base + 100, base + 300])
+    expect(facts.every(event => !event.transition && event.issue && event.stageKey === null)).toBe(true)
+  })
 })
 
 describe('time presentation and bounded cohort', () => {
+  it('keeps early closure and recorded issues visible in the executive cohort', () => {
+    const entries = logs(); entries[1] = { ...entries[1], completed_with_issue: true, issue_note: 'Fixture issue' }
+    const result = timeline(entries, { early_close: { comment: 'Fixture early close' } })
+    expect(result).toMatchObject({ earlyClosed: true, hasIssue: true })
+    expect(manufacturingOverview([result]).rankings[0]).toMatchObject({ earlyClosed: true, hasIssue: true })
+  })
   it('unions overlapping observations and keeps unavailable data distinct from zero', () => {
     expect(manufacturingUnionSeconds([{ startUnix: base, endUnix: base + 100 }, { startUnix: base + 50, endUnix: base + 150 }, { startUnix: base + 200, endUnix: base + 250 }])).toBe(200)
     expect(manufacturingUnionSeconds([{ startUnix: base, endUnix: base }, { startUnix: base + 1, endUnix: base }])).toBeNull()
@@ -197,6 +232,14 @@ describe('time presentation and bounded cohort', () => {
     expect(manufacturingEventPosition(base - 10, extent)).toBe(0)
     expect(manufacturingEventPosition(base + 500, extent)).toBe(.5)
     expect(manufacturingEventPosition(base + 1, { startUnix: base, endUnix: base })).toBe(.5)
+  })
+
+  it('selects the first filtered event when the previous selection is outside the result', () => {
+    expect(manufacturingNextEventIndex(-1, 3, 1)).toBe(0)
+    expect(manufacturingNextEventIndex(-1, 3, -1)).toBe(0)
+    expect(manufacturingNextEventIndex(0, 3, 1)).toBe(1)
+    expect(manufacturingNextEventIndex(2, 3, 1)).toBe(2)
+    expect(manufacturingNextEventIndex(0, 0, 1)).toBe(-1)
   })
 
   it('retains the supplied stale observation cutoff and never advances it to the browser clock', () => {

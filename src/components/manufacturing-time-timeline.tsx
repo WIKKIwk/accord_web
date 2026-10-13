@@ -3,7 +3,7 @@ import type { KeyboardEvent } from 'react'
 import { ArrowLeft, ArrowRight, ChevronDown, Clock3, ListFilter, RotateCcw, Search, ZoomIn, ZoomOut } from 'lucide-react'
 import { cn } from 'cn'
 import {
-  manufacturingDurationLabel, manufacturingEventPosition, manufacturingStateLabels,
+  manufacturingDurationLabel, manufacturingEventPosition, manufacturingNextEventIndex, manufacturingStateLabels,
   manufacturingTimeLabel, manufacturingTimeZone, manufacturingZoomWindow,
 } from '@/lib/manufacturing-time'
 import type { ManufacturingEvent, ManufacturingStage, ManufacturingTimeline, ManufacturingWindow } from '@/lib/manufacturing-time'
@@ -68,13 +68,13 @@ function TimelineContent({ timeline, timeZone = manufacturingTimeZone(), classNa
     if (focus) requestAnimationFrame(() => markerRefs.current.get(event.atUnix)?.focus())
   }
   function move(direction: number) {
-    const next = filteredEvents[Math.max(0, Math.min(filteredEvents.length - 1, (selectedIndex < 0 ? 0 : selectedIndex) + direction))]
+    const next = filteredEvents[manufacturingNextEventIndex(selectedIndex, filteredEvents.length, direction)]
     if (next) select(next)
   }
   function rulerKey(event: KeyboardEvent) {
     if (!filteredEvents.length || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
     event.preventDefault()
-    const index = event.key === 'Home' ? 0 : event.key === 'End' ? filteredEvents.length - 1 : Math.max(0, Math.min(filteredEvents.length - 1, (selectedIndex < 0 ? 0 : selectedIndex) + (event.key === 'ArrowRight' ? 1 : -1)))
+    const index = event.key === 'Home' ? 0 : event.key === 'End' ? filteredEvents.length - 1 : manufacturingNextEventIndex(selectedIndex, filteredEvents.length, event.key === 'ArrowRight' ? 1 : -1)
     select(filteredEvents[index], true)
   }
   const canZoom = Boolean(window && extent && extent.endUnix > extent.startUnix)
@@ -89,7 +89,7 @@ function TimelineContent({ timeline, timeZone = manufacturingTimeZone(), classNa
     <CardHeader className="gap-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 space-y-1"><CardTitle className="text-lg">Bosqichlar va vaqt qaydlari</CardTitle><CardDescription className="break-words">{timeline.orderNumber ? `#${timeline.orderNumber} · ` : ''}{timeline.title}</CardDescription></div>
-        <div className="flex flex-wrap items-center gap-2"><Badge variant="outline">{sourceLabels[timeline.source]}</Badge>{timeline.coverage.lineageComplete !== null && <Badge variant="outline">{timeline.coverage.lineageComplete ? 'Partiya zanjiri to‘liq' : 'Partiya zanjiri qisman'}</Badge>}{!timeline.fresh && <Badge variant="secondary">Oxirgi olingan ma’lumot</Badge>}</div>
+        <div className="flex flex-wrap items-center gap-2"><Badge variant="outline">{sourceLabels[timeline.source]}</Badge>{timeline.earlyClosed && <Badge variant="outline">Erta yopilgan</Badge>}{timeline.hasIssue && <Badge variant="outline">Muammoli qayd</Badge>}{timeline.coverage.lineageComplete !== null && <Badge variant="outline">{timeline.coverage.lineageComplete ? 'Partiya zanjiri to‘liq' : 'Partiya zanjiri qisman'}</Badge>}{!timeline.fresh && <Badge variant="secondary">Oxirgi olingan ma’lumot</Badge>}</div>
       </div>
       <p className="text-xs leading-5 text-muted-foreground">Olingan vaqt: <span className="font-mono tabular-nums">{manufacturingTimeLabel(timeline.asOfUnix, timeZone)}</span> · {timeZone} vaqti</p>
     </CardHeader>
@@ -100,6 +100,7 @@ function TimelineContent({ timeline, timeZone = manufacturingTimeZone(), classNa
         <Metric label="Baholanmagan oraliqlar" value={timeline.source === 'closed_order' && timeline.stages.some(stage => stage.intervals.length || stage.gaps.length) ? String(timeline.coverage.gapCount) : '—'} detail={`${timeline.coverage.unattributedEvents} bosqichga ulanmagan hodisa`} />
       </div>
       <Alert><Clock3 /><AlertDescription>{sourceExplanation}</AlertDescription></Alert>
+      {timeline.orderControlState && timeline.orderControlState !== 'active' && <Alert><AlertDescription><p className="font-medium">{!timeline.fresh ? 'Oxirgi kuzatuvda: ' : ''}{timeline.orderControlState === 'frozen' ? 'Buyurtma muzlatilgan.' : timeline.orderControlState === 'freeze_requested' ? 'Buyurtmani muzlatish so‘rovi kutilmoqda.' : 'Buyurtmaning boshqaruv holati noma’lum.'}</p><p>Bosqichlar jadvalidagi holatlar saqlangan bosqich qaydlaridir. Buyurtmaning umumiy cheklovi alohida amal qiladi.</p></AlertDescription></Alert>}
       {timeline.source === 'closed_order' && timeline.coverage.lineageComplete !== null && <p className="text-xs leading-5 text-muted-foreground">Partiya sessiyalari va vaqt belgilarining qamrovi tanlangan zanjirga tegishli. Holat davomiyligi buyurtmaning saqlangan yozuvlaridan hisoblangan.</p>}
       {timeline.coverage.issues.length > 0 && <Collapsible>
         <CollapsibleTrigger asChild><Button variant="ghost" size="sm" className="gap-2 px-0">Qamrov tafsilotlari <ChevronDown className="size-4" /></Button></CollapsibleTrigger>
@@ -133,7 +134,7 @@ function TimelineContent({ timeline, timeZone = manufacturingTimeZone(), classNa
       </section>}
 
       {selected && <section aria-label="Tanlangan hodisa" aria-live="polite" className="rounded-lg border bg-muted/25 p-4">
-        <div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0 space-y-1"><p className="text-xs text-muted-foreground">Tanlangan hodisa</p><h3 className="font-medium">{selected.label}</h3><p className="font-mono text-xs tabular-nums">{manufacturingTimeLabel(selected.atUnix, timeZone)} · {timeZone}</p></div><div className="flex items-center gap-1"><Button variant="outline" size="icon-sm" aria-label="Oldingi hodisa" disabled={selectedIndex <= 0} onClick={() => move(-1)}><ArrowLeft /></Button><Button variant="outline" size="icon-sm" aria-label="Keyingi hodisa" disabled={selectedIndex < 0 || selectedIndex >= filteredEvents.length - 1} onClick={() => move(1)}><ArrowRight /></Button></div></div>
+        <div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0 space-y-1"><p className="text-xs text-muted-foreground">Tanlangan hodisa</p><h3 className="font-medium">{selected.label}</h3><p className="font-mono text-xs tabular-nums">{manufacturingTimeLabel(selected.atUnix, timeZone)} · {timeZone}</p></div><div className="flex items-center gap-1"><Button variant="outline" size="icon-sm" aria-label="Oldingi hodisa" disabled={selectedIndex <= 0} onClick={() => move(-1)}><ArrowLeft /></Button><Button variant="outline" size="icon-sm" aria-label="Keyingi hodisa" disabled={!filteredEvents.length || selectedIndex >= filteredEvents.length - 1} onClick={() => move(1)}><ArrowRight /></Button></div></div>
         <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground"><span>Bosqich: {stageTitle(timeline, selected)}</span>{selected.actor && <span>Ijrochi: {selected.actor}</span>}{selected.transition && selected.fromState && selected.toState && <span>{manufacturingStateLabels[selected.fromState]} → {manufacturingStateLabels[selected.toState]}</span>}</div>
         {(selected.batchId || selected.sessionId) && <p className="mt-2 break-all font-mono text-[11px] text-muted-foreground">{selected.batchId && `Partiya: ${selected.batchId}`}{selected.batchId && selected.sessionId && ' · '}{selected.sessionId && `Sessiya: ${selected.sessionId}`}</p>}
         {selected.note && <p className={cn('mt-3 whitespace-pre-wrap text-sm', selected.issue ? 'text-destructive' : 'text-muted-foreground')}>{selected.note}</p>}

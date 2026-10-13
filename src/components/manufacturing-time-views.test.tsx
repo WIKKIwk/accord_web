@@ -28,6 +28,17 @@ describe('manufacturing time evidence in accessible views', () => {
     expect(html).toContain('UTC vaqti')
     expect(html).not.toContain('0 son')
   })
+  it('shows a global frozen hold without inventing frozen physical work in every stage', () => {
+    const live = snapshot()
+    live.stage_states = { [orderId]: { 'print-stage': 'in_progress' } }
+    live.order_controls = { [orderId]: { order_id: orderId, state: 'frozen' } }
+    const timeline = buildManufacturingTimeline({ orderId, snapshot: live, asOfUnix: now + 600 })
+    const html = renderToStaticMarkup(<ManufacturingTimeTimeline timeline={timeline} timeZone="UTC" />)
+    expect(html).toContain('Buyurtma muzlatilgan.')
+    expect(html).toContain('umumiy cheklovi alohida amal qiladi')
+    expect(timeline.stages[0].currentState).toBe('in_progress')
+    expect(timeline.stages[0].inProgressSeconds).toBeNull()
+  })
 
   it('offers keyboard event navigation and honest measured span labels for closed logs', () => {
     const timeline = buildManufacturingTimeline({ orderId, closedOrder: { order_id: orderId, title: 'Fixture closed order', logs: logs(), completed_at_unix: now + 300 }, map: snapshot().maps[0].map, asOfUnix: now + 600 })
