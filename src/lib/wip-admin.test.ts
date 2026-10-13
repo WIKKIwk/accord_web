@@ -71,6 +71,16 @@ function server(options: ServerOptions = {}) {
 afterEach(() => { vi.unstubAllGlobals(); vi.clearAllMocks() })
 
 describe('opening WIP capabilities and source policy', () => {
+  it('accepts the native empty admin scope and refuses a scope change before dispatch', async () => {
+    const unscoped = { ...snapshot(), scope: '' }, retained = command(unscoped)
+    const fetch = server({ snapshot: unscoped })
+    expect((await createOpeningWip(client, session(), retained)).intake.order_id).toBe(orderId)
+    expect(fetch.mock.calls.some(([, init]) => init.method === 'POST')).toBe(true)
+    const changed = server({ snapshot: { ...unscoped, scope: 'warehouse:other' } })
+    await expect(createOpeningWip(client, session(), retained)).rejects.toMatchObject({ uncertain: false })
+    expect(changed.mock.calls.some(([, init]) => init.method === 'POST')).toBe(false)
+  })
+
   it('separates collection read, intake preview, creation and actual-admin cancellation', () => {
     expect(wipPermissions(session(['apparatus.queue.read'], 'aparatchi'))).toEqual({ read: true, preview: false, create: false, cancel: false })
     expect(wipPermissions(session(['apparatus.queue.manage'], 'aparatchi'))).toEqual({ read: false, preview: true, create: false, cancel: false })
