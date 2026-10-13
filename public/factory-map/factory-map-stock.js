@@ -198,6 +198,8 @@ export function createFactoryStock({ host, scene, camera, canvas, bounds, obstac
   return {
     setState(next) {
       state = next;
+      group.visible = !state.isolatedObjectId;
+      overlay.hidden = Boolean(state.isolatedObjectId);
       clearTimeout(expiry);
       if (stockIsFresh(state.stock)) expiry = setTimeout(() => {
         if (!disposed) rebuild();

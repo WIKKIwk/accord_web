@@ -17,6 +17,9 @@ export interface FactoryMapViewerProps {
   stockState?: object
   selectedObjectId?: string
   focusedObjectId?: string
+  isolatedObjectId?: string
+  /** A viewed future/repeated stage must not borrow another occurrence's motion. */
+  stageMotionAllowed?: boolean
   resetRevision?: number
   focusRevision?: number
   showLabels?: boolean
@@ -63,7 +66,7 @@ function loadFactoryMapRenderer(): Promise<FactoryRendererModule> {
     const script = document.createElement('script')
     const attempt = String(rendererAttempt++)
     script.type = 'module'
-    script.src = `${assetBase}factory-map-entry.js?v=20261013cad1&attempt=${attempt}`
+    script.src = `${assetBase}factory-map-entry.js?v=20261013stages1&attempt=${attempt}`
     script.dataset.accordFactoryMapModule = 'true'
     const timeout = window.setTimeout(() => fail('3D xarita moduli yuklanishi tugamadi.'), 60_000)
     const cleanup = () => {
@@ -125,6 +128,8 @@ export function FactoryMapViewer(props: FactoryMapViewerProps) {
     stock: props.stockState ?? {},
     selectedObjectId: props.selectedObjectId ?? '',
     focusedObjectId: props.focusedObjectId ?? '',
+    isolatedObjectId: props.isolatedObjectId ?? '',
+    stageMotionAllowed: props.stageMotionAllowed !== false,
     resetRevision: props.resetRevision ?? 0,
     showLabels: props.showLabels !== false,
     renderSuspended: props.renderSuspended === true,
@@ -211,7 +216,7 @@ export function FactoryMapViewer(props: FactoryMapViewerProps) {
 
   return (
     <div ref={hostRef} className={cn('relative isolate min-h-[360px] w-full overflow-hidden bg-zinc-100 [&_.factory-live-label]:!rounded-md [&_.factory-live-label]:!bg-white [&_.factory-live-label_b]:!text-[13px] [&_.factory-live-label_small]:!text-zinc-600 [&_.factory-live-label_span]:!text-zinc-700', props.className)} data-model-viewer-state={rendererState} aria-busy={loading}>
-      <p id={instructionsId} className="sr-only">Apparatlar orasida o‘tish uchun yo‘nalish tugmalaridan foydalaning. Home: birinchi apparat. End: oxirgi apparat. Enter: tanlash. Escape: tanlovni bekor qilish. Apparatlar ro‘yxati orqali ham tanlash mumkin.</p>
+      <p id={instructionsId} className="sr-only">Apparatlar orasida o‘tish uchun yo‘nalish tugmalaridan foydalaning. Home: birinchi apparat. End: oxirgi apparat. Enter: tanlash. Escape: umumiy ko‘rinish. Bosqichlar va apparatlar ro‘yxati orqali ham tanlash mumkin.</p>
       <canvas
         key={attempt}
         ref={canvasRef}

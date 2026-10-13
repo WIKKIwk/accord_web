@@ -20,7 +20,7 @@ export function smoothStep(t) {
   return t * t * t * (t * (t * 6 - 15) + 10);
 }
 
-export function constrainCamera(position, target, bounds, obstacles, maxDistance) {
+export function constrainCamera(position, target, bounds, obstacles, maxDistance, minDistance = CAMERA_LIMITS.minDistance) {
   const previousTarget = target.clone();
   target.x = MathUtils.clamp(target.x, bounds.min.x, bounds.max.x);
   target.z = MathUtils.clamp(target.z, bounds.min.z, bounds.max.z);
@@ -28,7 +28,7 @@ export function constrainCamera(position, target, bounds, obstacles, maxDistance
   position.add(target.clone().sub(previousTarget));
   const spherical = new Spherical().setFromVector3(position.clone().sub(target));
   spherical.phi = MathUtils.clamp(spherical.phi, CAMERA_LIMITS.minPolar, CAMERA_LIMITS.maxPolar);
-  spherical.radius = MathUtils.clamp(spherical.radius, CAMERA_LIMITS.minDistance, maxDistance || bounds.getSize(new Vector3()).length() * CAMERA_LIMITS.maxExtentMultiplier);
+  spherical.radius = MathUtils.clamp(spherical.radius, minDistance, maxDistance || bounds.getSize(new Vector3()).length() * CAMERA_LIMITS.maxExtentMultiplier);
   position.copy(target).add(new Vector3().setFromSpherical(spherical));
 
   // Every rendered pose, including pan/tween poses, keeps the eye above any
@@ -52,7 +52,7 @@ export function constrainCamera(position, target, bounds, obstacles, maxDistance
   return { position, target };
 }
 
-export function focusCamera(box, camera, target, bounds, obstacles) {
+export function focusCamera(box, camera, target, bounds, obstacles, isolated = false) {
   const center = box.getCenter(new Vector3());
   const size = box.getSize(new Vector3());
   const azimuth = new Spherical().setFromVector3(camera.position.clone().sub(target)).theta;
@@ -64,8 +64,9 @@ export function focusCamera(box, camera, target, bounds, obstacles) {
   // portion for the compact Flutter sheet and a little room around the machine.
   const distance = Math.max(9, radius / Math.sin(Math.min(verticalFov * .64, horizontalFov) / 2) * 1.12);
   const position = center.clone().addScaledVector(direction, distance);
-  constrainCamera(position, center, bounds, obstacles);
-  return { position, target: center, offset: .18 };
+  const minDistance = isolated ? Math.max(2, size.length() * .4) : CAMERA_LIMITS.minDistance;
+  constrainCamera(position, center, bounds, obstacles, undefined, minDistance);
+  return { position, target: center, offset: isolated ? 0 : .18, minDistance };
 }
 
 export function overviewCamera(bounds, camera, obstacles) {

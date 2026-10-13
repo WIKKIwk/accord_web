@@ -3,11 +3,12 @@
 import * as THREE from './three.module.js';
 import { GLTFLoader } from './GLTFLoader.js';
 import { OrbitControls } from './OrbitControls.js';
-import { CAMERA_LIMITS, constrainCamera, focusCamera, overviewCamera, smoothStep, visibleWorldBoxes } from './factory-map-navigation.js?v=20260907near4';
+import { CAMERA_LIMITS, constrainCamera, focusCamera, overviewCamera, smoothStep, visibleWorldBoxes } from './factory-map-navigation.js?v=20261013stages1';
 import { buildPickBounds, closestMapHits, loadMapBytes, optimizeStaticMap } from './factory-map-performance.js?v=20260926perf2';
 import { apparatusHit, apparatusObjectId, cleanFactoryMapGeometry, FACTORY_MAP_CLUTTER_BASE_IDS, isFactoryMapApparatus } from './factory-map-scene-policy.js?v=20260907live2';
-import { createFactoryLive, FrameBudget } from './factory-map-live.js?v=20260926perf1';
-import { createFactoryStock } from './factory-map-stock.js?v=20260926map2';
+import { createFactoryLive, FrameBudget } from './factory-map-live.js?v=20261013stages1';
+import { createFactoryStock } from './factory-map-stock.js?v=20261013stages1';
+import { createFactoryStageView } from './factory-map-stage-view.js?v=20261013stages1';
 import { lockFactoryMapGestures } from './factory-map-gestures.js?v=20260907touch1';
 
 // The module is cached by the browser; mounting is explicit so route re-entry
@@ -52,6 +53,9 @@ let fullQualityTimer = 0;
 let lastState = {};
 let liveView = null;
 let stockView = null;
+let stageView = null;
+let beforeStageView = null;
+let isolatedBounds = null;
 let viewportVisible = true;
 let diagnosticsAt = 0;
 let renderCount = 0;
@@ -528,6 +532,7 @@ function selectObjectAt(clientX, clientY) {
     if (!hitObjectId) {
       continue;
     }
+    if (stageView?.isolatedObjectId && apparatusObjectId(hit.object) !== stageView.isolatedObjectId) continue;
     if (isHiddenRoofInstanceId(canonicalApparatusObjectId(hitObjectId)) ||
         isHiddenRoofInstanceId(hitObjectId)) {
       continue;
@@ -792,6 +797,23 @@ function handleRendererState() {
   // A sheet pauses GPU work, not the ERP labels visible behind it.
   // Both projections retain their expiry timers and update their DOM here.
   if (mapBounds) {
+    const requested = state.isolatedObjectId || '';
+    if (requested && !stageView?.isolatedObjectId && !beforeStageView) beforeStageView = {
+      ...(beforeFocus || snapshotCamera()), aspect: camera.aspect,
+      maxDistance: controls.maxDistance, minDistance: controls.minDistance,
+    };
+    const isolation = stageView?.setObject(requested);
+    if (isolation?.changed) renderer.shadowMap.needsUpdate = true;
+    isolatedBounds = stageView?.isolatedObjectId ? (() => {
+      const target = selectableTargetForId(stageView.isolatedObjectId);
+      const helper = selectionHelperFor(target);
+      const box = new THREE.Box3().setFromObject(helper);
+      helper.geometry.dispose(); helper.material.dispose();
+      return box;
+    })() : null;
+    canvas.dataset.stageView = stageView?.isolatedObjectId ? 'isolated' : 'overview';
+    canvas.dataset.isolatedObjectId = stageView?.isolatedObjectId || '';
+    canvas.dataset.visibleApparatusIds = JSON.stringify(stageView?.isolatedObjectId ? [stageView.isolatedObjectId] : []);
     liveView?.setState(state);
     stockView?.setState(state);
   }
@@ -809,17 +831,30 @@ function handleRendererState() {
   if (state.selectedObjectId && state.selectedObjectId !== previous.selectedObjectId) {
     selectObject(state.selectedObjectId, false);
   }
-  if (state.resetRevision !== previous.resetRevision && state.resetRevision > 0) {
+  const resetting = state.resetRevision !== previous.resetRevision && state.resetRevision > 0;
+  if (resetting) {
     beforeFocus = null;
     focusId = '';
     overviewActive = true;
     overview = overviewCamera(mapBounds, camera, obstacles);
-    controls.maxDistance = overview.maxDistance;
-    animateCamera(overview);
-  } else if ((state.focusedObjectId || '') !== focusId) {
+    const restored = beforeStageView && beforeStageView.aspect === camera.aspect ? beforeStageView : overview;
+    controls.minDistance = CAMERA_LIMITS.minDistance;
+    controls.maxDistance = restored.maxDistance || overview.maxDistance;
+    if (!state.isolatedObjectId) beforeStageView = null;
+    if (selectionHelper) {
+      scene.remove(selectionHelper); selectionHelper.geometry.dispose(); selectionHelper.material.dispose(); selectionHelper = null;
+    }
+    animateCamera(restored);
+  }
+  if (((state.focusedObjectId || '') !== focusId || state.isolatedObjectId !== previous.isolatedObjectId) && (!resetting || state.focusedObjectId)) {
     focusId = state.focusedObjectId || '';
     if (!focusId) {
-      if (beforeFocus) animateCamera(beforeFocus);
+      if (beforeStageView && !state.isolatedObjectId) {
+        controls.minDistance = beforeStageView.minDistance;
+        controls.maxDistance = beforeStageView.maxDistance;
+        animateCamera(beforeStageView.aspect === camera.aspect ? beforeStageView : overviewCamera(mapBounds, camera, obstacles));
+        beforeStageView = null;
+      } else if (beforeFocus) animateCamera(beforeFocus);
       overviewActive = beforeFocusOverview;
       beforeFocus = null;
       if (selectionHelper) {
@@ -840,7 +875,9 @@ function handleRendererState() {
         selectionHelper.updateMatrixWorld(true);
         const box = new THREE.Box3().setFromObject(selectionHelper);
         const selectedId = focusId;
-        animateCamera(focusCamera(box, camera, controls.target, mapBounds, obstacles), () => {
+        const destination = focusCamera(box, camera, controls.target, mapBounds, isolatedBounds ? [isolatedBounds] : obstacles, Boolean(isolatedBounds));
+        controls.minDistance = destination.minDistance;
+        animateCamera(destination, () => {
           if (focusId === selectedId) postFactoryMapMessage({ type: 'focus_complete', objectId: selectedId });
         });
       } else {
@@ -879,7 +916,7 @@ function renderFrame(now) {
   }
   const changed = controls.update();
   if (changed || flying || !renderCount) {
-    if (mapBounds) constrainCamera(camera.position, controls.target, mapBounds, obstacles, controls.maxDistance);
+    if (mapBounds) constrainCamera(camera.position, controls.target, mapBounds, isolatedBounds ? [isolatedBounds] : obstacles, controls.maxDistance, controls.minDistance);
     camera.lookAt(controls.target);
     updateProjection();
   }
@@ -1016,6 +1053,7 @@ function dispose() {
   visibilityObserver.disconnect();
   liveView?.dispose();
   stockView?.dispose();
+  stageView?.restore();
   controls.dispose();
   disposeScene(scene);
   renderer.dispose();
@@ -1074,6 +1112,10 @@ async function loadModel() {
           // solids for stock placement, including the complete apparatus body.
           const stockObstacles = visibleWorldBoxes(root);
           const optimized = optimizeStaticMap(root);
+          stageView = createFactoryStageView(root, id => {
+            const target = selectableTargetForId(id);
+            return target && isFactoryMapApparatus(target.object) ? target : null;
+          });
           canvas.dataset.instancesBefore = String(optimized.instancesBefore);
           canvas.dataset.instancesAfter = String(optimized.instancesAfter);
           canvas.dataset.batchedMeshes = String(optimized.meshesBefore);

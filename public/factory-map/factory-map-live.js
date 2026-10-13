@@ -253,6 +253,7 @@ export function createFactoryLive({ host, root, camera, canvas, getBox, onSelect
       const p = project(entry.anchor);
       let visible = state.showLabels !== false && p.visible && p.x > 0 && p.x < width && p.y > 48 && p.y < height - 78;
       if (state.focusedObjectId && state.focusedObjectId !== entry.data.objectId) visible = false;
+      if (state.isolatedObjectId && state.isolatedObjectId !== entry.data.objectId) visible = false;
       if (!visible) {
         entry.button.hidden = true;
         entry.line.style.display = 'none';
@@ -291,12 +292,12 @@ export function createFactoryLive({ host, root, camera, canvas, getBox, onSelect
     }
     for (const route of routes) {
       const a = project(entries.get(route.from).anchor), b = project(entries.get(route.to).anchor);
-      route.element.style.display = a.visible && b.visible && fresh() ? '' : 'none';
+      route.element.style.display = a.visible && b.visible && fresh() && !state.isolatedObjectId ? '' : 'none';
       const dx = b.x - a.x, dy = b.y - a.y, length = Math.hypot(dx, dy) || 1;
       const ux = dx / length, uy = dy / length;
       route.element.setAttribute('d', `M${a.x},${a.y} L${b.x},${b.y} M${b.x - ux * 9 + uy * 4},${b.y - uy * 9 - ux * 4} L${b.x},${b.y} L${b.x - ux * 9 - uy * 4},${b.y - uy * 9 + ux * 4}`);
     }
-    legend.hidden = !routes.length || !fresh();
+    legend.hidden = !routes.length || !fresh() || Boolean(state.isolatedObjectId);
     labelRects = occupied;
     layoutDirty = false;
   }
@@ -304,7 +305,7 @@ export function createFactoryLive({ host, root, camera, canvas, getBox, onSelect
     const dt = previousTime ? (now - previousTime) / 1000 : 0;
     previousTime = now;
     if (cameraChanged || layoutDirty) layout();
-    if (!fresh() || reducedMotion || document.hidden) {
+    if (!fresh() || reducedMotion || document.hidden || state.stageMotionAllowed === false) {
       for (const reels of reelGroups.values()) for (const reel of reels) reel.speed = 0;
       canvas.dataset.activeReels = '0';
       return false;
@@ -314,7 +315,7 @@ export function createFactoryLive({ host, root, camera, canvas, getBox, onSelect
     let active = 0;
     for (const [id, reels] of reelGroups) {
       const entry = entries.get(id);
-      if (!entry || !frustum.intersectsBox(entry.box)) {
+      if (!entry || state.isolatedObjectId && state.isolatedObjectId !== id || !frustum.intersectsBox(entry.box)) {
         for (const reel of reels) reel.speed = 0;
         continue;
       }

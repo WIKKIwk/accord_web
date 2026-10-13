@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, ArrowUpRight, CircleHelp, Expand, Factory, Focus, Link2, Loader2, RefreshCw, Search, Shrink, Tags, Unlink, Wifi, WifiOff, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { FactoryMapViewer, type FactoryMapObject } from '@/components/FactoryMapViewer'
+import { FactoryStageStrip } from '@/components/factory-stage-strip'
 import { InfiniteListEnd } from '@/components/infinite-list-end'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -20,11 +21,15 @@ import { display } from '@/lib/presentation'
 import { useSession } from '@/lib/session'
 import { useFactoryMap } from '@/lib/use-factory-map'
 import { hasCapability } from '@/lib/permissions'
+import { factoryStageForObject, factoryStageOrderChoices, factoryStageRoute } from '@/lib/factory-stage-navigation'
+import type { FactoryRouteStage } from '@/lib/factory-stage-navigation'
 
 const message = (error: unknown) => typeof error === 'string' && error ? error : error instanceof Error ? error.message : 'Amal bajarilmadi.'
 
 export default function FactoryMapPage() {
-  const { demo, session, connection } = useSession()
+  const { demo, session, connection, scope } = useSession()
+  const [params] = useSearchParams()
+  const requestedOrderId = params.get('orderId')?.trim() ?? ''
   const data = useFactoryMap()
   const [selected, setSelected] = useState<FactoryMapObject | null>(null)
   const [modelObjects, setModelObjects] = useState<FactoryMapObject[]>(() => factoryModelObjects.map(object => ({ ...object, aliases: [...object.aliases] })))
@@ -36,6 +41,9 @@ export default function FactoryMapPage() {
   const [expanded, setExpanded] = useState(false)
   const [resetRevision, setResetRevision] = useState(0)
   const [focusRevision, setFocusRevision] = useState(0)
+  const [routeOrderId, setRouteOrderId] = useState(requestedOrderId)
+  const [viewedStageKey, setViewedStageKey] = useState('')
+  const [stageSelectionIssue, setStageSelectionIssue] = useState('')
   const [bindingId, setBindingId] = useState('')
   const [confirm, setConfirm] = useState<{ row: Row; target: string } | null>(null)
   const [saveError, setSaveError] = useState('')
@@ -45,6 +53,10 @@ export default function FactoryMapPage() {
   const listRef = useRef<HTMLDivElement>(null)
   const queueRef = useRef<HTMLDivElement>(null)
   const mapTitleId = useId()
+  useEffect(() => {
+    setRouteOrderId(requestedOrderId); setViewedStageKey(''); setStageSelectionIssue(''); setSelected(null)
+    setResetRevision(value => value + 1)
+  }, [scope, requestedOrderId])
   useEffect(() => setListLimit(20), [search, filter])
   useEffect(() => { setQueueLimit(20); setBindingId(''); setSaveError('') }, [selected?.objectId])
   useEffect(() => {
@@ -75,6 +87,12 @@ export default function FactoryMapPage() {
   const current = apparatus ? machines.find(machine => machine.apparatusId === apparatus.id) : undefined
   const orderId = text(current?.orderId, '')
   const order = data.snapshot?.maps.find(saved => String(saved.map.id) === orderId)?.map
+  const effectiveRouteOrderId = routeOrderId || orderId
+  const stageRoute = useMemo(() => factoryStageRoute(data.snapshot, effectiveRouteOrderId, data.apparatusRows, modelObjects, data.fresh), [data.snapshot, effectiveRouteOrderId, data.apparatusRows, modelObjects, data.fresh])
+  const orderChoices = useMemo(() => factoryStageOrderChoices(data.snapshot), [data.snapshot])
+  const viewedStage = stageRoute.stages.find(stage => stage.key === viewedStageKey)
+  // A refreshed/edited route cannot leave the previous machine isolated.
+  const isolatedObjectId = viewedStage?.objectId && selected?.objectId === viewedStage.objectId ? viewedStage.objectId : ''
   const queueIds = apparatus ? factoryMapQueueOrderIds(data.snapshot, apparatus.id) : []
   const apparatusKnown = !data.loading && !data.apparatusError
   const queueKnown = Boolean(data.snapshot && isRecord(data.snapshot.visible_order_ids))
@@ -87,10 +105,34 @@ export default function FactoryMapPage() {
   const loadMoreObjects = useCallback(async () => setListLimit(limit => limit + 20), [])
   const loadMoreQueue = useCallback(async () => setQueueLimit(limit => limit + 20), [])
   const selectObject = useCallback((object: FactoryMapObject) => {
-    setSelected({ ...object, objectId: canonicalFactoryMapObjectId(object.objectId) })
+    const objectId = canonicalFactoryMapObjectId(object.objectId)
+    const machine = machines.find(machine => machine.objectId === objectId)
+    const nextOrderId = routeOrderId || text(machine?.orderId, '')
+    const route = factoryStageRoute(data.snapshot, nextOrderId, data.apparatusRows, modelObjects, data.fresh)
+    const step = factoryStageForObject(route.stages, objectId, nextOrderId === effectiveRouteOrderId ? viewedStageKey : '')
+    setRouteOrderId(nextOrderId); setViewedStageKey(step.key); setStageSelectionIssue(nextOrderId ? step.issue : '')
+    setSelected({ ...object, objectId })
     setFocusRevision(value => value + 1)
     setExpanded(false)
-  }, [])
+  }, [machines, routeOrderId, data.snapshot, data.apparatusRows, modelObjects, data.fresh, effectiveRouteOrderId, viewedStageKey])
+  const showOverview = useCallback(() => { setSelected(null); setViewedStageKey(''); setStageSelectionIssue(''); setResetRevision(value => value + 1) }, [])
+  const selectStage = useCallback((stage: FactoryRouteStage | null) => {
+    if (!stage) { showOverview(); return }
+    const currentStage = stageRoute.stages.find(candidate => candidate.key === stage.key)
+    setViewedStageKey(stage.key); setStageSelectionIssue('')
+    const object = currentStage?.objectId ? modelObjects.find(object => canonicalFactoryMapObjectId(object.objectId) === currentStage.objectId) : undefined
+    if (!object) { setSelected(null); setResetRevision(value => value + 1); return }
+    setSelected({ ...object, objectId: currentStage!.objectId }); setFocusRevision(value => value + 1)
+  }, [stageRoute.stages, modelObjects, showOverview])
+  useEffect(() => {
+    if (!viewedStageKey) return
+    if (!viewedStage) { showOverview(); return }
+    if (viewedStage.objectId === (selected?.objectId ?? '')) return
+    const object = modelObjects.find(object => canonicalFactoryMapObjectId(object.objectId) === viewedStage.objectId)
+    setSelected(object ? { ...object, objectId: viewedStage.objectId } : null)
+    if (object) setFocusRevision(value => value + 1)
+    else setResetRevision(value => value + 1)
+  }, [viewedStageKey, viewedStage?.objectId, selected?.objectId, modelObjects, showOverview, viewedStage])
   const confirmPlacement = (row: Row, target: string) => { setSaveError(''); setConfirm({ row, target }) }
   const save = async () => {
     if (!confirm) return
@@ -122,12 +164,13 @@ export default function FactoryMapPage() {
               <Badge variant="secondary">{apparatusKnown ? machines.length : '—'} ta biriktirilgan</Badge>
             </div>
             <div className="flex items-center gap-1">
-              <Button size="sm" variant="ghost" aria-label="Umumiy ko‘rinish" title="Umumiy ko‘rinish" onClick={() => { setSelected(null); setResetRevision(value => value + 1) }}><Focus /><span className="hidden sm:inline">Umumiy ko‘rinish</span></Button>
+              <Button size="sm" variant="ghost" aria-label="Umumiy ko‘rinish" title="Umumiy ko‘rinish" onClick={showOverview}><Focus /><span className="hidden sm:inline">Umumiy ko‘rinish</span></Button>
               <Button size="icon-sm" variant={showLabels ? 'secondary' : 'ghost'} aria-label="Apparat yozuvlarini ko‘rsatish" title="Apparat yozuvlari" aria-pressed={showLabels} onClick={() => setShowLabels(value => !value)}><Tags /></Button>
               <Button size="icon-sm" variant="ghost" aria-label={expanded ? 'To‘liq ekrandan chiqish' : 'To‘liq ekran'} title={expanded ? 'To‘liq ekrandan chiqish' : 'To‘liq ekran'} onClick={() => setExpanded(value => !value)}>{expanded ? <Shrink /> : <Expand />}</Button>
             </div>
           </div>
-          <FactoryMapViewer className={expanded ? 'min-h-0 flex-1' : 'h-[min(65vh,680px)] min-h-[360px] sm:min-h-[480px]'} liveState={live} stockState={stock} selectedObjectId={selected?.objectId ?? ''} focusedObjectId={selected?.objectId ?? ''} resetRevision={resetRevision} focusRevision={focusRevision} showLabels={showLabels} renderSuspended={Boolean(confirm)} onObjectTap={selectObject} onObjectsReady={objects => { setModelObjects(objects); setModelLoading(false); setModelError('') }} onError={reason => { setModelError(reason); setModelLoading(false) }} onLoading={() => { setModelLoading(true); setModelError('') }} onClearSelection={() => setSelected(null)} />
+          <FactoryMapViewer className={expanded ? 'min-h-0 flex-1' : 'h-[min(65vh,680px)] min-h-[360px] sm:min-h-[480px]'} liveState={live} stockState={stock} selectedObjectId={selected?.objectId ?? ''} focusedObjectId={selected?.objectId ?? ''} isolatedObjectId={isolatedObjectId} stageMotionAllowed={!viewedStage || viewedStage.activeExecution} resetRevision={resetRevision} focusRevision={focusRevision} showLabels={showLabels} renderSuspended={Boolean(confirm)} onObjectTap={selectObject} onObjectsReady={objects => { setModelObjects(objects); setModelLoading(false); setModelError('') }} onError={reason => { setModelError(reason); setModelLoading(false) }} onLoading={() => { setModelLoading(true); setModelError('') }} onClearSelection={showOverview} />
+          <FactoryStageStrip route={stageRoute} orderChoices={orderChoices} viewedKey={viewedStageKey} selectionIssue={stageSelectionIssue} onOrderChange={orderId => { setRouteOrderId(orderId); showOverview() }} onStageChange={selectStage} />
           <div className="flex flex-wrap gap-x-4 gap-y-2 border-t px-4 py-3 text-xs" aria-label="Xarita holatlari izohi">{legendStates.map(state => <span key={state} className="inline-flex items-center gap-1.5"><span className="size-2.5 rounded-full border border-black/10" style={{ backgroundColor: factoryMapStatuses[state].color }} />{factoryMapStatuses[state].label}<span className="tabular-nums text-muted-foreground">{machines.filter(machine => machine.state === state).length}</span></span>)}{apparatusKnown && unboundCount > 0 && <span className="inline-flex items-center gap-1.5 text-muted-foreground"><span className="size-2.5 rounded-full border border-dashed border-muted-foreground" />Biriktirilmagan {unboundCount}</span>}{!apparatusKnown && <span className="text-muted-foreground">Biriktirish ma’lumotlari kutilmoqda</span>}</div>
           <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-3 text-xs text-muted-foreground">
             <span>Aylantirish: sichqoncha · Zoom: scroll · Siljitish: o‘ng tugma · Tanlash: ro‘yxat yoki klaviatura ← →</span>
@@ -161,10 +204,11 @@ export default function FactoryMapPage() {
               <div className="flex gap-2 text-xs leading-relaxed text-muted-foreground"><CircleHelp className="mt-0.5 size-4 shrink-0" /><span>Ranglar ERPdagi ish holatini bildiradi. Apparat tanlanganda buyurtmaning rejalashtirilgan yo‘li ko‘rinadi.</span></div>
               {(modelLoading || modelError) && <p className="text-xs text-muted-foreground">{modelError ? '3D model ochilmadi. Apparatlar ro‘yxati va ERP tafsilotlari mavjud.' : '3D model yuklanmoqda. Ro‘yxatdan apparat tanlash mumkin.'}</p>}
             </> : <div className="min-h-0 space-y-4 overflow-y-auto border-t pt-4">
-              <div className="flex items-start justify-between gap-2"><h2 className="text-base font-semibold" tabIndex={-1}>{apparatus?.name || selected.label}</h2><Button size="icon-xs" variant="ghost" aria-label="Apparat tafsilotlarini yopish" onClick={() => setSelected(null)}><X /></Button></div>
+              <div className="flex items-start justify-between gap-2"><h2 className="text-base font-semibold" tabIndex={-1}>{apparatus?.name || selected.label}</h2><Button size="icon-xs" variant="ghost" aria-label="Apparat tafsilotlarini yopish" onClick={showOverview}><X /></Button></div>
               <p className="sr-only" role="status">Tanlangan apparat: {apparatus?.name || selected.label}. {text(current?.statusLabel, 'Biriktirilmagan')}</p>
               {owners.length > 1 ? <Alert variant="destructive"><AlertTitle>Biriktirish ziddiyati</AlertTitle><AlertDescription>Bu obyektga bir nechta ERP apparati biriktirilgan. Uskunalar biriktirishini tekshiring.</AlertDescription></Alert> : apparatus ? <>
               <div className="flex flex-wrap items-center gap-2"><Badge variant="secondary"><span className="size-2 rounded-full" style={{ backgroundColor: text(current?.statusColor, '#8b8984') }} />{text(current?.statusLabel, 'Holat noma’lum')}</Badge><Badge variant="outline">{apparatus.active ? 'Faol' : 'Nofaol'}</Badge></div>
+              {viewedStage && <div className="space-y-2 rounded-lg border p-3" data-factory-stage-details><p className="text-xs text-muted-foreground">Ko‘rilayotgan bosqich · {viewedStage.index + 1} / {stageRoute.stages.length}</p><p className="text-sm font-medium">{viewedStage.title}</p><Badge variant="outline">{viewedStage.statusLabel}</Badge><Link className="block text-xs hover:underline" to={`/app/orders?selected=${encodeURIComponent(stageRoute.orderId)}`}>{stageRoute.orderLabel}</Link><p className="text-xs text-muted-foreground">{viewedStage.activeExecution ? 'Shu bosqichning bajarilishi ERPda tasdiqlangan.' : 'Bu tanlov faqat bosqichni ko‘rsatadi. Ish holati alohida kuzatiladi.'}</p>{viewedStage.issue && <p className="text-xs text-muted-foreground">{viewedStage.issue}</p>}</div>}
               <div className="space-y-1 text-sm"><p className="text-xs text-muted-foreground">Operatsiya</p><p>{display(valueAt(apparatus.row, 'runtime_projection.execution_profile.operation') || valueAt(apparatus.row, 'execution_profile.operation'))}</p></div>
               {orderId ? <div className="space-y-2 rounded-lg border p-3"><p className="text-xs text-muted-foreground">{data.fresh ? ['in_progress', 'print_preflight', 'print_preflight_passed', 'paused'].includes(current?.state ?? '') ? 'Joriy buyurtma' : 'Navbatdagi buyurtma' : 'Oxirgi yuklangan buyurtma'}</p><Link className="flex items-center justify-between gap-2 font-medium hover:underline" to={`/app/orders?selected=${encodeURIComponent(orderId)}`}>{text(order?.order_number || order?.code || orderId)}<ArrowUpRight className="size-4" /></Link>{order?.title ? <p className="text-sm">{text(order.title)}</p> : null}<p className="text-xs text-muted-foreground">{text(data.snapshot?.order_customers[orderId] || order?.customer_name)}</p>{order?.order_kg !== undefined && <p className="text-xs text-muted-foreground">Reja: {formatNumber(order.order_kg)} kg</p>}</div> : <p className="text-sm text-muted-foreground">{data.fresh && current?.state === 'idle' ? 'Apparat hozir bo‘sh.' : 'Joriy buyurtma holati noma’lum.'}</p>}
               <Separator />
@@ -187,7 +231,7 @@ export default function FactoryMapPage() {
                 {!available.length && apparatusKnown && <p className="text-xs text-muted-foreground">Biriktirilmagan faol ERP apparati yo‘q.</p>}
                 <Button disabled={!chosen || data.saving || Boolean(data.apparatusError)} onClick={() => chosen && confirmPlacement(chosen.row, selected.objectId)}><Link2 />Apparatni biriktirish</Button>
               </>}
-              <Button variant="outline" onClick={() => setSelected(null)}><ArrowLeft />Apparatlar ro‘yxati</Button>
+              <Button variant="outline" onClick={showOverview}><ArrowLeft />Apparatlar ro‘yxati</Button>
             </>}</div>}
           </CardContent>
         </Card>
