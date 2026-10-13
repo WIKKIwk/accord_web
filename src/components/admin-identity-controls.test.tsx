@@ -34,6 +34,11 @@ describe('identity maintenance entry points', () => {
     expect(html).not.toContain('Tahrirlash')
   })
 
+  it('exposes material group selection when gscale.catalog.read supplies the tree permission', () => {
+    actor(['admin.access', 'gscale.catalog.read', 'party.customer.read'])
+    expect(renderToStaticMarkup(<AdminIdentityControls kind="users" row={{ principal_role: 'material_taminotchi', entity_ref: 'MAT-001', name: 'Hasan' }} />)).toContain('Mahsulot guruhlari')
+  })
+
   it('exposes native system updates without inventing system-user removal or unsupported warehouse actions', () => {
     actor()
     const html = renderToStaticMarkup(<AdminIdentityControls kind="users" row={{ id: 'system_user:boyoqchi_1', principal_role: 'boyoqchi', entity_ref: 'boyoqchi_1', name: 'Vali' }} />)

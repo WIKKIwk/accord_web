@@ -31,6 +31,9 @@ import { canManageResource, canViewPage, hasCapability, resourceCanCreate } from
 import { CatalogAdminControls } from "@/components/catalog-admin-controls";
 import { CatalogPicker } from "@/components/catalog-picker";
 import { AdminIdentityControls, AdminRoleCreateButton } from "@/components/admin-identity-controls";
+import { MaterialCatalogControls, MaterialCatalogToolbar } from "@/components/material-catalog-controls";
+import { RawMaterialControls, OrderRawMaterialControls } from "@/components/raw-material-controls";
+import { ProductionOrderControls } from "@/components/production-order-controls";
 import type { CatalogKind } from "@/lib/catalog-admin";
 import type { MutationLease } from "@/lib/mutation-scope";
 import type { CreateResourceKind, ResourceKind, Row } from "@/lib/api-types";
@@ -101,6 +104,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
   const warehouse = params.get("warehouse") || "";
   const userRoles = ['supplier', 'customer', 'material_taminotchi', 'worker', 'qolipchi', 'boyoqchi', 'tayyorlov_masteri', 'homashyo_rezkachi'];
   const role = kind === 'users' && userRoles.includes(params.get('role') ?? '') ? params.get('role')! : '';
+  const inactive = kind === 'suppliers' && params.get('inactive') === 'true';
   const view = views[kind],
     def = resourceDefinitions[kind];
   useEffect(() => {
@@ -121,7 +125,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
       demo,
       scope,
       kind,
-      query: { q, warehouse, ...(kind === "wip" ? { status } : {}), ...(role ? { role } : {}) },
+      query: { q, warehouse, ...(kind === "wip" ? { status } : {}), ...(role ? { role } : {}), ...(inactive ? { inactive: true } : {}) },
     }),
   );
   const items = data.data?.pages.flatMap((page) => page.items) || [];
@@ -212,6 +216,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
             Eksport
           </Button>
           {kind === 'roles' && <AdminRoleCreateButton onSaved={refreshList} />}
+          {kind === 'materials' && <MaterialCatalogToolbar onSaved={refreshList} />}
           {(kind === "orders" || kind === "templates") && canViewPage(session, 'calculate') ? (
             <Button asChild>
               <Link to="/app/calculate">
@@ -273,6 +278,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
         <TabsContent value="list" className="space-y-4 pt-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+              {kind === 'suppliers' && <Select value={inactive ? 'inactive' : 'active'} onValueChange={value => { const next = new URLSearchParams(params); if (value === 'inactive') next.set('inactive', 'true'); else next.delete('inactive'); next.delete('selected'); setParams(next); }}><SelectTrigger className="w-48" aria-label="Ta’minotchi ro‘yxati"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="active">Faol ta’minotchilar</SelectItem><SelectItem value="inactive">O‘chirilgan ta’minotchilar</SelectItem></SelectContent></Select>}
               {kind === 'users' && <Select value={role || 'all'} onValueChange={value => { const next = new URLSearchParams(params); value === 'all' ? next.delete('role') : next.set('role', value); next.delete('selected'); setParams(next); }}><SelectTrigger className="w-48" aria-label="Foydalanuvchi vazifasi"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Barcha vazifalar</SelectItem>{userRoles.map(role => <SelectItem key={role} value={role}>{role === 'worker' ? 'Apparatchi / ishchi' : display(role)}</SelectItem>)}</SelectContent></Select>}
               {def.search !== "none" && (
                 <div className="relative w-full sm:w-72">
@@ -580,7 +586,7 @@ function CreateDialog({
   const view = views[kind],
     fields = view.fields || [];
   const [validation, setValidation] = useState('');
-  const groups = useQuery({ queryKey: ['catalog-admin-groups', scope], queryFn: ({ signal }) => demo ? getDemoPage('item-groups', { limit: 500 }) : client!.listSnapshot('item-groups', {}, signal), enabled: open && ['items', 'item-groups'].includes(kind) && hasCapability(session, 'catalog.item_group.read') });
+  const groups = useQuery({ queryKey: ['catalog-admin-groups', scope], queryFn: ({ signal }) => demo ? getDemoPage('item-groups', { limit: 500 }) : client!.listSnapshot('item-groups', {}, signal), enabled: open && ['items', 'item-groups'].includes(kind) && canViewPage(session, 'item-groups') });
   const warehouseChoices = useQuery({ queryKey: ['warehouses-picker', scope], queryFn: ({ signal }) => demo ? getDemoPage('warehouses', { limit: 500 }) : client!.list('warehouses', { limit: 500 }, signal), enabled: open && kind === 'warehouses' });
   const uoms = useQuery({ queryKey: ['item-uoms', scope], queryFn: async ({ signal }) => { if (demo) return ['kg', 'dona', 'metr']; const result = await client!.get<unknown>('/v1/mobile/admin/items/uoms', undefined, signal); if (!Array.isArray(result) || result.some(value => typeof value !== 'string')) throw new Error('O‘lchov birliklari olinmadi.'); return result as string[] }, enabled: open && kind === 'items' });
   const [values, setValues] = useState<Row>(() =>
@@ -759,7 +765,8 @@ function DetailSheet({
     queryFn: ({ signal }) => (demo || (kind === 'warehouses' && !canViewPage(session, 'stock')) ? row! : client!.detail(kind, row!, signal)),
     enabled: !!row && Boolean(demo || client),
   });
-  const value = kind === 'roles' || kind === 'item-groups' ? { ...row } : { ...row, ...detail.data };
+  const value = ['orders', 'maps', 'pending', 'apparatus', 'warehouses', 'items', 'workers', 'suppliers', 'customers', 'users'].includes(kind) ? { ...row, ...detail.data } : { ...row };
+  function refreshMaterialDetail() { void queryClient.invalidateQueries({ queryKey: ['resource', scope, kind] }); void detail.refetch(); }
   const map = isRecord(value.map) ? value.map : value;
   const nodes = Array.isArray(map.nodes) ? map.nodes.filter(isRecord) : [];
   const capabilities = Array.isArray(value.capability_codes)
@@ -909,6 +916,10 @@ function DetailSheet({
               {(kind === 'orders' || kind === 'maps') && canViewPage(session, 'map-editor') && !detail.isPending && !detail.error && <Button asChild className="w-full"><Link to={`/app/map-editor?mapId=${encodeURIComponent(text(map.id, ''))}`} onClick={onClose}>Ish xaritasini tahrirlash<ChevronRight /></Link></Button>}
               {row && !detail.isPending && !detail.error && (['items', 'item-groups', 'customers', 'suppliers', 'warehouses'].includes(kind) || (kind === 'users' && ['supplier', 'customer'].includes(text(value.principal_role, '')))) && <CatalogAdminControls key={`${scope}:${kind}:${identity(kind, row)}`} kind={(kind === 'users' ? value.principal_role === 'supplier' ? 'suppliers' : 'customers' : kind) as CatalogKind} row={value} onSaved={() => { void detail.refetch() }} onRemoved={onClose} />}
               {row && !detail.isPending && !detail.error && ['users', 'workers', 'roles'].includes(kind) && <AdminIdentityControls key={`identity:${scope}:${kind}:${identity(kind, row)}`} kind={kind} row={kind === 'roles' ? row : value} onSaved={() => { void detail.refetch() }} onRemoved={onClose} />}
+              {row && !detail.isPending && !detail.error && kind === 'materials' && <MaterialCatalogControls row={row} onSaved={refreshMaterialDetail} onRemoved={onClose} />}
+              {row && !detail.isPending && !detail.error && kind === 'raw-materials' && <RawMaterialControls row={value} onSaved={() => void detail.refetch()} />}
+              {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderRawMaterialControls row={value} onSaved={() => void detail.refetch()} />}
+              {row && !detail.isPending && !detail.error && (kind === 'orders' || kind === 'maps') && <ProductionOrderControls row={value} />}
               {kind === "completion" && completionDecisionRequired(value) && canManageResource(session, 'completion') && (
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground">

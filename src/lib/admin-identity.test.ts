@@ -79,6 +79,12 @@ describe('native identity and protected account policy', () => {
     expect(fetch).not.toHaveBeenCalled()
   })
 
+  it('reads the item-group tree with gscale.catalog.read as permitted by the backend', async () => {
+    const fetch = respond([{ name: 'GROUP-1', item_group_name: 'Xomashyo' }])
+    expect(await api(session(['gscale.catalog.read'])).itemGroups()).toEqual({ items: [{ value: 'Xomashyo', label: 'Xomashyo' }], bounded: false })
+    expect(url(fetch).pathname).toBe('/v1/mobile/admin/item-groups/tree')
+  })
+
   it('protects an operator from removing their own identity or changing their role', async () => {
     const fetch = respond([]), ownApi = api(session(caps, worker.role, worker.ref))
     await expect(ownApi.workerRemovalCheck(worker)).rejects.toThrow('O‘z hisobingizni')

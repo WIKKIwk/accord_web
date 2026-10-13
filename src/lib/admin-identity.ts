@@ -76,6 +76,9 @@ export function resolveAdminIdentity(kind: ResourceKind, row: Row): AdminIdentit
 export function isCurrentIdentity(session: Session | null | undefined, identity: AdminIdentity): boolean {
   return session?.profile.role === identity.role && session.profile.ref?.trim() === identity.ref
 }
+export function canReadIdentityItemGroups(session: Session | null | undefined): boolean {
+  return hasCapability(session, 'catalog.item_group.read') || hasCapability(session, 'gscale.catalog.read')
+}
 export function warehouseAssigneeAllowed(identity: AdminIdentity): boolean {
   return ['material_taminotchi', 'qolipchi', 'tayyorlov_masteri', 'homashyo_rezkachi'].includes(identity.role)
     || identity.role === 'aparatchi' && identity.level.trim().toLowerCase() === 'brigader'
@@ -264,7 +267,7 @@ export class AdminIdentityApi {
     return { items, bounded: list.length >= 500 }
   }
   async itemGroups(signal?: AbortSignal): Promise<ScopeCatalog> {
-    this.require('catalog.item_group.read')
+    if (!canReadIdentityItemGroups(this.session)) throw new ApiError(403, 'forbidden')
     const list = rows(await this.client.request(`${base}/item-groups/tree`, 'GET', { signal }))
     return { items: list.map(row => ({ value: stringField(row, 'item_group_name'), label: stringField(row, 'item_group_name') })), bounded: false }
   }

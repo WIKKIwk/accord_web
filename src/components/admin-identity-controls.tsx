@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { ApiError } from '@/lib/api'
 import type { ResourceKind, Row } from '@/lib/api-types'
 import {
-  AdminIdentityApi, WorkerRemovalConflict, assignmentForIdentity, canAssignIdentityRole,
+  AdminIdentityApi, WorkerRemovalConflict, assignmentForIdentity, canAssignIdentityRole, canReadIdentityItemGroups,
   identityErrorMessage, isCurrentIdentity, ownRoleAccessPreserved, resolveAdminIdentity, roleFromRow, warehouseAssigneeAllowed,
   warehouseAssignmentKey, workerLevels,
 } from '@/lib/admin-identity'
@@ -129,7 +129,7 @@ function IdentityControls({ identity, onSaved, onRemoved }: { identity: AdminIde
   const admin = hasCapability(session, 'admin.access'), self = isCurrentIdentity(session, identity)
   const canEdit = identity.kind === 'material' ? hasCapability(session, 'party.customer.manage') : admin
   const canRole = hasCapability(session, 'role.capability.read') && hasCapability(session, 'role.capability.manage') && !self
-  const canGroups = identity.kind === 'material' && admin && hasCapability(session, 'catalog.item_group.read') && !self
+  const canGroups = identity.kind === 'material' && admin && canReadIdentityItemGroups(session) && !self
   const warehouseRead = hasCapability(session, session?.profile.role === 'material_taminotchi' ? 'raw_material.assign' : session?.profile.role === 'werka' ? 'inventory.movement.manage' : 'catalog.item.read')
   const canWarehouse = admin && warehouseRead && (identity.kind === 'worker' || ['material_taminotchi', 'qolipchi', 'tayyorlov_masteri', 'homashyo_rezkachi'].includes(identity.role))
   const canCode = identity.kind === 'material' ? hasCapability(session, 'party.customer.code.manage') : admin
@@ -259,7 +259,7 @@ function AssignmentForm({ identity, data, onSaved, onClose }: { identity: AdminI
   const [search, setSearch] = useState(''), [groupSearch, setGroupSearch] = useState('')
   const q = useDeferredValue(search.trim())
   const machines = useQuery({ queryKey: ['admin-identity', scope, 'apparatus', q], queryFn: ({ signal }) => api!.apparatus(q, signal), enabled: !!api && hasCapability(session, 'admin.access'), retry: false })
-  const groupCatalog = useQuery({ queryKey: ['admin-identity', scope, 'item-groups'], queryFn: ({ signal }) => api!.itemGroups(signal), enabled: !!api && hasCapability(session, 'catalog.item_group.read'), retry: false })
+  const groupCatalog = useQuery({ queryKey: ['admin-identity', scope, 'item-groups'], queryFn: ({ signal }) => api!.itemGroups(signal), enabled: !!api && canReadIdentityItemGroups(session), retry: false })
   const role = data.roles.find(role => role.id === roleId)
   const requiresApparatus = role?.capability_codes.includes('apparatus.queue.read'), requiresGroups = identity.role === 'material_taminotchi' && roleId === 'material_taminotchi'
   const unknownRole = Boolean(roleId && !role)
@@ -273,7 +273,7 @@ function AssignmentForm({ identity, data, onSaved, onClose }: { identity: AdminI
     </div>
     <ReadStatus pending={machines.isPending && machines.fetchStatus !== 'idle'} error={machines.error} retry={() => void machines.refetch()}><ChoiceChecklist title="Apparatlar" choices={machines.data?.items ?? []} selected={apparatus} onChange={setApparatus} disabled={write.pending || !machines.data} search={search} onSearch={setSearch} bounded={machines.data?.bounded} /></ReadStatus>
     {requiresApparatus && !apparatus.length && <p className="text-xs text-destructive">Ushbu rolga kamida bitta apparat kerak.</p>}
-    {hasCapability(session, 'catalog.item_group.read') ? <ReadStatus pending={groupCatalog.isPending} error={groupCatalog.error} retry={() => void groupCatalog.refetch()}><ChoiceChecklist title="Mahsulot guruhlari" choices={(groupCatalog.data?.items ?? []).filter(choice => choice.label.toLocaleLowerCase().includes(groupSearch.toLocaleLowerCase()))} selected={groups} onChange={setGroups} disabled={write.pending || !groupCatalog.data} search={groupSearch} onSearch={setGroupSearch} /></ReadStatus> : <div className="space-y-2"><p className="text-sm text-muted-foreground">Mahsulot guruhlarini tanlash uchun ruxsat yetarli emas.</p>{groups.map(group => <Badge key={group} variant="secondary">{group}</Badge>)}</div>}
+    {canReadIdentityItemGroups(session) ? <ReadStatus pending={groupCatalog.isPending} error={groupCatalog.error} retry={() => void groupCatalog.refetch()}><ChoiceChecklist title="Mahsulot guruhlari" choices={(groupCatalog.data?.items ?? []).filter(choice => choice.label.toLocaleLowerCase().includes(groupSearch.toLocaleLowerCase()))} selected={groups} onChange={setGroups} disabled={write.pending || !groupCatalog.data} search={groupSearch} onSearch={setGroupSearch} /></ReadStatus> : <div className="space-y-2"><p className="text-sm text-muted-foreground">Mahsulot guruhlarini tanlash uchun ruxsat yetarli emas.</p>{groups.map(group => <Badge key={group} variant="secondary">{group}</Badge>)}</div>}
     {requiresGroups && !groups.length && <p className="text-xs text-destructive">Kamida bitta mahsulot guruhi kerak.</p>}
     <WriteError error={write.error} /><DialogFooter><Button type="button" variant="outline" onClick={onClose}>Bekor qilish</Button><Button disabled={write.pending || !role || unknownRole || requiresApparatus && !apparatus.length || requiresGroups && !groups.length}><SubmitLabel pending={write.pending} /></Button></DialogFooter>
   </form>
