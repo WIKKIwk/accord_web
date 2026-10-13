@@ -31,6 +31,20 @@ async function loadAll(observer: ListObserver) {
 }
 
 describe("resource scroll loading", () => {
+  it("does not request the inventory projection for a disabled factory-only entry", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>();
+    vi.stubGlobal("fetch", fetch);
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const client = new ApiClient({ endpoint: "https://erp.example.com", token: "qa-token" });
+    const options = resourceListOptions({ queryClient, client, demo: false, scope: "factory-only", kind: "locations", query: {}, enabled: false });
+    const observer = new InfiniteQueryObserver(queryClient, options);
+    const unsubscribe = observer.subscribe(() => {});
+    cleanups.push(() => { unsubscribe(); queryClient.clear(); });
+    await queryClient.invalidateQueries({ queryKey: ["resource", "factory-only", "locations"] });
+    expect(options.enabled).toBe(false);
+    expect(observer.getCurrentResult().fetchStatus).toBe("idle");
+    expect(fetch).not.toHaveBeenCalled();
+  });
   it("appends every stock record once and keeps warehouse/search on every request", async () => {
     const source = Array.from({ length: 53 }, (_, i) => ({ code: `stock-${i}`, order_id: `order-${i}` }));
     const fetch = vi.fn<typeof globalThis.fetch>().mockImplementation(async (input) => {

@@ -12,6 +12,7 @@ export function resourceListOptions({
   scope,
   kind,
   query,
+  enabled = true,
 }: {
   queryClient: QueryClient;
   client: ApiClient | null;
@@ -19,6 +20,7 @@ export function resourceListOptions({
   scope: string;
   kind: ResourceKind;
   query: Query;
+  enabled?: boolean;
 }) {
   const limit = 20;
   const local =
@@ -27,6 +29,7 @@ export function resourceListOptions({
     queryKey: ["resource", scope, kind, "infinite", query],
     initialPageParam: 0,
     enabled:
+      enabled &&
       (demo || Boolean(client)) &&
       (kind !== "stock" || Boolean(query.warehouse)),
     queryFn: async ({ signal, pageParam: offset }) => {

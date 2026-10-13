@@ -29,7 +29,7 @@ export const pageRequirements: Record<string, Requirement> = {
   'raw-materials': { any: ['admin.access', 'catalog.item.read', 'raw_material.assign'] },
   users: { all: ['party.supplier.read', 'party.customer.read'] },
   roles: 'role.capability.read', activity: 'admin.activity.read', materials: mapManage,
-  templates: mapManage, locations: 'inventory.movement.manage', assets: 'inventory.movement.manage',
+  templates: mapManage, locations: { any: ['inventory.movement.manage', 'factory.location.manage'] }, assets: 'inventory.movement.manage',
   settings: 'admin.settings.read', server: 'admin.access',
 }
 

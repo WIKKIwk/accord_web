@@ -37,6 +37,7 @@ import { ProductionOrderControls } from "@/components/production-order-controls"
 import { OrderWipAdminControls, WipAdminControls, WipAdminToolbar } from "@/components/wip-admin-controls";
 import { ApparatusPlanningControls, OrderSchedulingControls } from "@/components/apparatus-planning-controls";
 import { WorkerProfileControls } from "@/components/worker-profile-controls";
+import { InventoryAdminControls, InventoryAdminToolbar } from "@/components/inventory-admin-controls";
 import type { CatalogKind } from "@/lib/catalog-admin";
 import type { MutationLease } from "@/lib/mutation-scope";
 import type { CreateResourceKind, ResourceKind, Row } from "@/lib/api-types";
@@ -121,6 +122,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
         : client!.list("warehouses", { limit: 500 }, signal),
     enabled: kind === "stock" && (demo || Boolean(client)),
   });
+  const listAllowed = kind !== 'locations' || demo || hasCapability(session, 'inventory.movement.manage');
   const data = useInfiniteQuery(
     resourceListOptions({
       queryClient,
@@ -128,6 +130,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
       demo,
       scope,
       kind,
+      enabled: listAllowed,
       query: { q, warehouse, ...(kind === "wip" ? { status } : {}), ...(role ? { role } : {}), ...(inactive ? { inactive: true } : {}) },
     }),
   );
@@ -221,6 +224,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
           {kind === 'roles' && <AdminRoleCreateButton onSaved={refreshList} />}
           {kind === 'materials' && <MaterialCatalogToolbar onSaved={refreshList} />}
           {kind === 'opening-wip' && <WipAdminToolbar onSaved={refreshList} />}
+          {(kind === 'assets' || kind === 'locations') && <InventoryAdminToolbar kind={kind} onSaved={refreshList} />}
           {(kind === "orders" || kind === "templates") && canViewPage(session, 'calculate') ? (
             <Button asChild>
               <Link to="/app/calculate">
@@ -274,7 +278,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
           </CardContent>
         </Card>
       )}
-      <Tabs defaultValue="list">
+      {!listAllowed ? <Alert><AlertDescription>Inventar joylari ro‘yxatini ko‘rish uchun ruxsat berilmagan. Zavod joylarini yuqoridagi boshqarish tugmasi orqali oching.</AlertDescription></Alert> : <Tabs defaultValue="list">
         <TabsList>
           <TabsTrigger value="list">Ro‘yxat</TabsTrigger>
           <TabsTrigger value="overview">Umumiy ko‘rinish</TabsTrigger>
@@ -525,7 +529,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
             </Card>
           ))}
         </TabsContent>
-      </Tabs>
+      </Tabs>}
       <CreateDialog
         kind={kind}
         open={createOpen}
@@ -932,6 +936,7 @@ function DetailSheet({
               {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderWipAdminControls row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && kind === 'apparatus' && <ApparatusPlanningControls row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderSchedulingControls row={value} onSaved={refreshMaterialDetail} />}
+              {row && !detail.isPending && !detail.error && (kind === 'assets' || kind === 'locations') && <InventoryAdminControls kind={kind} row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && (kind === 'orders' || kind === 'closed') && canViewPage(session, 'production-time') && <Button variant="outline" asChild className="w-full"><Link to={`/app/production-time?orderId=${encodeURIComponent(text(kind === 'closed' ? value.order_id : map.id, ''))}`} onClick={onClose}>Bosqichlar vaqtini ko‘rish<ChevronRight /></Link></Button>}
               {kind === "completion" && completionDecisionRequired(value) && canManageResource(session, 'completion') && (
                 <div className="space-y-3">

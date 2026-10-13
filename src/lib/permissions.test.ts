@@ -24,6 +24,14 @@ describe('backend capability parity', () => {
     expect(resourceCanCreate(read, 'customers')).toBe(false)
     expect(hasCapability(read, 'party.customer.item.assign')).toBe(false)
   })
+  it('opens factory location management without granting inventory access', () => {
+    const factory = session('admin.access', 'factory.location.manage')
+    expect(canViewPage(factory, 'locations')).toBe(true)
+    expect(canViewPage(factory, 'assets')).toBe(false)
+    expect(canViewPage(factory, 'stock')).toBe(false)
+    expect(canViewPage(session('admin.access', 'inventory.movement.manage'), 'locations')).toBe(true)
+    expect(canViewPage(session('admin.access'), 'locations')).toBe(false)
+  })
   it('uses the actor-specific catalog branch instead of broad pre-authorization', () => {
     expect(canViewPage(session('admin.access', 'gscale.catalog.read'), 'items')).toBe(false)
     const material = session('admin.access', 'gscale.catalog.read', 'catalog.item.create', 'raw_material.assign')
