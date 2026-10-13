@@ -40,6 +40,7 @@ import { WorkerProfileControls } from "@/components/worker-profile-controls";
 import { InventoryAdminControls, InventoryAdminToolbar } from "@/components/inventory-admin-controls";
 import { ResourceCreateNotice, useResourceCreate } from "@/components/resource-create-controls";
 import { ApparatusAdminControls, ApparatusAdminToolbar } from "@/components/apparatus-admin-controls";
+import { RawMaterialRuleToolbar } from "@/components/raw-material-rule-controls";
 import { resourceCreateItemCodePolicy } from "@/lib/resource-create";
 import type { CatalogKind } from "@/lib/catalog-admin";
 import type { MutationLease } from "@/lib/mutation-scope";
@@ -228,6 +229,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
           {kind === 'materials' && <MaterialCatalogToolbar onSaved={refreshList} />}
           {kind === 'opening-wip' && <WipAdminToolbar onSaved={refreshList} />}
           {kind === 'apparatus' && <ApparatusAdminToolbar onSaved={refreshList} />}
+          {kind === 'raw-materials' && <RawMaterialRuleToolbar onSaved={refreshList} />}
           {(kind === 'assets' || kind === 'locations') && <InventoryAdminToolbar kind={kind} onSaved={refreshList} />}
           {(kind === "orders" || kind === "templates") && canViewPage(session, 'calculate') ? (
             <Button asChild>
