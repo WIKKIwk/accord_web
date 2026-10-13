@@ -16,6 +16,9 @@ dist-ssr
 .env
 .env.*
 
+# User-provided design references remain local inputs, outside source commits.
+docs/qa/reference-inputs/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
