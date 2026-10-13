@@ -1,5 +1,5 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   useInfiniteQuery,
@@ -40,9 +40,7 @@ import { WorkerProfileControls } from "@/components/worker-profile-controls";
 import { InventoryAdminControls, InventoryAdminToolbar } from "@/components/inventory-admin-controls";
 import { ResourceCreateNotice, useResourceCreate } from "@/components/resource-create-controls";
 import { ProductionAssignmentControls } from "@/components/production-assignment-controls";
-import { ApparatusAdminControls, ApparatusAdminToolbar } from "@/components/apparatus-admin-controls";
 import { RawMaterialRuleToolbar } from "@/components/raw-material-rule-controls";
-import { ProgressPassportControls } from "@/components/progress-passport-controls";
 import { resourceCreateItemCodePolicy } from "@/lib/resource-create";
 import type { CatalogKind } from "@/lib/catalog-admin";
 import type { MutationLease } from "@/lib/mutation-scope";
@@ -97,6 +95,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+const ApparatusAdminControls = lazy(() => import('@/components/apparatus-admin-controls').then(module => ({ default: module.ApparatusAdminControls })));
+const ApparatusAdminToolbar = lazy(() => import('@/components/apparatus-admin-controls').then(module => ({ default: module.ApparatusAdminToolbar })));
+const ProgressPassportControls = lazy(() => import('@/components/progress-passport-controls').then(module => ({ default: module.ProgressPassportControls })));
+const ProductionCompletionControls = lazy(() => import('@/components/production-completion-controls').then(module => ({ default: module.ProductionCompletionControls })));
+
+function DeferredResourceControls({ children }: { children: ReactNode }) {
+  return <Suspense fallback={<p role="status" className="py-2 text-xs text-muted-foreground">Boshqaruv yuklanmoqda…</p>}>{children}</Suspense>;
+}
 
 export function ResourcePage({ page }: { page: NavigationPage }) {
   const kind = page.resource!;
@@ -230,7 +237,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
           {kind === 'roles' && <AdminRoleCreateButton onSaved={refreshList} />}
           {kind === 'materials' && <MaterialCatalogToolbar onSaved={refreshList} />}
           {kind === 'opening-wip' && <WipAdminToolbar onSaved={refreshList} />}
-          {kind === 'apparatus' && <ApparatusAdminToolbar onSaved={refreshList} />}
+          {kind === 'apparatus' && <DeferredResourceControls><ApparatusAdminToolbar onSaved={refreshList} /></DeferredResourceControls>}
           {kind === 'raw-materials' && <RawMaterialRuleToolbar onSaved={refreshList} />}
           {(kind === 'assets' || kind === 'locations') && <InventoryAdminToolbar kind={kind} onSaved={refreshList} />}
           {(kind === "orders" || kind === "templates") && canViewPage(session, 'calculate') ? (
@@ -914,11 +921,12 @@ function DetailSheet({
               {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderRawMaterialControls row={value} onSaved={() => void detail.refetch()} />}
               {row && !detail.isPending && !detail.error && (kind === 'orders' || kind === 'maps') && <ProductionOrderControls row={value} />}
               {row && !detail.isPending && !detail.error && (kind === 'orders' || kind === 'maps') && <ProductionAssignmentControls row={value} />}
+              {row && !detail.isPending && !detail.error && (kind === 'orders' || kind === 'maps') && <DeferredResourceControls><ProductionCompletionControls row={value} /></DeferredResourceControls>}
               {row && !detail.isPending && !detail.error && (kind === 'wip' || kind === 'opening-wip') && <WipAdminControls kind={kind} row={value} onSaved={refreshMaterialDetail} />}
-              {row && !detail.isPending && !detail.error && (kind === 'wip' || kind === 'opening-wip') && <ProgressPassportControls kind={kind} row={value} onSaved={refreshMaterialDetail} />}
+              {row && !detail.isPending && !detail.error && (kind === 'wip' || kind === 'opening-wip') && <DeferredResourceControls><ProgressPassportControls kind={kind} row={value} onSaved={refreshMaterialDetail} /></DeferredResourceControls>}
               {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderWipAdminControls row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && kind === 'apparatus' && <ApparatusPlanningControls row={value} onSaved={refreshMaterialDetail} />}
-              {row && !detail.isPending && !detail.error && kind === 'apparatus' && <ApparatusAdminControls row={value} onSaved={refreshMaterialDetail} onRetired={onClose} />}
+              {row && !detail.isPending && !detail.error && kind === 'apparatus' && <DeferredResourceControls><ApparatusAdminControls row={value} onSaved={refreshMaterialDetail} onRetired={onClose} /></DeferredResourceControls>}
               {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderSchedulingControls row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && (kind === 'assets' || kind === 'locations') && <InventoryAdminControls kind={kind} row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && (kind === 'orders' || kind === 'closed') && canViewPage(session, 'production-time') && <Button variant="outline" asChild className="w-full"><Link to={`/app/production-time?orderId=${encodeURIComponent(text(kind === 'closed' ? value.order_id : map.id, ''))}`} onClick={onClose}>Bosqichlar vaqtini ko‘rish<ChevronRight /></Link></Button>}
