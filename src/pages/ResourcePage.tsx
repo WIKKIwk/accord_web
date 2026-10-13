@@ -36,6 +36,7 @@ import { RawMaterialControls, OrderRawMaterialControls } from "@/components/raw-
 import { ProductionOrderControls } from "@/components/production-order-controls";
 import { OrderWipAdminControls, WipAdminControls, WipAdminToolbar } from "@/components/wip-admin-controls";
 import { ApparatusPlanningControls, OrderSchedulingControls } from "@/components/apparatus-planning-controls";
+import { WorkerProfileControls } from "@/components/worker-profile-controls";
 import type { CatalogKind } from "@/lib/catalog-admin";
 import type { MutationLease } from "@/lib/mutation-scope";
 import type { CreateResourceKind, ResourceKind, Row } from "@/lib/api-types";
@@ -922,6 +923,7 @@ function DetailSheet({
               {row && !detail.isPending && !detail.error && canViewPage(session, 'calculate') && kind === 'pending' && text(value.id, '') && <Button asChild className="w-full"><Link to={`/app/calculate?pendingId=${encodeURIComponent(text(value.id, ''))}`} onClick={onClose}>Buyurtmani ishlab chiqarishga ochish<ChevronRight /></Link></Button>}
               {row && !detail.isPending && !detail.error && (['items', 'item-groups', 'customers', 'suppliers', 'warehouses'].includes(kind) || (kind === 'users' && ['supplier', 'customer'].includes(text(value.principal_role, '')))) && <CatalogAdminControls key={`${scope}:${kind}:${identity(kind, row)}`} kind={(kind === 'users' ? value.principal_role === 'supplier' ? 'suppliers' : 'customers' : kind) as CatalogKind} row={value} onSaved={() => { void detail.refetch() }} onRemoved={onClose} />}
               {row && !detail.isPending && !detail.error && ['users', 'workers', 'roles'].includes(kind) && <AdminIdentityControls key={`identity:${scope}:${kind}:${identity(kind, row)}`} kind={kind} row={kind === 'roles' ? row : value} onSaved={() => { void detail.refetch() }} onRemoved={onClose} />}
+              {row && !detail.isPending && !detail.error && (kind === 'workers' || kind === 'users' && value.principal_role === 'aparatchi') && <WorkerProfileControls row={value} onSaved={() => { void detail.refetch() }} />}
               {row && !detail.isPending && !detail.error && kind === 'materials' && <MaterialCatalogControls row={row} onSaved={refreshMaterialDetail} onRemoved={onClose} />}
               {row && !detail.isPending && !detail.error && kind === 'raw-materials' && <RawMaterialControls row={value} onSaved={() => void detail.refetch()} />}
               {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderRawMaterialControls row={value} onSaved={() => void detail.refetch()} />}
