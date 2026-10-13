@@ -18,6 +18,7 @@ export function meetsRequirement(session: Session | null | undefined, requiremen
 
 export const pageRequirements: Record<string, Requirement> = {
   orders: mapRead, maps: mapRead, 'map-editor': mapManage, calculate: mapManage,
+  'production-time': mapRead,
   pending: mapManage, completed: mapRead, closed: mapRead, completion: mapManage,
   wip: mapRead, 'opening-wip': mapRead, 'factory-map': mapRead,
   items: 'catalog.item.read', 'item-groups': { any: ['catalog.item_group.read', 'gscale.catalog.read'] },

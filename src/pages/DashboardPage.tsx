@@ -91,8 +91,9 @@ export function DashboardPage() {
           <div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-semibold tracking-tight">Ish maydoni</h1>{demo && <Badge variant="outline">Namunaviy ma’lumotlar</Badge>}</div>
           <p className="text-sm text-muted-foreground">Buyurtmalar holati, apparatlar navbati va e’tibor talab qiladigan ishlar.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" disabled={refreshing} onClick={refresh}><RefreshCw className={refreshing ? 'animate-spin' : undefined} />{refreshing ? 'Yangilanmoqda…' : offline || failed.length ? 'Qayta urinish' : 'Yangilash'}</Button>
+          {canView('production-time') && <Button variant="outline" asChild><Link to="/app/production-time"><Clock3 />Ishlab chiqarish vaqti</Link></Button>}
           <Button asChild><Link to="/app/orders"><ClipboardList />Buyurtmalar</Link></Button>
         </div>
       </div>

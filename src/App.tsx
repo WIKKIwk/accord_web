@@ -19,6 +19,7 @@ import { Loader2 } from "lucide-react";
 import { lazy, Suspense } from "react";
 const FactoryMapPage = lazy(() => import("@/pages/FactoryMapPage"));
 const DashboardPage = lazy(() => import('@/pages/DashboardPage').then(module => ({ default: module.DashboardPage })));
+const ManufacturingTimePage = lazy(() => import('@/pages/ManufacturingTimePage').then(module => ({ default: module.ManufacturingTimePage })));
 const ResourcePage = lazy(() => import('@/pages/ResourcePage').then(module => ({ default: module.ResourcePage })));
 const SettingsPage = lazy(() => import('@/pages/SystemPages').then(module => ({ default: module.SettingsPage })));
 const ServerPage = lazy(() => import('@/pages/SystemPages').then(module => ({ default: module.ServerPage })));
@@ -50,6 +51,7 @@ function Page() {
   const { session } = useSession();
   if (pageById(pageId) && !canViewPage(session, pageId)) return <Alert><AlertTitle>Bu bo‘limga ruxsat berilmagan</AlertTitle><AlertDescription>Hisobingizning huquqlari bu ma’lumotlarni ko‘rishga ruxsat bermaydi. Chap menyudan mavjud bo‘limni tanlang.</AlertDescription></Alert>;
   if (pageId === "home") return <DashboardPage />;
+  if (pageId === "production-time") return <ManufacturingTimePage />;
   if (modules.some((m) => m.id === pageId))
     return <WorkspacePage id={pageId} />;
   if (pageId === "settings") return <SettingsPage />;

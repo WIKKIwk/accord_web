@@ -1,5 +1,5 @@
 import {
-  Activity, Archive, Boxes, Building2, Calculator, ClipboardCheck, ClipboardList,
+  Activity, Archive, Boxes, Building2, Calculator, ClipboardCheck, ClipboardList, Clock3,
   Factory, FolderTree, Home, Layers3, ListOrdered,
   MapPin, Package, PackageCheck, ScrollText, Settings2, ShieldCheck,
   SlidersHorizontal, SquareStack, Users, Warehouse, Waypoints, Wrench,
@@ -52,6 +52,7 @@ export const modules: NavigationModule[] = [
       {
         title: 'Ish jarayoni',
         pages: [
+          { id: 'production-time', title: 'Ishlab chiqarish vaqti', description: 'Qayd etilgan bosqichlar, to‘xtashlar va apparat navbatlarini tekshirish.', icon: Clock3 },
           { id: 'factory-map', title: '3D zavod xaritasi', description: 'Zavoddagi apparatlar, joriy buyurtmalar va ish holati.', icon: Factory },
           { id: 'maps', title: 'Ish xaritalari', description: 'Buyurtma operatsiyalari, ishlab chiqarish bosqichlari va uskunalar.', icon: Waypoints, resource: 'maps' },
           { id: 'completion', title: 'Yakunlash so‘rovlari', description: 'Uskunalardan kelgan ishni yakunlash so‘rovlarini ko‘rib chiqish.', icon: ClipboardCheck, resource: 'completion' },

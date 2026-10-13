@@ -3,6 +3,8 @@ export function qaMutationAllowed(endpoint: string, method: string, path: string
   if (!fixtureEndpoint) return true
   if (['GET', 'HEAD', 'OPTIONS'].includes(method.toUpperCase())) return true
   if (path === '/v1/mobile/auth/login' || path === '/v1/mobile/auth/logout') return true
+  // The native QR report uses POST for a read-only batch-lineage lookup.
+  if (method.toUpperCase() === 'POST' && path === '/v1/mobile/admin/production-maps/progress-qr/report') return true
   try {
     const target = new URL(endpoint)
     const fixture = new URL(fixtureEndpoint)

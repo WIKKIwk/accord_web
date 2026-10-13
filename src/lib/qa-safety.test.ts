@@ -18,6 +18,12 @@ describe('local preview write isolation', () => {
     expect(qaMutationAllowed('https://erp.example.com', 'POST', '/v1/mobile/auth/logout', fixture)).toBe(true)
     expect(qaMutationAllowed('https://erp.example.com', 'POST', '/v1/mobile/admin/code/regenerate', fixture)).toBe(false)
   })
+  it('allows only the audited read-only QR report, with an exact method and path', () => {
+    const path = '/v1/mobile/admin/production-maps/progress-qr/report'
+    expect(qaMutationAllowed('https://erp.example.com', 'POST', path, fixture)).toBe(true)
+    for (const method of ['PUT', 'PATCH', 'DELETE']) expect(qaMutationAllowed('https://erp.example.com', method, path, fixture)).toBe(false)
+    for (const suffix of ['/reprint', '/correct', '/report/other', '/report?print=true']) expect(qaMutationAllowed('https://erp.example.com', 'POST', '/v1/mobile/admin/production-maps/progress-qr' + suffix, fixture)).toBe(false)
+  })
   it('does not restrict the independently usable regular build', () => {
     expect(qaMutationAllowed('https://erp.example.com', 'POST', '/v1/mobile/admin/items')).toBe(true)
   })

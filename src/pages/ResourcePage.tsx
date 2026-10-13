@@ -930,6 +930,7 @@ function DetailSheet({
               {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderWipAdminControls row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && kind === 'apparatus' && <ApparatusPlanningControls row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderSchedulingControls row={value} onSaved={refreshMaterialDetail} />}
+              {row && !detail.isPending && !detail.error && (kind === 'orders' || kind === 'closed') && canViewPage(session, 'production-time') && <Button variant="outline" asChild className="w-full"><Link to={`/app/production-time?orderId=${encodeURIComponent(text(kind === 'closed' ? value.order_id : map.id, ''))}`} onClick={onClose}>Bosqichlar vaqtini ko‘rish<ChevronRight /></Link></Button>}
               {kind === "completion" && completionDecisionRequired(value) && canManageResource(session, 'completion') && (
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground">
