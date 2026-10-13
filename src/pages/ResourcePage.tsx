@@ -35,6 +35,7 @@ import { MaterialCatalogControls, MaterialCatalogToolbar } from "@/components/ma
 import { RawMaterialControls, OrderRawMaterialControls } from "@/components/raw-material-controls";
 import { ProductionOrderControls } from "@/components/production-order-controls";
 import { OrderWipAdminControls, WipAdminControls, WipAdminToolbar } from "@/components/wip-admin-controls";
+import { ApparatusPlanningControls, OrderSchedulingControls } from "@/components/apparatus-planning-controls";
 import type { CatalogKind } from "@/lib/catalog-admin";
 import type { MutationLease } from "@/lib/mutation-scope";
 import type { CreateResourceKind, ResourceKind, Row } from "@/lib/api-types";
@@ -924,6 +925,8 @@ function DetailSheet({
               {row && !detail.isPending && !detail.error && (kind === 'orders' || kind === 'maps') && <ProductionOrderControls row={value} />}
               {row && !detail.isPending && !detail.error && (kind === 'wip' || kind === 'opening-wip') && <WipAdminControls kind={kind} row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderWipAdminControls row={value} onSaved={refreshMaterialDetail} />}
+              {row && !detail.isPending && !detail.error && kind === 'apparatus' && <ApparatusPlanningControls row={value} onSaved={refreshMaterialDetail} />}
+              {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderSchedulingControls row={value} onSaved={refreshMaterialDetail} />}
               {kind === "completion" && completionDecisionRequired(value) && canManageResource(session, 'completion') && (
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground">
