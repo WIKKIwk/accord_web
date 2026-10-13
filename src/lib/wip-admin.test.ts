@@ -203,6 +203,27 @@ describe('opening WIP native writes and retained identity', () => {
     for (const mutationResult of replies) { server({ mutationResult }); await expect(createOpeningWip(client, session(), command())).rejects.toMatchObject({ uncertain: true }) }
   })
 
+  it('rejects a factory-derived location in the native source-stage intake response and recovery', async () => {
+    // service_opening_wip.rs clears location and resume apparatus for the source contract.
+    // The browser v4 fixture derived a factory title here and incorrectly claimed HTTP 200.
+    const request = command(), native = recordFor(request)
+    expect(openingWipMatchesCommand(native, request)).toBe(true)
+    for (const changes of [{ current_location: 'Printer factory state' }, { resume_apparatus: laminate }]) {
+      const invented = { ...native, intake: { ...native.intake, ...changes } }
+      expect(openingWipMatchesCommand(invented, request)).toBe(false)
+      const fetch = server({ mutationResult: { record: invented } })
+      await expect(createOpeningWip(client, session(), request)).rejects.toMatchObject({ uncertain: true })
+      expect(fetch.mock.calls.filter(([, init]) => init.method === 'POST')).toHaveLength(1)
+      server({ records: [invented] })
+      await expect(reconcileOpeningWipCreate(client, request)).rejects.toThrow('boshqa qabulga tegishli')
+      const attempts = new OpeningWipAttemptRegistry()
+      attempts.activate('source-contract'); const lease = attempts.begin('source-contract', 'opening-page', request)
+      attempts.dispatched(lease); attempts.finish(lease, { result: invented })
+      expect(attempts.get('source-contract', 'opening-page')?.phase).toBe('uncertain')
+      expect(() => attempts.clear('source-contract', 'opening-page')).toThrow()
+    }
+  })
+
   it('does not report successful creation when readback fails or misses the returned intake', async () => {
     server({ failReadback: true })
     await expect(createOpeningWip(client, session(), command())).rejects.toMatchObject({ uncertain: true })

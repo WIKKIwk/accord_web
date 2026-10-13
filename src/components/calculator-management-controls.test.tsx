@@ -19,15 +19,18 @@ const template: CalculateOrderTemplate = { id: 'template-a', code: 'Z-a', name: 
 const order = parseOpenedCalculation({ map: { id: 'zakaz-0042', order_number: '0042', nodes: [], edges: [] }, template: { ...template, order_number: '0042' }, revision: 2 }, 'zakaz-0042')
 const pending = parsePendingCalculation({ id: 'zakaz-9011', template: { ...template, id: 'pending-template', code: 'TG-9011', order_number: '9011' }, completion: null }, 'zakaz-9011')
 let scopeCount = 0
+let fixtureIdentity: ReturnType<typeof useSession> | null = null
 function session(capabilities = ['admin.access'], demo = false) {
   const session: Session = { token: 'fixture-session', profile: { role: 'admin', ref: 'admin', display_name: 'Operator' }, capabilities, assigned_apparatus: [], assigned_apparatus_labels: [], assigned_item_groups: [], assigned_warehouses: [] }
   const scope = `fixture-${++scopeCount}`, client = new ApiClient({ endpoint: 'https://erp.example.test', token: 'fixture-session' })
-  vi.mocked(useSession).mockReturnValue({ session, scope, client, demo, endpoint: 'https://erp.example.test', restoring: false, connection: 'online', login: vi.fn(), logout: vi.fn(), enterDemo: vi.fn(), reconnect: vi.fn() })
+  fixtureIdentity = { session, scope, client, demo, endpoint: 'https://erp.example.test', restoring: false, connection: 'online', login: vi.fn(), logout: vi.fn(), enterDemo: vi.fn(), reconnect: vi.fn() }
+  vi.mocked(useSession).mockReturnValue(fixtureIdentity)
   calculatorMemory.activate(scope)
   return { session, scope, client, demo }
 }
 function management(source: CalculatorSource | null = null, error: unknown = null): CalculatorManagement {
-  const identity = useSession()
+  if (!fixtureIdentity) throw new Error('Initialize the synthetic session before building management controls')
+  const identity = fixtureIdentity
   return { api: new CalculatorManagementApi(identity.client!, identity.session!), source, error, pending: false, demo: identity.demo, allowed: identity.session!.capabilities.some(cap => cap === 'admin.access' || cap === 'production.map.manage'), setError: vi.fn(), run: vi.fn(), reload: vi.fn(), clearAutomatic: vi.fn(), loadError: null, loading: false }
 }
 function render(children: ReactNode) { return renderToStaticMarkup(<QueryClientProvider client={new QueryClient()}><MemoryRouter>{children}</MemoryRouter></QueryClientProvider>) }
