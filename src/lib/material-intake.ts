@@ -50,13 +50,17 @@ export function materialIntakePolicies(snapshot: ProductionSnapshot | undefined,
     const control = controls[orderId], interaction = record(control.interaction)
     const metadata = apparatusRows.map(value => isRecord(value.runtime_projection) ? value.runtime_projection : value).filter(value => value.apparatus_id === apparatusId)
     const apparatus = metadata.length === 1 ? metadata[0] : {}, sourceRevision = apparatus.source_revision
-    const operation = str(record(apparatus.execution_profile).operation), state = str(control.state), stageNodeId = str(control.stage_node_id)
+    // A selected-detail preflight loads one apparatus. Other snapshot lanes
+    // stay unbound until their own canonical metadata has been loaded.
+    const executionProfile = isRecord(apparatus.execution_profile) ? apparatus.execution_profile : {}
+    const lifecycle = isRecord(apparatus.lifecycle) ? apparatus.lifecycle : {}, display = isRecord(apparatus.display) ? apparatus.display : {}
+    const operation = str(executionProfile.operation), state = str(control.state), stageNodeId = str(control.stage_node_id)
     const matches = map.nodes.filter(node => node.kind === 'apparatus' && (str(node.alternative_assigned_apparatus_id) || str(node.apparatus_id)) === apparatusId)
     const lanes = new Set(matches.map(node => str(node.alternative_group_id) ? `group:${node.alternative_group_id}` : `node:${node.id}`))
     const stage = matches.find(node => node.id === stageNodeId)
     const assigned = Boolean(session?.assigned_apparatus.includes(apparatusId))
     const roleAllowed = session?.profile.role === 'aparatchi' ? assigned : hasCapability(session, 'admin.access')
-    const bound = Boolean(stage && lanes.size === 1 && metadata.length === 1 && integer(sourceRevision) && sourceRevision > 0 && /^[a-f0-9]{64}$/.test(str(apparatus.source_aasx_sha256)) && record(apparatus.lifecycle).state === 'active' && ['print', 'laminate', 'cut', 'package', 'glue'].includes(operation)
+    const bound = Boolean(stage && lanes.size === 1 && metadata.length === 1 && integer(sourceRevision) && sourceRevision > 0 && /^[a-f0-9]{64}$/.test(str(apparatus.source_aasx_sha256)) && lifecycle.state === 'active' && ['print', 'laminate', 'cut', 'package', 'glue'].includes(operation)
       && control.state === snapshot.queue_states[apparatusId]?.[orderId] && typeof interaction.material_intake_allowed === 'boolean' && typeof interaction.material_scan_required === 'boolean' && typeof interaction.assigned_materials_display_only === 'boolean'
       && typeof interaction.resume_input_required === 'boolean' && (interaction.start_materials_mode === 'scan_required') === interaction.material_scan_required)
     const valid = activeOrder && bound
@@ -64,7 +68,7 @@ export function materialIntakePolicies(snapshot: ProductionSnapshot | undefined,
     const startMode = state === 'pending' && interaction.mode === 'fresh_start' && Array.isArray(control.allowed_actions) && control.allowed_actions.includes('start') && interaction.start_materials_mode === 'scan_required' && !str(interaction.blocking_reason_code)
     const intake = Boolean(permission.manage && valid && intakeMode && assigned && operation !== 'cut')
     const delivery = Boolean(permission.manage && valid && roleAllowed && (startMode || intakeMode && operation !== 'cut'))
-    return { apparatusId, name: str(record(apparatus.display).display_name) || apparatusId, stageNodeId, stageTitle: str(stage?.alternative_group_label) || str(stage?.title) || stageNodeId, operation, sourceRevision: integer(sourceRevision) ? sourceRevision : 0, sourceHash: str(apparatus.source_aasx_sha256), state, bound, intake, delivery,
+    return { apparatusId, name: str(display.display_name) || apparatusId, stageNodeId, stageTitle: str(stage?.alternative_group_label) || str(stage?.title) || stageNodeId, operation, sourceRevision: integer(sourceRevision) ? sourceRevision : 0, sourceHash: str(apparatus.source_aasx_sha256), state, bound, intake, delivery,
       reason: !permission.manage ? 'Material qabul qilish uchun apparatus.queue.manage ruxsati kerak.' : !activeOrder ? 'Buyurtma faol emas yoki uning boshqaruv holati qabulga ruxsat bermaydi.' : lanes.size !== 1 ? 'Uskuna bir nechta bosqichda takrorlangan. Native qabul amali aniq bosqichni qabul qilmaydi.' : !valid ? 'Canonical apparat, bosqich yoki server ruxsatlari to‘liq va mos olinmadi.' : operation === 'cut' ? 'Kesish bosqichi kirish WIPni alohida oqimda qabul qiladi.' : !assigned && intakeMode ? 'Qo‘shimcha qabul uchun bu apparat sessiyaning haqiqiy biriktirish doirasida bo‘lishi kerak.' : !roleAllowed ? 'Yetkazishni qayd etish uchun bu rolning apparat yoki admin.access doirasi yetarli emas.' : !intake && !delivery ? 'Server joriy bosqichda material qabul qilishga ruxsat bermagan.' : '' }
   })
 }

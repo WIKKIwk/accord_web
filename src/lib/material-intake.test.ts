@@ -17,6 +17,16 @@ function snapshot(state = 'in_progress', patch: Partial<ProductionSnapshot> = {}
   const interaction = { mode: state === 'pending' ? 'fresh_start' : state, start_materials_mode: state === 'pending' ? 'scan_required' : 'hidden', material_scan_required: state === 'pending', assigned_materials_display_only: false, material_intake_allowed: state !== 'pending', resume_input_required: false, previous_wip_mode: 'not_required', opening_wip_mode: 'not_required', qolip_mode: 'not_required' }
   return { ok: true, epoch: 'fixture-epoch', rev: 1, scope: '', maps: [{ map: { id: orderId, nodes: [{ id: 'work', kind: 'apparatus', apparatus_id: machine, title: 'Print', x: 0, y: 0 }], edges: [] }, program: {} }], order_statuses: { [orderId]: { lifecycle_status: state === 'pending' ? 'released' : 'in_progress', order_status: state === 'pending' ? 'ready' : state } }, order_controls: {}, order_customers: {}, sequences: { [machine]: [orderId] }, queue_states: { [machine]: { [orderId]: state } }, stage_states: { [orderId]: { work: state } }, queue_action_controls: { [machine]: { [orderId]: { state, stage_node_id: 'work', interaction, allowed_actions: state === 'pending' ? ['start'] : ['pause', 'complete'], ...(state === 'pending' ? {} : { work_activity: { state, worker_role: 'aparatchi', worker_ref: 'actual-run-owner' } }) } } }, ...patch }
 }
+function multiLaneSnapshot(state = 'in_progress'): ProductionSnapshot {
+  const current = snapshot(state), nodes = current.maps[0].map.nodes as Row[]
+  for (const [id, apparatusId] of [['laminate', 'apparatus:default:laminator-1'], ['cut', 'apparatus:default:slitter-1']]) {
+    nodes.push({ id, kind: 'apparatus', apparatus_id: apparatusId, title: id, x: 0, y: 100 })
+    current.stage_states[orderId][id] = 'pending'
+    current.queue_states[apparatusId] = { [orderId]: 'pending' }
+    current.queue_action_controls[apparatusId] = { [orderId]: { state: 'pending', stage_node_id: id, allowed_actions: [], interaction: { mode: 'waiting_previous_stage', start_materials_mode: 'hidden', material_scan_required: false, assigned_materials_display_only: true, material_intake_allowed: false, resume_input_required: false, previous_wip_mode: 'waiting', opening_wip_mode: 'not_required', qolip_mode: 'not_required' } } }
+  }
+  return current
+}
 function assignment(staged = true, status = 'available'): IntakeAssignment {
   const received = status === 'in_use'
   return { order_id: orderId, apparatus_id: machine, barcode: 'RAW-1', item_code: 'FILM', item_name: 'PET film', item_group: 'Rulon', assigned_at: '2026-10-13T14:00:00Z', assigned_by_role: 'material_taminotchi', assigned_by_ref: 'original-assignee', stock_status: status, execution_status: received ? 'in_use' : staged ? 'ready' : 'awaiting_delivery', stock_warehouse: 'Main', stock_uom: 'kg', reserved_order_id: received ? orderId : '', stock_qty: 20, received_qty: received ? 20 : 0, consumed_qty: 0, remaining_qty: received ? 20 : 0, roll_width_mm: 1015 }
@@ -94,6 +104,13 @@ function reserve(command: MaterialIntakeCommand, recovery = false) { materialInt
 afterEach(() => { productionOperationLedger.activate('reset-material-tests'); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 
 describe('native material permission, stage and source contract', () => {
+  it('leaves other native snapshot lanes unbound when only the selected apparatus detail was loaded', () => {
+    const current = multiLaneSnapshot(), policies = materialIntakePolicies(current, orderId, actor(), [apparatus])
+    expect(policies.find(value => value.apparatusId === machine)).toMatchObject({ bound: true, intake: true, stageNodeId: 'work' })
+    expect(policies.filter(value => value.apparatusId !== machine)).toHaveLength(2)
+    for (const value of policies.filter(value => value.apparatusId !== machine)) expect(value).toMatchObject({ bound: false, intake: false, delivery: false })
+    expect(current.queue_action_controls).toHaveProperty('apparatus:default:laminator-1')
+  })
   it('requires queue.manage even for admin and respects actual apparatus assignment scope', () => {
     expect(materialIntakePermissions(actor(['admin.access'])).manage).toBe(false)
     expect(() => plan('intake', snapshot(), actor(['admin.access']))).toThrow('apparatus.queue.manage')
@@ -135,6 +152,33 @@ describe('native material permission, stage and source contract', () => {
 })
 
 describe('shared order reservation and real transport receipts', () => {
+  it('preflights a native three-lane order with one selected detail and dispatches one exact delivery or intake POST', async () => {
+    for (const action of ['delivery', 'intake'] as const) {
+      materialIntakeAttempts.activate(`reset-multi-${action}`)
+      const state = action === 'delivery' ? 'pending' : 'in_progress', current = multiLaneSnapshot(state), command = plan(action, current)
+      const local = server({ state, staged: action === 'intake', current }), lease = reserve(command)
+      const saved = await executeMaterialIntake(client, actor(), command, lease, signal())
+      expect(local.writes()).toBe(1); expect(saved).toMatchObject({ observed: false, sessionConfirmed: false })
+      const nativeWrite = local.fetch.mock.calls.filter(([, init]) => init.method === 'POST')
+      expect(nativeWrite).toHaveLength(1)
+      expect(new URL(String(nativeWrite[0][0])).pathname).toBe(`${base}/${action === 'delivery' ? 'raw-material-start-receipt' : 'raw-material-intake'}`)
+      expect(JSON.parse(String(nativeWrite[0][1].body))).toEqual(command.body)
+      expect(command.fingerprint).toContain('laminate'); expect(command.fingerprint).toContain('slitter-1')
+      materialIntakeAttempts.finish(lease, { confirmed: true })
+    }
+  })
+
+  it('blocks a missing or foreign selected canonical detail without dispatching despite complete other lanes', async () => {
+    for (const action of ['delivery', 'intake'] as const) for (const meta of [{}, { ...apparatus, apparatus_id: 'apparatus:default:other' }, { ...apparatus, execution_profile: null }, { ...apparatus, lifecycle: null }]) {
+      materialIntakeAttempts.activate(`reset-metadata-${action}-${JSON.stringify(meta)}`)
+      const state = action === 'delivery' ? 'pending' : 'in_progress', current = multiLaneSnapshot(state), command = plan(action, current)
+      const local = server({ state, staged: action === 'intake', current, meta }), lease = reserve(command)
+      await expect(executeMaterialIntake(client, actor(), command, lease, signal())).rejects.toMatchObject({ kind: 'conflict' })
+      expect(local.writes()).toBe(0)
+      materialIntakeAttempts.finish(lease, { error: 'Missing selected canonical source', uncertain: false })
+      expect(productionOperationLedger.get(scope, orderId)).toBeNull()
+    }
+  })
   it('requires shared ownership before the first preflight read and blocks foreign same-order operations', async () => {
     const command = plan(), local = server()
     materialIntakeAttempts.activate(scope)
