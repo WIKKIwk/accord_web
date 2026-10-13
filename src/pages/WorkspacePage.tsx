@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { modules } from "@/lib/navigation";
+import { canViewPage } from "@/lib/permissions";
+import { useSession } from "@/lib/session";
 import {
   Card,
   CardContent,
@@ -10,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 export function WorkspacePage({ id }: { id: string }) {
+  const { session } = useSession();
   const module = modules.find((m) => m.id === id);
   if (!module) return null;
   return (
@@ -24,14 +27,14 @@ export function WorkspacePage({ id }: { id: string }) {
         <p className="text-sm text-muted-foreground">{module.description}</p>
       </div>
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {module.groups.map((group) => (
+        {module.groups.filter(group => group.pages.some(page => canViewPage(session, page.id))).map((group) => (
           <Card key={group.title}>
             <CardHeader>
               <CardTitle className="text-base">{group.title}</CardTitle>
-              <CardDescription>{group.pages.length} ta sahifa</CardDescription>
+              <CardDescription>{group.pages.filter(page => canViewPage(session, page.id)).length} ta sahifa</CardDescription>
             </CardHeader>
             <CardContent className="space-y-1">
-              {group.pages.map((page) => (
+              {group.pages.filter(page => canViewPage(session, page.id)).map((page) => (
                 <Link
                   key={page.id}
                   to={`/app/${page.id}`}

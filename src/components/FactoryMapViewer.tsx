@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { AlertCircle, LoaderCircle, RotateCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
+import { factoryMapKeyboardObject, factoryMapRendererCommands } from '@/lib/factory-map'
+import { factoryModelObjects } from '@/lib/factory-map-model'
 
 export interface FactoryMapObject {
   objectId: string
@@ -16,6 +18,7 @@ export interface FactoryMapViewerProps {
   selectedObjectId?: string
   focusedObjectId?: string
   resetRevision?: number
+  focusRevision?: number
   showLabels?: boolean
   renderSuspended?: boolean
   className?: string
@@ -24,6 +27,8 @@ export interface FactoryMapViewerProps {
   onFocusComplete?: (objectId: string) => void
   onLoad?: () => void
   onError?: (message: string) => void
+  onClearSelection?: () => void
+  onLoading?: () => void
 }
 
 interface FactoryRendererModule {
@@ -105,6 +110,9 @@ function loadFactoryMapRenderer(): Promise<FactoryRendererModule> {
 export function FactoryMapViewer(props: FactoryMapViewerProps) {
   const hostRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const objectsRef = useRef<FactoryMapObject[]>(factoryModelObjects.map(object => ({ ...object, aliases: [...object.aliases] })))
+  const instructionsId = useId()
+  const bridgeStateRef = useRef<{ focusedObjectId: string; resetRevision: number; focusRevision: number } | undefined>(undefined)
   const callbacksRef = useRef(props)
   callbacksRef.current = props
   const [attempt, setAttempt] = useState(0)
@@ -129,6 +137,7 @@ export function FactoryMapViewer(props: FactoryMapViewerProps) {
     let cancelled = false
     let dispose: (() => void) | undefined
     setLoading(true)
+    callbacksRef.current.onLoading?.()
     setError('')
     setProgress({ loaded: 0, total: 0, preparing: false })
 
@@ -149,7 +158,8 @@ export function FactoryMapViewer(props: FactoryMapViewerProps) {
           break
         case 'load_complete':
           setLoading(false)
-          callbacks.onObjectsReady?.(message.objects ?? [])
+          objectsRef.current = message.objects ?? []
+          callbacks.onObjectsReady?.(objectsRef.current)
           callbacks.onLoad?.()
           break
         case 'load_error': {
@@ -188,25 +198,41 @@ export function FactoryMapViewer(props: FactoryMapViewerProps) {
   useEffect(() => {
     const host = hostRef.current
     if (!host) return
-    host.setAttribute('data-model-viewer-state', rendererState)
-    host.dispatchEvent(new Event('model-viewer-state'))
-  }, [rendererState, attempt])
+    const state = JSON.parse(rendererState) as { focusedObjectId: string; resetRevision: number }
+    const focusRevision = props.focusRevision ?? 0
+    for (const command of factoryMapRendererCommands(state, bridgeStateRef.current, focusRevision !== bridgeStateRef.current?.focusRevision)) {
+      host.setAttribute('data-model-viewer-state', JSON.stringify(command))
+      host.dispatchEvent(new Event('model-viewer-state'))
+    }
+    bridgeStateRef.current = { focusedObjectId: state.focusedObjectId, resetRevision: state.resetRevision, focusRevision }
+  }, [rendererState, attempt, props.focusRevision])
 
   const percentage = progress.preparing ? 95 : progress.total ? Math.min(94, Math.round(progress.loaded / progress.total * 94)) : 0
 
   return (
-    <div ref={hostRef} className={cn('relative isolate min-h-[480px] w-full overflow-hidden bg-zinc-100', props.className)} data-model-viewer-state={rendererState}>
+    <div ref={hostRef} className={cn('relative isolate min-h-[360px] w-full overflow-hidden bg-zinc-100 [&_.factory-live-label]:!rounded-md [&_.factory-live-label]:!bg-white [&_.factory-live-label_b]:!text-[13px] [&_.factory-live-label_small]:!text-zinc-600 [&_.factory-live-label_span]:!text-zinc-700', props.className)} data-model-viewer-state={rendererState} aria-busy={loading}>
+      <p id={instructionsId} className="sr-only">Apparatlar orasida o‘tish uchun yo‘nalish tugmalaridan foydalaning. Home: birinchi apparat. End: oxirgi apparat. Enter: tanlash. Escape: tanlovni bekor qilish. Apparatlar ro‘yxati orqali ham tanlash mumkin.</p>
       <canvas
         key={attempt}
         ref={canvasRef}
-        className="absolute inset-0 h-full w-full touch-none"
+        className="absolute inset-0 h-full w-full touch-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-600"
         data-factory-map-canvas
         data-model-src={`${assetBase}zavod6-cad-line-art.glb`}
         data-model-gzip-src={`${assetBase}zavod6-cad-line-art.glb.gz`}
         data-selected-object-id={props.selectedObjectId ?? ''}
         data-selection-mode="false"
         draggable={false}
+        tabIndex={loading || error ? -1 : 0}
+        aria-describedby={instructionsId}
         aria-label="Zavodning interaktiv 3D xaritasi"
+        onKeyDown={event => {
+          if (props.renderSuspended) return
+          if (event.key === 'Escape') { props.onClearSelection?.(); return }
+          const object = factoryMapKeyboardObject(objectsRef.current, props.selectedObjectId ?? '', event.key)
+          if (!object) return
+          event.preventDefault()
+          props.onObjectTap?.(object)
+        }}
       />
       <div hidden className="absolute inset-0" data-factory-map-status />
       <div hidden data-factory-map-bridge />

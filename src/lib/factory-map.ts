@@ -227,6 +227,7 @@ function queueControl(snapshot: ProductionSnapshot, apparatusId: string, orderId
 }
 export function factoryMapOrderStatus(snapshot: ProductionSnapshot | null, apparatusId: string, orderId: string): FactoryMapStatus {
   if (!snapshot) return 'unknown'
+  if (!snapshot.queue_states[apparatusId]?.[orderId] && !queueControl(snapshot, apparatusId, orderId) && !['production_completed', 'closed', 'cancelled'].includes(text(snapshot.order_statuses[orderId]?.lifecycle_status)) && orderControl(snapshot, orderId) !== 'frozen') return 'unknown'
   return productionQueueDisplayStatus(snapshot.queue_states[apparatusId]?.[orderId], queueControl(snapshot, apparatusId, orderId), orderControl(snapshot, orderId), text(snapshot.order_statuses[orderId]?.lifecycle_status))
 }
 
@@ -239,6 +240,7 @@ export function factoryMapQueueOrderIds(snapshot: ProductionSnapshot | null, app
 export interface FactoryMachineStatus { state: FactoryMapStatus; orderId: string }
 export function factoryMapMachineStatus(snapshot: ProductionSnapshot | null, apparatusId: string): FactoryMachineStatus {
   if (!snapshot) return { state: 'unknown', orderId: '' }
+  if (!snapshot.visible_order_ids || typeof snapshot.visible_order_ids !== 'object' || Array.isArray(snapshot.visible_order_ids)) return { state: 'unknown', orderId: '' }
   const candidates = factoryMapQueueOrderIds(snapshot, apparatusId).map(orderId => ({ state: factoryMapOrderStatus(snapshot, apparatusId, orderId), orderId }))
     .filter(item => !['frozen', 'completed'].includes(item.state) && (orderControl(snapshot, item.orderId) !== 'freeze_requested' || currentWork.has(item.state)))
   for (const state of ['in_progress', 'print_preflight', 'print_preflight_passed', 'paused']) {
@@ -341,6 +343,41 @@ export interface FactoryLivePayload {
   unknownLabel: string
   routeLabel: string
   connections: FactoryConnection[]
+}
+
+export interface FactoryMapListObject { objectId: string; label: string; aliases?: readonly string[] }
+export type FactoryMapListFilter = 'all' | 'working' | 'attention' | 'unbound'
+
+interface FactoryMapFocusState { focusedObjectId: string; resetRevision: number }
+/** The native renderer handles camera reset before focus clearing; clear first. */
+export function factoryMapRendererCommands<T extends FactoryMapFocusState>(state: T, previous: FactoryMapFocusState | undefined, refocus = false): T[] {
+  if (previous?.focusedObjectId && (!state.focusedObjectId && state.resetRevision !== previous.resetRevision || refocus && state.focusedObjectId === previous.focusedObjectId)) {
+    return [{ ...state, focusedObjectId: '', resetRevision: previous.resetRevision }, state]
+  }
+  return [state]
+}
+
+/** Search visible names, persisted CAD aliases, and current order metadata. */
+export function filterFactoryMapObjects<T extends FactoryMapListObject>(objects: readonly T[], apparatus: readonly Row[], machines: readonly FactoryLiveMachine[], search: string, filter: FactoryMapListFilter = 'all'): T[] {
+  const needle = search.trim().toLocaleLowerCase('uz')
+  return objects.filter(object => {
+    const owners = factoryMapObjectOwners(apparatus, object.objectId)
+    const machine = machines.find(item => item.objectId === canonicalFactoryMapObjectId(object.objectId))
+    const matchesFilter = filter === 'all' || filter === 'unbound' && owners.length === 0 || filter === 'working' && ['in_progress', 'print_preflight', 'print_preflight_passed'].includes(machine?.state ?? '') || filter === 'attention' && (owners.length > 1 || owners.length > 0 && ['paused', 'frozen', 'unknown'].includes(machine?.state ?? 'unknown'))
+    return matchesFilter && [object.label, object.objectId, ...(object.aliases ?? []), ...owners.map(item => item.name), machine?.orderLabel, machine?.statusLabel].filter(Boolean).join(' ').toLocaleLowerCase('uz').includes(needle)
+  })
+}
+
+/** The canvas offers the same physical objects as the accessible apparatus list. */
+export function factoryMapKeyboardObject<T extends FactoryMapListObject>(objects: readonly T[], selectedObjectId: string, key: string): T | undefined {
+  if (!objects.length) return undefined
+  const index = objects.findIndex(object => canonicalFactoryMapObjectId(object.objectId) === canonicalFactoryMapObjectId(selectedObjectId))
+  if (key === 'Home') return objects[0]
+  if (key === 'End') return objects[objects.length - 1]
+  if (key === 'Enter' || key === ' ') return objects[Math.max(index, 0)]
+  if (key === 'ArrowRight' || key === 'ArrowDown') return objects[(index + 1) % objects.length]
+  if (key === 'ArrowLeft' || key === 'ArrowUp') return objects[index < 0 ? objects.length - 1 : (index + objects.length - 1) % objects.length]
+  return undefined
 }
 export function factoryLivePayload(snapshot: ProductionSnapshot | null, apparatus: readonly Row[], receivedAt: number, focusedObjectId = '', failed = false, now = Date.now()): FactoryLivePayload {
   const fresh = Boolean(snapshot && !failed && receivedAt > 0 && now >= receivedAt && now - receivedAt < factoryMapFreshnessMs)

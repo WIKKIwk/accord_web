@@ -3,7 +3,7 @@ import type { ProductionSnapshot, Row } from './api-types'
 import type { ProductionMapDefinition, ProductionMapNode } from './production-map'
 import {
   canonicalFactoryMapObjectId, factoryLivePayload, factoryMapApparatus, factoryMapMachineStatus,
-  factoryMapObjectOwners, factoryMapQueueOrderIds, factoryStockPayload, plannedFactoryMapConnections,
+  factoryMapObjectOwners, factoryMapQueueOrderIds, factoryMapOrderStatus, factoryStockPayload, filterFactoryMapObjects, factoryMapKeyboardObject, factoryMapRendererCommands, plannedFactoryMapConnections,
   productionMapLiveStageNode, productionMapStageDisplayStatus, productionMapStageQueueState, productionQueueDisplayStatus,
   resolveFactoryMapApparatus, stateRollInventory, unboundFactoryMapApparatus, validateFactoryMapPlacement,
 } from './factory-map'
@@ -119,6 +119,11 @@ describe('native physical bindings', () => {
 })
 
 describe('mobile queue status parity', () => {
+  it('keeps a missing queue projection unknown instead of inventing pending or idle work', () => {
+    expect(factoryMapOrderStatus(snapshot({ queue_states: {}, queue_action_controls: {} }), 'apparatus:first', 'order:first')).toBe('unknown')
+    expect(factoryMapMachineStatus(snapshot({ visible_order_ids: undefined }), 'apparatus:first')).toEqual({ state: 'unknown', orderId: '' })
+    expect(factoryMapOrderStatus(snapshot({ queue_states: {}, queue_action_controls: {}, order_statuses: { 'order:first': { lifecycle_status: 'closed' } } }), 'apparatus:first', 'order:first')).toBe('completed')
+  })
   it('shows passed print preflight and rejects contradictory controls', () => {
     const preflight = { hold_id: 'hold', idempotency_key: 'key', order_id: 'order:first', apparatus: 'apparatus:first', status: 'passed' }
     expect(productionQueueDisplayStatus('print_preflight', control('print_preflight', 'fresh_start', { allowed_actions: ['start'], print_preflight: preflight }))).toBe('print_preflight_passed')
@@ -189,6 +194,50 @@ describe('mobile queue status parity', () => {
     expect(factoryLivePayload(snapshot(), machine, 1000, '', false, 31_000)).toMatchObject({ fresh: false, validUntil: 0, machines: [{ state: 'unknown' }] })
     expect(factoryLivePayload(snapshot(), machine, 1000, '', true, 1001).machines[0].state).toBe('unknown')
     expect(factoryLivePayload(null, machine, 1000, '', false, 1001).machines[0].state).toBe('unknown')
+  })
+})
+
+describe('factory map accessible apparatus selection', () => {
+  const objects = [{ objectId: 'node:7', label: 'Extruder', aliases: ['node:7:instance:2'] }, { objectId: 'node:20', label: 'Rezka' }]
+
+  it('searches ERP names, CAD aliases and order numbers while retaining exact object identities', () => {
+    const apparatusRows = [apparatus('apparatus:first', 'node:7', { display: { display_name: 'Laminator 01' } })]
+    const machines = factoryLivePayload(snapshot({ maps: [{ map: { id: 'order:first', order_number: '1048', title: 'Film' }, program: {} }] }), apparatusRows, 1000, '', false, 1001).machines
+    for (const search of ['LAMINATOR', 'node:7:instance:2', '1048']) expect(filterFactoryMapObjects(objects, apparatusRows, machines, search).map(object => object.objectId)).toEqual(['node:7'])
+    expect(filterFactoryMapObjects(objects, [apparatus()], machines, '', 'working')).toEqual([objects[0]])
+    expect(filterFactoryMapObjects(objects, [apparatus()], machines, '', 'unbound')).toEqual([objects[1]])
+  })
+
+  it('includes stale and conflicting bindings in the attention filter', () => {
+    const stale = factoryLivePayload(snapshot(), [apparatus()], 1000, '', true, 1001).machines
+    expect(filterFactoryMapObjects(objects, [apparatus()], stale, '', 'attention')).toEqual([objects[0]])
+    expect(filterFactoryMapObjects(objects, [apparatus(), apparatus('apparatus:other')], [], '', 'attention')).toEqual([objects[0]])
+  })
+
+  it('wraps keyboard selection through physical objects and recognizes persisted selection aliases', () => {
+    expect(factoryMapKeyboardObject(objects, '', 'ArrowRight')).toBe(objects[0])
+    expect(factoryMapKeyboardObject(objects, 'node:7:instance:2', 'ArrowRight')).toBe(objects[1])
+    expect(factoryMapKeyboardObject(objects, 'node:20', 'ArrowRight')).toBe(objects[0])
+    expect(factoryMapKeyboardObject(objects, 'node:7', 'ArrowLeft')).toBe(objects[1])
+    expect(factoryMapKeyboardObject(objects, '', 'Enter')).toBe(objects[0])
+    expect(factoryMapKeyboardObject(objects, '', 'End')).toBe(objects[1])
+    expect(factoryMapKeyboardObject(objects, '', 'Home')).toBe(objects[0])
+    expect(factoryMapKeyboardObject(objects, '', 'Escape')).toBeUndefined()
+    expect(factoryMapKeyboardObject([], '', 'ArrowRight')).toBeUndefined()
+  })
+
+  it('clears the native selection before resetting the camera, while preserving live and stock contracts', () => {
+    const live = { validUntil: 30000, fresh: true }, stock = { piles: [{ count: 2 }] }
+    const state = { focusedObjectId: '', selectedObjectId: '', resetRevision: 2, live, stock }
+    expect(factoryMapRendererCommands(state, { focusedObjectId: 'node:7', resetRevision: 1 })).toEqual([
+      { ...state, resetRevision: 1 }, state,
+    ])
+    expect(factoryMapRendererCommands(state, { focusedObjectId: '', resetRevision: 1 })).toEqual([state])
+    const focus = { ...state, focusedObjectId: 'node:7', selectedObjectId: 'node:7' }
+    expect(factoryMapRendererCommands(focus, { focusedObjectId: 'node:7', resetRevision: 2 }, true)).toEqual([
+      { ...focus, focusedObjectId: '' }, focus,
+    ])
+    expect(factoryMapRendererCommands(focus, { focusedObjectId: 'node:7', resetRevision: 2 }, false)).toEqual([focus])
   })
 })
 

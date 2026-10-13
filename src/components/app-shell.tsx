@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useSession } from "@/lib/session";
 import { modules, allPages, pageById, moduleForPage } from "@/lib/navigation";
+import { canViewPage } from "@/lib/permissions";
 import {
   Sidebar,
   SidebarContent,
@@ -182,7 +183,7 @@ function AppShellContent() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {modules.map((module) => (
+              {modules.filter(module => canViewPage(session, module.id)).map((module) => (
                 <Collapsible
                   key={module.id}
                   asChild
@@ -217,12 +218,12 @@ function AppShellContent() {
                             </Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
-                        {module.groups.map((group) => (
+                        {module.groups.filter(group => group.pages.some(child => canViewPage(session, child.id))).map((group) => (
                           <div key={group.title} className="pt-2">
                             <div className="px-2 pb-1 text-[11px] font-medium text-muted-foreground">
                               {group.title}
                             </div>
-                            {group.pages.map((child) => (
+                            {group.pages.filter(child => canViewPage(session, child.id)).map((child) => (
                               <SidebarMenuSubItem key={child.id}>
                                 <SidebarMenuSubButton
                                   asChild
@@ -293,10 +294,10 @@ function AppShellContent() {
                     </p>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => navigate("/app/settings")}>
+                  {canViewPage(session, 'settings') && <DropdownMenuItem onSelect={() => navigate("/app/settings")}>
                     <Settings />
                     Sozlamalar
-                  </DropdownMenuItem>
+                  </DropdownMenuItem>}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onSelect={() => {
@@ -447,12 +448,12 @@ function AppShellContent() {
                 Bosh sahifa
               </CommandItem>
             </CommandGroup>
-            {modules.map((module) => (
+            {modules.filter(module => canViewPage(session, module.id)).map((module) => (
               <div key={module.id}>
                 <CommandSeparator />
                 <CommandGroup heading={module.title}>
                   {allPages
-                    .filter((p) => moduleForPage(p.id)?.id === module.id)
+                    .filter((p) => moduleForPage(p.id)?.id === module.id && canViewPage(session, p.id))
                     .map((p) => (
                       <CommandItem
                         key={p.id}

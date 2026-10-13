@@ -9,6 +9,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider, useSession } from "@/lib/session";
 import { pageById, modules } from "@/lib/navigation";
+import { canViewPage } from "@/lib/permissions";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AppShell } from "@/components/app-shell";
 import { LoginPage } from "@/pages/LoginPage";
 import { WorkspacePage } from "@/pages/WorkspacePage";
@@ -44,6 +46,8 @@ function Guard() {
 }
 function Page() {
   const { pageId = "home" } = useParams();
+  const { session } = useSession();
+  if (pageById(pageId) && !canViewPage(session, pageId)) return <Alert><AlertTitle>Bu bo‘limga ruxsat berilmagan</AlertTitle><AlertDescription>Hisobingizning huquqlari bu ma’lumotlarni ko‘rishga ruxsat bermaydi. Chap menyudan mavjud bo‘limni tanlang.</AlertDescription></Alert>;
   if (pageId === "home") return <DashboardPage />;
   if (modules.some((m) => m.id === pageId))
     return <WorkspacePage id={pageId} />;

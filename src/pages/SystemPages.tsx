@@ -7,6 +7,7 @@ import type { Row } from '@/lib/api-types'
 import { MutationScope } from '@/lib/mutation-scope'
 import type { MutationLease } from '@/lib/mutation-scope'
 import { useSession } from '@/lib/session'
+import { hasCapability } from '@/lib/permissions'
 import { display, numberLabel } from '@/lib/presentation'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -200,7 +201,7 @@ function SettingsForm({ initial }: { initial: SettingsInput }) {
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (demo || !client || mutation.isPending || !dirty) return
+    if (demo || !client || mutation.isPending || !dirty || !hasCapability(session, 'admin.settings.manage')) return
     const trimmed = settingsUpdate(initial, values)
     const invalid = settingsValidation(trimmed)
     if (invalid) {
@@ -213,7 +214,7 @@ function SettingsForm({ initial }: { initial: SettingsInput }) {
   }
 
   function field(key: keyof SettingsInput, label: string, type = 'text', readOnly = false) {
-    return <div className="space-y-2"><Label htmlFor={`setting-${key}`}>{label}</Label><Input id={`setting-${key}`} name={key} type={type} value={values[key]} readOnly={readOnly} autoComplete="off" disabled={mutation.isPending} onChange={event => change(key, event.target.value)} />{key === 'default_uom' && <p className="text-xs text-muted-foreground">Bo‘sh qoldirilsa, Kg ishlatiladi.</p>}</div>
+    return <div className="space-y-2"><Label htmlFor={`setting-${key}`}>{label}</Label><Input id={`setting-${key}`} name={key} type={type} value={values[key]} readOnly={readOnly || !hasCapability(session, 'admin.settings.manage')} autoComplete="off" disabled={mutation.isPending} onChange={event => change(key, event.target.value)} />{key === 'default_uom' && <p className="text-xs text-muted-foreground">Bo‘sh qoldirilsa, Kg ishlatiladi.</p>}</div>
   }
 
   return <form onSubmit={submit} className="space-y-5">
@@ -238,7 +239,7 @@ function SettingsForm({ initial }: { initial: SettingsInput }) {
     </Tabs>
     <div className="flex flex-wrap items-center justify-end gap-3">
       <Button type="button" variant="outline" disabled={!dirty || mutation.isPending} onClick={() => { setValues(initial); setValidation(''); setSaved(false); mutation.reset() }}>Bekor qilish</Button>
-      <Button type="submit" disabled={demo || !dirty || mutation.isPending}>{mutation.isPending ? <Loader2 className="animate-spin" /> : <Save />}{mutation.isPending ? 'Saqlanmoqda' : 'Saqlash'}</Button>
+      <Button type="submit" disabled={demo || !dirty || mutation.isPending || !hasCapability(session, 'admin.settings.manage')}>{mutation.isPending ? <Loader2 className="animate-spin" /> : <Save />}{mutation.isPending ? 'Saqlanmoqda' : 'Saqlash'}</Button>
     </div>
   </form>
 }
