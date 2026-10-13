@@ -1,0 +1,458 @@
+{
+  "synthetic": true,
+  "productionVerified": false,
+  "runId": "2026-10-13T22-22-10-021Z",
+  "sourceRevision": "87a54c3-plus-frozen-nested-dialog-fix",
+  "buildDirectory": "/tmp/accord-web-quality-static-visible-guarded-ByOGar",
+  "fixtureVersion": 8,
+  "webOrigin": "http://127.0.0.1:5186",
+  "apiOrigin": "http://127.0.0.1:5199",
+  "outcomes": [
+    {
+      "id": "worker-nested-escape-focus",
+      "status": "passed",
+      "screenshots": [
+        "2026-10-13T22-22-10-021Z/worker-nested-escape-focus-passed.png"
+      ],
+      "assertions": "UI and synthetic server state",
+      "started": "2026-10-13T22:22:10.381Z",
+      "assetRequests": [],
+      "requests": [
+        {
+          "sequence": 1,
+          "method": "POST",
+          "path": "/v1/mobile/auth/login",
+          "query": {},
+          "body": {
+            "phone": "[redacted]",
+            "code": "[redacted]"
+          },
+          "authorized": false,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 2,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 3,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/completion-requests",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 4,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/wip-batches",
+          "query": {
+            "status": "waiting",
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 5,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/wip-batches",
+          "query": {
+            "status": "in_use",
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 6,
+          "method": "GET",
+          "path": "/v1/mobile/admin/warehouses",
+          "query": {
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 7,
+          "method": "GET",
+          "path": "/v1/mobile/me",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 8,
+          "method": "GET",
+          "path": "/v1/mobile/admin/workers",
+          "query": {
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 9,
+          "method": "GET",
+          "path": "/v1/mobile/admin/workers/detail",
+          "query": {
+            "id": "qa-worker-1"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 10,
+          "method": "GET",
+          "path": "/v1/mobile/admin/workers/profile-detail",
+          "query": {
+            "id": "qa-worker-1"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 11,
+          "method": "GET",
+          "path": "/v1/mobile/admin/apparatus",
+          "query": {
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 12,
+          "method": "GET",
+          "path": "/v1/mobile/admin/role-assignments",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 13,
+          "method": "GET",
+          "path": "/v1/mobile/admin/roles",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        }
+      ],
+      "screenshotSettling": [
+        {
+          "label": "passed",
+          "finiteAnimationsAtStart": 0,
+          "finiteAnimationsRemaining": 0,
+          "settled": true
+        }
+      ],
+      "durationMs": 5725
+    },
+    {
+      "id": "worker-nested-escape-focus-reduced-motion",
+      "status": "passed",
+      "screenshots": [
+        "2026-10-13T22-22-10-021Z/worker-nested-escape-focus-reduced-motion-passed.png"
+      ],
+      "assertions": "UI and synthetic server state",
+      "started": "2026-10-13T22:22:16.110Z",
+      "assetRequests": [],
+      "requests": [
+        {
+          "sequence": 1,
+          "method": "POST",
+          "path": "/v1/mobile/auth/login",
+          "query": {},
+          "body": {
+            "phone": "[redacted]",
+            "code": "[redacted]"
+          },
+          "authorized": false,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 2,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 3,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/completion-requests",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 4,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/wip-batches",
+          "query": {
+            "status": "waiting",
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 5,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/wip-batches",
+          "query": {
+            "status": "in_use",
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 6,
+          "method": "GET",
+          "path": "/v1/mobile/admin/warehouses",
+          "query": {
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 7,
+          "method": "GET",
+          "path": "/v1/mobile/me",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 8,
+          "method": "GET",
+          "path": "/v1/mobile/admin/workers",
+          "query": {
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 9,
+          "method": "GET",
+          "path": "/v1/mobile/admin/workers/detail",
+          "query": {
+            "id": "qa-worker-1"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 10,
+          "method": "GET",
+          "path": "/v1/mobile/admin/workers/profile-detail",
+          "query": {
+            "id": "qa-worker-1"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 11,
+          "method": "GET",
+          "path": "/v1/mobile/admin/apparatus",
+          "query": {
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 12,
+          "method": "GET",
+          "path": "/v1/mobile/admin/role-assignments",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 13,
+          "method": "GET",
+          "path": "/v1/mobile/admin/roles",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        }
+      ],
+      "screenshotSettling": [
+        {
+          "label": "passed",
+          "finiteAnimationsAtStart": 20,
+          "finiteAnimationsRemaining": 0,
+          "settled": true
+        }
+      ],
+      "durationMs": 3127
+    }
+  ],
+  "blockedRequests": [],
+  "consoleErrors": []
+}
