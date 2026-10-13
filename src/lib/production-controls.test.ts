@@ -80,6 +80,8 @@ describe('native production control policy', () => {
     expect(productionQueuePolicies(snapshot(), orderId, session(['catalog.item.read']), [machine()])[0].pause).toBe(false)
     expect(productionQueuePolicies(snapshot(), orderId, session(), [machine()])[0].pause).toBe(true)
     expect(productionQueuePolicies(snapshot(), orderId, session(), [])[0].pause).toBe(false)
+    expect(productionQueuePolicies(snapshot({ order_statuses: { [orderId]: { lifecycle_status: 'in_progress', order_status: 'completed' } } }), orderId, session(), [machine()])[0]).toMatchObject({ pause: false, resume: false })
+    expect(productionQueuePolicies(snapshot({ order_statuses: { [orderId]: { lifecycle_status: 'in_progress' } } }), orderId, session(), [machine()])[0]).toMatchObject({ pause: false, resume: false })
   })
 
   it('blocks an Aparatchi admin-panel pause because the native handler would detach the roll', async () => {

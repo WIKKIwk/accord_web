@@ -103,7 +103,7 @@ export function productionQueuePolicies(snapshot: ProductionSnapshot | undefined
     const control = isRecord(snapshot.queue_action_controls[apparatusId]?.[orderId]) ? snapshot.queue_action_controls[apparatusId][orderId] : null
     const rawState = string(snapshot.queue_states[apparatusId]?.[orderId])
     const status = productionQueueDisplayStatus(rawState || undefined, control ?? undefined, order.state, order.lifecycle)
-    const valid = Boolean(control && rawState && status !== 'unknown' && order.state === 'active' && !order.earlyClose && !terminal.has(order.lifecycle) && ['released', 'in_progress'].includes(order.lifecycle))
+    const valid = Boolean(control && rawState && status !== 'unknown' && order.state === 'active' && !order.earlyClose && states.has(order.operational) && !['completed', 'completed_with_issue'].includes(order.operational) && !terminal.has(order.lifecycle) && ['released', 'in_progress'].includes(order.lifecycle))
     const allowed = valid && Array.isArray(control!.allowed_actions) ? control!.allowed_actions : []
     const interaction = object(control?.interaction)
     const activeRolls = Array.isArray(control?.rezka_active_partial_rolls) ? control.rezka_active_partial_rolls : []
