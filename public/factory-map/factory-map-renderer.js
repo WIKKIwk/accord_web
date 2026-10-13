@@ -3,12 +3,13 @@
 import * as THREE from './three.module.js';
 import { GLTFLoader } from './GLTFLoader.js';
 import { OrbitControls } from './OrbitControls.js';
-import { CAMERA_LIMITS, constrainCamera, focusCamera, overviewCamera, smoothStep, visibleWorldBoxes } from './factory-map-navigation.js?v=20261013stages1';
+import { CAMERA_LIMITS, constrainCamera, constrainIsolatedCamera, focusCamera, overviewCamera, smoothStep, visibleWorldBoxes } from './factory-map-navigation.js?v=20261013cadIsolation1';
 import { buildPickBounds, closestMapHits, loadMapBytes, optimizeStaticMap } from './factory-map-performance.js?v=20260926perf2';
 import { apparatusHit, apparatusObjectId, cleanFactoryMapGeometry, FACTORY_MAP_CLUTTER_BASE_IDS, isFactoryMapApparatus } from './factory-map-scene-policy.js?v=20260907live2';
 import { createFactoryLive, FrameBudget } from './factory-map-live.js?v=20261013stages1';
 import { createFactoryStock } from './factory-map-stock.js?v=20261013stages1';
-import { createFactoryStageView } from './factory-map-stage-view.js?v=20261013stages2';
+import { createFactoryStageView } from './factory-map-stage-view.js?v=20261013cadIsolation1';
+import { createFactoryCadCompanions } from './factory-map-cad-companions.js?v=20261013cadIsolation1';
 import { lockFactoryMapGestures } from './factory-map-gestures.js?v=20260907touch1';
 
 // The module is cached by the browser; mounting is explicit so route re-entry
@@ -54,6 +55,7 @@ let lastState = {};
 let liveView = null;
 let stockView = null;
 let stageView = null;
+let cadCompanions = null;
 let beforeStageView = null;
 let isolatedBounds = null;
 let viewportVisible = true;
@@ -770,7 +772,8 @@ function updateProjection() {
 }
 
 function snapshotCamera() {
-  return { position: camera.position.clone(), target: controls.target.clone(), offset: viewOffset };
+  return { position: camera.position.clone(), target: controls.target.clone(), offset: viewOffset,
+    near: camera.near, far: camera.far, minDistance: controls.minDistance, maxDistance: controls.maxDistance };
 }
 
 function resetDamping() {
@@ -781,8 +784,13 @@ function resetDamping() {
 }
 
 function animateCamera(destination, complete) {
+  const from = snapshotCamera();
+  // Flights use the union of the old/new orbit ranges. Applying a tiny
+  // apparatus range before the tween would snap the factory camera abruptly.
+  controls.minDistance = Math.min(from.minDistance, destination.minDistance ?? from.minDistance);
+  controls.maxDistance = Math.max(from.maxDistance, destination.maxDistance ?? from.maxDistance);
   resetDamping();
-  tween = { from: snapshotCamera(), to: destination, at: performance.now(), complete,
+  tween = { from, to: destination, at: performance.now(), complete,
     duration: (lastState.reducedMotion || reducedMotionQuery.matches) ? 0 : CAMERA_LIMITS.duration };
   requestRender();
 }
@@ -814,7 +822,9 @@ function handleRendererState() {
     canvas.dataset.stageView = stageView?.isolatedObjectId ? 'isolated' : 'overview';
     canvas.dataset.isolatedObjectId = stageView?.isolatedObjectId || '';
     canvas.dataset.visibleApparatusIds = JSON.stringify(stageView?.isolatedObjectId ? [stageView.isolatedObjectId] : []);
-    canvas.dataset.cadStageContrast = String(canvas.dataset.factoryMapStyle === 'cad-line-art' && Boolean(stageView?.isolatedObjectId));
+    canvas.dataset.cadStageContrast = 'false';
+    canvas.dataset.isolatedCadSegments = String(stageView?.isolatedObjectId ? cadCompanions?.get(stageView.isolatedObjectId, selectableTargetForId(stageView.isolatedObjectId)?.object)
+      .reduce((count, object) => count + object.geometry.index.count / 2, 0) || 0 : 0);
     liveView?.setState(state);
     stockView?.setState(state);
   }
@@ -839,8 +849,6 @@ function handleRendererState() {
     overviewActive = true;
     overview = overviewCamera(mapBounds, camera, obstacles);
     const restored = beforeStageView && beforeStageView.aspect === camera.aspect ? beforeStageView : overview;
-    controls.minDistance = CAMERA_LIMITS.minDistance;
-    controls.maxDistance = restored.maxDistance || overview.maxDistance;
     if (!state.isolatedObjectId) beforeStageView = null;
     if (selectionHelper) {
       scene.remove(selectionHelper); selectionHelper.geometry.dispose(); selectionHelper.material.dispose(); selectionHelper = null;
@@ -851,8 +859,6 @@ function handleRendererState() {
     focusId = state.focusedObjectId || '';
     if (!focusId) {
       if (beforeStageView && !state.isolatedObjectId) {
-        controls.minDistance = beforeStageView.minDistance;
-        controls.maxDistance = beforeStageView.maxDistance;
         animateCamera(beforeStageView.aspect === camera.aspect ? beforeStageView : overviewCamera(mapBounds, camera, obstacles));
         beforeStageView = null;
       } else if (beforeFocus) animateCamera(beforeFocus);
@@ -877,7 +883,6 @@ function handleRendererState() {
         const box = new THREE.Box3().setFromObject(selectionHelper);
         const selectedId = focusId;
         const destination = focusCamera(box, camera, controls.target, mapBounds, isolatedBounds ? [isolatedBounds] : obstacles, Boolean(isolatedBounds));
-        controls.minDistance = destination.minDistance;
         animateCamera(destination, () => {
           if (focusId === selectedId) postFactoryMapMessage({ type: 'focus_complete', objectId: selectedId });
         });
@@ -913,11 +918,18 @@ function renderFrame(now) {
     camera.position.lerpVectors(tween.from.position, tween.to.position, progress);
     controls.target.lerpVectors(tween.from.target, tween.to.target, progress);
     viewOffset = THREE.MathUtils.lerp(tween.from.offset, tween.to.offset, progress);
-    if (t === 1) { finished = tween.complete; tween = null; }
+    camera.near = THREE.MathUtils.lerp(tween.from.near, tween.to.near ?? tween.from.near, progress);
+    camera.far = THREE.MathUtils.lerp(tween.from.far, tween.to.far ?? tween.from.far, progress);
+    if (t === 1) {
+      controls.minDistance = tween.to.minDistance ?? tween.from.minDistance;
+      controls.maxDistance = tween.to.maxDistance ?? tween.from.maxDistance;
+      finished = tween.complete; tween = null;
+    }
   }
   const changed = controls.update();
   if (changed || flying || !renderCount) {
-    if (mapBounds) constrainCamera(camera.position, controls.target, mapBounds, isolatedBounds ? [isolatedBounds] : obstacles, controls.maxDistance, controls.minDistance);
+    if (isolatedBounds) constrainIsolatedCamera(camera.position, controls.target, isolatedBounds, controls.maxDistance, controls.minDistance);
+    else if (mapBounds) constrainCamera(camera.position, controls.target, mapBounds, obstacles, controls.maxDistance, controls.minDistance);
     camera.lookAt(controls.target);
     updateProjection();
   }
@@ -949,6 +961,8 @@ function renderFrame(now) {
   canvas.dataset.cameraMotion = tween ? 'animating' : interacting ? 'gesture' : 'idle';
   canvas.dataset.cameraDamping = String(changed);
   canvas.dataset.cameraAutoRotate = String(controls.autoRotate);
+  canvas.dataset.cameraClip = `${camera.near.toFixed(5)},${camera.far.toFixed(3)}`;
+  canvas.dataset.cameraOrbit = `${controls.minDistance.toFixed(3)},${controls.maxDistance.toFixed(3)}`;
   canvas.dataset.fps = frameBudget.metrics.fps.toFixed(1);
   canvas.dataset.frameP95 = frameBudget.metrics.p95.toFixed(1);
   canvas.dataset.slowFrames = String(frameBudget.metrics.slowFrames);
@@ -973,10 +987,18 @@ function resize() {
     controls.maxDistance = overview.maxDistance;
     camera.position.copy(overview.position);
     controls.target.copy(overview.target);
+    controls.minDistance = overview.minDistance; camera.near = overview.near; camera.far = overview.far;
     viewOffset = 0;
     tween = null;
     resetDamping();
+  } else if (isolatedBounds) {
+    const fitted = focusCamera(isolatedBounds, camera, controls.target, mapBounds, [], true);
+    camera.position.copy(fitted.position); controls.target.copy(fitted.target);
+    controls.minDistance = fitted.minDistance; controls.maxDistance = fitted.maxDistance;
+    camera.near = fitted.near; camera.far = fitted.far; viewOffset = 0; tween = null;
+    resetDamping();
   }
+  updateProjection();
   liveView?.invalidate();
   stockView?.invalidate();
   requestRender();
@@ -1113,10 +1135,11 @@ async function loadModel() {
           // solids for stock placement, including the complete apparatus body.
           const stockObstacles = visibleWorldBoxes(root);
           const optimized = optimizeStaticMap(root);
+          cadCompanions = root.userData.factory_map_style === 'cad-line-art' ? createFactoryCadCompanions(root) : null;
           stageView = createFactoryStageView(root, id => {
             const target = selectableTargetForId(id);
-            return target && isFactoryMapApparatus(target.object) ? target : null;
-          }, { cadContrast: root.userData.factory_map_style === 'cad-line-art' });
+            return target && isFactoryMapApparatus(target.object) ? { ...target, companions: cadCompanions?.get(id, target.object) || [] } : null;
+          });
           canvas.dataset.instancesBefore = String(optimized.instancesBefore);
           canvas.dataset.instancesAfter = String(optimized.instancesAfter);
           canvas.dataset.batchedMeshes = String(optimized.meshesBefore);
@@ -1151,6 +1174,7 @@ async function loadModel() {
           controls.maxDistance = overview.maxDistance;
           camera.position.copy(overview.position);
           controls.target.copy(overview.target);
+          controls.minDistance = overview.minDistance; camera.near = overview.near; camera.far = overview.far; updateProjection();
           controls.update();
           if (initialSelectedObjectId) {
             selectObject(initialSelectedObjectId, canvas.dataset.selectionMode === 'true');

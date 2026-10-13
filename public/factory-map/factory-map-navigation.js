@@ -53,6 +53,7 @@ export function constrainCamera(position, target, bounds, obstacles, maxDistance
 }
 
 export function focusCamera(box, camera, target, bounds, obstacles, isolated = false) {
+  if (isolated) return isolatedCamera(box, camera, target);
   const center = box.getCenter(new Vector3());
   const size = box.getSize(new Vector3());
   const azimuth = new Spherical().setFromVector3(camera.position.clone().sub(target)).theta;
@@ -64,9 +65,53 @@ export function focusCamera(box, camera, target, bounds, obstacles, isolated = f
   // portion for the compact Flutter sheet and a little room around the machine.
   const distance = Math.max(9, radius / Math.sin(Math.min(verticalFov * .64, horizontalFov) / 2) * 1.12);
   const position = center.clone().addScaledVector(direction, distance);
-  const minDistance = isolated ? Math.max(2, size.length() * .4) : CAMERA_LIMITS.minDistance;
+  const minDistance = CAMERA_LIMITS.minDistance;
   constrainCamera(position, center, bounds, obstacles, undefined, minDistance);
-  return { position, target: center, offset: isolated ? 0 : .18, minDistance };
+  return { position, target: center, offset: .18, minDistance };
+}
+
+// An extracted CAD apparatus does not need the factory's 2.5 m floor, 1.4 m
+// roof clearance or a reserved mobile-sheet crop. Fit its real corners in the
+// FULL available viewport, keeping the visitor's current viewing azimuth.
+export function isolatedCamera(box, camera, previousTarget) {
+  const target = box.getCenter(new Vector3()), size = box.getSize(new Vector3());
+  const radius = Math.max(size.length() / 2, .0001);
+  const orbit = new Spherical().setFromVector3(camera.position.clone().sub(previousTarget));
+  const theta = Number.isFinite(orbit.theta) ? orbit.theta : Math.PI / 4;
+  const phi = MathUtils.clamp(orbit.radius ? orbit.phi : Math.PI / 4, CAMERA_LIMITS.minPolar, CAMERA_LIMITS.maxPolar);
+  const direction = new Vector3().setFromSpherical(new Spherical(1, phi, theta));
+  const right = new Vector3(Math.cos(theta), 0, -Math.sin(theta));
+  const up = direction.clone().cross(right);
+  const tangentY = Math.tan(MathUtils.degToRad(camera.fov) / 2), tangentX = tangentY * camera.aspect;
+  const minDistance = radius * 1.12;
+  let distance = minDistance;
+  for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) {
+    const relative = new Vector3(x, y, z).sub(target), depth = relative.dot(direction);
+    distance = Math.max(distance, depth + Math.abs(relative.dot(right)) / (tangentX * .86), depth + Math.abs(relative.dot(up)) / (tangentY * .86));
+  }
+  const maxDistance = Math.max(distance * 3, size.length() * 2.4);
+  return { position: target.clone().addScaledVector(direction, distance), target, offset: 0, minDistance, maxDistance,
+    near: Math.max(.0001, radius * .015), far: maxDistance + radius * 2 };
+}
+
+export function constrainIsolatedCamera(position, target, box, maxDistance, minDistance) {
+  const previousTarget = target.clone();
+  target.clamp(box.min, box.max); position.add(target.clone().sub(previousTarget));
+  const spherical = new Spherical().setFromVector3(position.clone().sub(target));
+  spherical.phi = MathUtils.clamp(spherical.phi, CAMERA_LIMITS.minPolar, CAMERA_LIMITS.maxPolar);
+  spherical.radius = MathUtils.clamp(spherical.radius, minDistance, maxDistance);
+  const direction = new Vector3().setFromSpherical(new Spherical(1, spherical.phi, spherical.theta));
+  const relative = target.clone().sub(box.getCenter(new Vector3()));
+  const safeRadius = box.getSize(new Vector3()).length() / 2 * 1.06;
+  const along = relative.dot(direction);
+  // Keep the camera outside the same apparatus even after panning. No hidden
+  // building, floor height, lighting change or oversized collision box applies.
+  // Its enclosing sphere must be in front of the eye, including a panned
+  // corner target. Merely exiting the sphere along a tangent can still clip
+  // the near side of the CAD while OrbitControls is close to the apparatus.
+  spherical.radius = Math.max(spherical.radius, safeRadius - along);
+  position.copy(target).addScaledVector(direction, spherical.radius);
+  return { position, target };
 }
 
 export function overviewCamera(bounds, camera, obstacles) {
@@ -91,7 +136,8 @@ export function overviewCamera(bounds, camera, obstacles) {
   const position = target.clone().addScaledVector(direction, distance * CAMERA_LIMITS.entryDistanceScale);
   const maxDistance = Math.max(bounds.getSize(new Vector3()).length() * CAMERA_LIMITS.maxExtentMultiplier, distance * 1.05);
   constrainCamera(position, target, bounds, obstacles, maxDistance);
-  return { position, target, offset: 0, maxDistance };
+  return { position, target, offset: 0, maxDistance, minDistance: CAMERA_LIMITS.minDistance, near: .1,
+    far: Math.max(400, maxDistance + bounds.getSize(new Vector3()).length() * 2) };
 }
 
 export function visibleWorldBoxes(root) {

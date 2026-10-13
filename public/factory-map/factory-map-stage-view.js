@@ -1,13 +1,10 @@
 // Stage browsing reuses the loaded scene. No model clone, asset fetch or second
 // canvas is needed; optimized original meshes remain available for exact views.
-export function createFactoryStageView(root, getTarget, { cadContrast = false } = {}) {
+export function createFactoryStageView(root, getTarget) {
   const visibility = new Map();
-  const materialColors = new Map();
   root.traverse(object => visibility.set(object, object.visible));
   let current = '';
   function restore() {
-    for (const [material, color] of materialColors) material.color.copy(color);
-    materialColors.clear();
     for (const [object, visible] of visibility) object.visible = visible;
     current = '';
   }
@@ -18,6 +15,10 @@ export function createFactoryStageView(root, getTarget, { cadContrast = false } 
     const target = getTarget(id);
     if (!target?.object || !visibility.has(target.object)) return { changed: true, isolated: '' };
     const original = target.object;
+    const companions = target.companions || [];
+    // Companions are lazy, cached slices of ORIGINAL global CAD line buffers.
+    // Restore hides them; no geometry or shared material is disposed on toggles.
+    for (const companion of companions) if (!visibility.has(companion)) visibility.set(companion, false);
     const proxy = original.userData.factoryMapRenderProxy;
     // A deduplicated instanced apparatus proxy contains that apparatus only.
     // A merged static batch can include other apparatuses, so expose the exact
@@ -28,19 +29,10 @@ export function createFactoryStageView(root, getTarget, { cadContrast = false } 
     for (let parent = rendered; parent; parent = parent.parent) parent.visible = true;
     rendered.traverse(object => { object.visible = visibility.get(object) === true || Boolean(object.userData.factoryMapRenderProxy); });
     rendered.visible = true;
-    if (cadContrast) rendered.traverse(object => {
-      for (const material of [].concat(object.material || [])) {
-        if (!material?.isMeshBasicMaterial || !material.color || materialColors.has(material)) continue;
-        const originalColor = material.color.clone();
-        // The export's unlit grey surfaces are close to the light canvas.
-        // Adjust their brightness only while isolated, retaining hue, alpha,
-        // textures, vertex shading and black contours. Overview restores exact
-        // original values even when materials are shared with hidden objects.
-        if (Math.max(originalColor.r, originalColor.g, originalColor.b) < 0.05) continue;
-        materialColors.set(material, originalColor);
-        material.color.multiplyScalar(0.6);
-      }
-    });
+    for (const companion of companions) {
+      for (let parent = companion; parent; parent = parent.parent) parent.visible = true;
+      companion.visible = true;
+    }
     current = id;
     return { changed: true, isolated: current };
   }

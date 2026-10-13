@@ -66,7 +66,7 @@ function loadFactoryMapRenderer(): Promise<FactoryRendererModule> {
     const script = document.createElement('script')
     const attempt = String(rendererAttempt++)
     script.type = 'module'
-    script.src = `${assetBase}factory-map-entry.js?v=20261013stages2&attempt=${attempt}`
+    script.src = `${assetBase}factory-map-entry.js?v=20261013cadIsolation1&attempt=${attempt}`
     script.dataset.accordFactoryMapModule = 'true'
     const timeout = window.setTimeout(() => fail('3D xarita moduli yuklanishi tugamadi.'), 60_000)
     const cleanup = () => {

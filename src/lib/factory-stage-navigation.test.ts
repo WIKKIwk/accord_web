@@ -118,7 +118,7 @@ function tree(children: VisibleNode[] = [], patch: Partial<VisibleNode> = {}): V
   return node
 }
 describe('same-scene apparatus isolation and overview restoration', () => {
-  it('adjusts only isolated CAD surface brightness and restores shared materials without cumulative darkening', () => {
+  it('keeps every original CAD material unchanged through isolation and overview restoration', () => {
     class Color {
       r: number; g: number; b: number
       constructor(r: number, g = r, b = r) { this.r = r; this.g = g; this.b = b }
@@ -129,13 +129,13 @@ describe('same-scene apparatus isolation and overview restoration', () => {
     const texture = {}, surface = { isMeshBasicMaterial: true, color: new Color(.9, .85, .8), opacity: .26, map: texture, vertexColors: true }, contours = { isMeshBasicMaterial: true, color: new Color(.008) }, lit = { color: new Color(.9) }
     const first = tree([tree([], { material: [surface, contours, lit] }), tree([], { material: surface })]), second = tree([], { material: surface }), root = tree([first, second])
     const target = (id: string) => ({ object: id === 'first' ? first : second, instanceId: null })
-    const view = createFactoryStageView(root, target, { cadContrast: true })
+    const view = createFactoryStageView(root, target)
     view.setObject('first')
-    expect([surface.color.r, surface.color.g, surface.color.b]).toEqual([.54, .51, .48])
+    expect([surface.color.r, surface.color.g, surface.color.b]).toEqual([.9, .85, .8])
     expect(contours.color.r).toBe(.008); expect(lit.color.r).toBe(.9)
     expect(surface.opacity).toBe(.26); expect(surface.map).toBe(texture); expect(surface.vertexColors).toBe(true)
-    view.setObject('first'); expect(surface.color.r).toBe(.54)
-    view.setObject('second'); expect(surface.color.r).toBe(.54)
+    view.setObject('first'); expect(surface.color.r).toBe(.9)
+    view.setObject('second'); expect(surface.color.r).toBe(.9)
     view.restore(); expect([surface.color.r, surface.color.g, surface.color.b]).toEqual([.9, .85, .8])
     createFactoryStageView(root, target).setObject('first'); expect(surface.color.r).toBe(.9)
   })
