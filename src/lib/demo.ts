@@ -7,6 +7,11 @@ const printId = 'apparatus:default:asset-001'
 const laminateId = 'apparatus:default:asset-002'
 const cutId = 'apparatus:default:asset-003'
 const packageId = 'apparatus:default:asset-004'
+const demoFactoryPlacements: Record<string, string> = {
+  [printId]: 'node:18:instance:0',
+  [laminateId]: 'node:6:instance:7',
+  [cutId]: 'node:20',
+}
 
 export const demoSession: Session = {
   token: 'local-preview-only',
@@ -113,6 +118,7 @@ export const demoProductionSnapshot: ProductionSnapshot = {
   stage_states: stageStates,
   queue_action_controls: {},
   order_controls: Object.fromEntries(openSeeds.map((order) => [order.id, { state: 'active' }])),
+  visible_order_ids: Object.fromEntries(stages.map((stage) => [stage.apparatus, openSeeds.filter((order) => stageStates[order.id]![`${order.id}-${stage.code}`] !== 'completed').map((order) => order.id)])),
 }
 
 const mapRows: Row[] = allMaps.map((saved) => ({
@@ -132,6 +138,10 @@ const apparatus: Row[] = [
   { id: 'apparatus:default:asset-006', name: 'Rezka 02', operation: 'cut', technology: 'slitting', family: 'cutting', kind: 'slitter', min_web_width_mm: 200, max_web_width_mm: 900, lifecycle_state: 'active', source: 'canonical', sort_order: 60 },
 ].map((row) => ({
   apparatus_id: row.id,
+  source_revision: 1,
+  placement: demoFactoryPlacements[row.id]
+    ? { factory_map_object_id: demoFactoryPlacements[row.id] }
+    : null,
   display: { display_name: row.name, description: '' },
   execution_profile: { operation: row.operation, technology: row.technology, color_station_count: 'color_stations' in row ? row.color_stations : undefined, min_web_width_mm: row.min_web_width_mm, max_web_width_mm: row.max_web_width_mm },
   lifecycle: { state: row.lifecycle_state },

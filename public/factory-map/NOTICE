@@ -1,0 +1,14 @@
+Factory map rendering and interaction are adapted from Accord Mobile V2's
+model_viewer_plus assets. LICENSE contains the retained Apache 2.0 terms.
+The vendored Three.js modules, GLTFLoader, OrbitControls, and geometry utilities
+are provided under the MIT terms in THREE-LICENSE; original headers are retained.
+
+Accord web changes dated 2026-10-13:
+- Explicit component mounting and cleanup.
+- Download progress and loaded selectable-object events.
+- Preservation of the user-supplied CAD line-art materials.
+- Complete factory framing for the web viewport and resized overviews.
+
+zavod6-cad-line-art.glb is the user-supplied model copied unchanged from
+/Users/wikki/Desktop/to'taq/zavod6-cad-line-art.glb. Its gzip copy contains the
+same source bytes and is used only to reduce transfer size.

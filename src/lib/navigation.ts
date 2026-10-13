@@ -52,6 +52,7 @@ export const modules: NavigationModule[] = [
       {
         title: 'Ish jarayoni',
         pages: [
+          { id: 'factory-map', title: '3D zavod xaritasi', description: 'Zavoddagi apparatlar, joriy buyurtmalar va ish holati.', icon: Factory },
           { id: 'maps', title: 'Ish xaritalari', description: 'Buyurtma operatsiyalari, ishlab chiqarish bosqichlari va uskunalar.', icon: Waypoints, resource: 'maps' },
           { id: 'completion', title: 'Yakunlash so‘rovlari', description: 'Uskunalardan kelgan ishni yakunlash so‘rovlarini ko‘rib chiqish.', icon: ClipboardCheck, resource: 'completion' },
           { id: 'wip', title: 'Yarim tayyor mahsulotlar', description: 'Jarayondagi rulonlar, partiyalar va ularning joriy joylashuvi.', icon: Layers3, resource: 'wip' },

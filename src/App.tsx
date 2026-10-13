@@ -19,6 +19,8 @@ import { CalculatorPage } from "@/pages/CalculatorPage";
 import { ProductionMapPage } from "@/pages/ProductionMapPage";
 import { ProductionWorkflowProvider } from "@/lib/production-workflow";
 import { Loader2 } from "lucide-react";
+import { lazy, Suspense } from "react";
+const FactoryMapPage = lazy(() => import("@/pages/FactoryMapPage"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -49,6 +51,11 @@ function Page() {
   if (pageId === "server") return <ServerPage />;
   if (pageId === "calculate") return <CalculatorPage />;
   if (pageId === "map-editor") return <ProductionMapPage />;
+  if (pageId === "factory-map") return (
+    <Suspense fallback={<div className="flex min-h-96 items-center justify-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" />Zavod xaritasi yuklanmoqda…</div>}>
+      <FactoryMapPage />
+    </Suspense>
+  );
   const page = pageById(pageId);
   if (page?.resource) return <ResourcePage key={pageId} page={page} />;
   return (

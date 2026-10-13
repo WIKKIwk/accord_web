@@ -35,7 +35,7 @@ Preview porti: `4174`.
 
 Chap menyuda to‘rtta asosiy modul bor; sahifalar modul ichidagi guruhlarga joylashtirilgan:
 
-- **Ishlab chiqarish:** buyurtmalar, ish xaritalari, yakunlash so‘rovlari, WIP va uskunalar.
+- **Ishlab chiqarish:** buyurtmalar, 3D zavod xaritasi, ish xaritalari, yakunlash so‘rovlari, WIP va uskunalar.
 - **Ombor:** omborlar, mahsulot va xomashyo qoldiqlari, zavod joylashuvlari.
 - **Ma’lumotnomalar:** mahsulotlar, guruhlar, materiallar, mijozlar va ta’minotchilar.
 - **Boshqaruv:** foydalanuvchilar, xodimlar, rollar, faoliyat tarixi, sozlamalar va server holati.
@@ -58,9 +58,39 @@ Frontend serveri statik fayllarni tarqatadi; unda biznes ma’lumotlari yoki foy
 
 ## Joylashtirish
 
+Cloudflare Pages uchun `wrangler.jsonc` ichida loyiha nomi `accord-web`, build chiqishi `dist/` qilib belgilangan. `.node-version` build uchun lokal tekshirilgan Node.js `22.23.1` versiyasini tanlaydi.
+
+Cloudflare Pages Git integratsiyasida `WIKKIwk/accord_web` reposini ulang:
+
+- Production branch: `main`.
+- Root directory: repo ildizi (bo‘sh qoldiriladi).
+- Build command: `npm run build`.
+- Build output directory: `dist`.
+
+Ulangandan keyin `main` ga push qilish saytni avtomatik yangilaydi. Cloudflare Pages standart SPA fallback orqali `/kirish` va `/app/*` manzillarini sahifa yangilanganda ham ochadi; alohida server yoki Pages Functions kerak emas. Loyiha uchun build muhitiga ERP tokeni, domeni yoki boshqa biznes ma’lumotlari kiritilmaydi — ERP manzilini foydalanuvchi brauzerda tanlaydi.
+
+Lokal Cloudflare Pages muhiti:
+
+```sh
+npm run build
+npx wrangler@4.149.0 pages dev dist
+```
+
 `dist/` papkasini statik hostingda tarqating. React Router manzillari, masalan `/app/orders`, yangilanganda ham ochilishi uchun mavjud bo‘lmagan sahifa yo‘llarini **`index.html`** ga yo‘naltiradigan SPA fallback sozlang.
 
 ERP serveri web domenidan kelgan CORS so‘rovlarini, `Authorization` va `Content-Type` headerlarini hamda `OPTIONS` so‘rovlarini qabul qilishi kerak. HTTPS orqali ochilgan web sahifadan HTTP ERP serveriga ulanishni brauzer bloklaydi; bunday joylashtirishda ERP manzili ham HTTPS bo‘lishi kerak.
+
+## 3D zavod xaritasi
+
+`/app/factory-map` — **Ishlab chiqarish → Ish jarayoni → 3D zavod xaritasi**. Foydalanuvchi bergan `zavod6-cad-line-art.glb` modeli `public/factory-map/` ichida; CAD materiallari va mobile bilan bir xil apparat identifikatorlari saqlangan. Model siqilgan nusxadan yuklanadi, gzip ochishni qo‘llamaydigan brauzer original GLBni oladi. Renderer va model sahifa ochilgandagina yuklanadi.
+
+Apparatni xaritadan yoki qidiriladigan ro‘yxatdan tanlash uning holati, joriy buyurtmasi va navbatini ochadi. Tanlangan buyurtmaning rejalashtirilgan yo‘li model ustida ko‘rinadi. Umumiy kamera, yozuvlarni yashirish va to‘liq ekran tugmalari mavjud. ERPdagi biriktirishlar mobile bilan umumiy: biriktirish va ajratish native PATCH orqali faqat `placement` maydonini, joriy `source_revision` va `Idempotency-Key` bilan o‘zgartiradi. Biriktirishdagi ziddiyatlar tekshiriladi; noaniq javobda serverdan qayta o‘qiladi.
+
+Ish holati va fizik rulon qoldiqlari mavjud mobile API orqali har 15 soniyada olinadi. 30 soniyadan eskirgan yoki yuklanmagan holat **noma’lum** sifatida ko‘rsatiladi. Sahifa yopilganda yoki tab yashirilganda yangilanish to‘xtaydi. Bu ERPdagi ish holati; alohida PLC telemetriyasi ulanmagan. Biznes ma’lumotlari brauzer RAMida qoladi. Ko‘rish rejimida biriktirishlar faqat joriy lokal namuna sessiyasida o‘zgaradi.
+
+Biriktirish uchun serverning CORS sozlamasi `PATCH` usulini va `Idempotency-Key` headerini ham qabul qilishi kerak.
+
+![3D zavod xaritasi — namunaviy holatlar](docs/factory-map-preview.png)
 
 ## Yangi buyurtma uchun production map
 
