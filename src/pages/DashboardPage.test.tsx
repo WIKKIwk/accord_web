@@ -93,13 +93,18 @@ describe('Home executive manufacturing view', () => {
     expect(html).toContain('aria-label="Yuklangan buyurtmalar holati:')
   })
 
-  it('uses the adapted metric primitives for actual KPI values and the exclusive loaded-status legend', () => {
+  it('uses the real dashboardcn card structure for KPI values while keeping the status legend a native legend', () => {
     const { scope, queryClient, fetch } = setup(); seed(queryClient, scope)
     const html = render(queryClient)
     expect((html.match(/data-slot="kpi-card"/g) ?? []).length).toBe(6)
     expect(html).toContain('data-slot="metric-value"')
-    expect(html).toContain('data-slot="metric-list"')
-    expect((html.match(/data-slot="metric-list-row"/g) ?? []).length).toBe(4)
+    expect((html.match(/data-slot="card-header"/g) ?? []).length).toBe(6)
+    expect((html.match(/data-slot="card-description"/g) ?? []).length).toBe(6)
+    expect((html.match(/data-slot="card-title"/g) ?? []).length).toBe(6)
+    expect((html.match(/data-slot="card-content"/g) ?? []).length).toBe(6)
+    expect(html).not.toContain('data-slot="metric-list"')
+    const legend = html.match(/<ul[^>]*aria-label="Yuklangan buyurtmalar holatlari"[\s\S]*?<\/ul>/)?.[0] ?? ''
+    expect((legend.match(/<li /g) ?? []).length).toBe(4)
     expect(html).toContain('aria-label="Yuklangan buyurtmalar holatlari"')
     expect(html).toContain('grid grid-cols-3')
     expect(html).not.toContain('data-slot="sparkline"')

@@ -1,0 +1,394 @@
+--- upstream/kpi-card.tsx
++++ local/kpi-card.tsx
+@@ -1,9 +1,11 @@
++// dashboardcn, Copyright (c) 2026 dashboardcn contributors (MIT).
++// Manually reviewed at b1ffacbca0f7a0be60135c8665b9e8c267205c48; see PROVENANCE.md.
+ "use client"
+ 
+ import * as React from "react"
+ 
+-import { cn } from "@/lib/utils"
+-import { type NumberFormat } from "@/registry/dashboardcn/lib/format"
++import { cn } from "cn"
++import { type NumberFormat } from "./format"
+ import {
+   Card,
+   CardAction,
+@@ -12,9 +14,10 @@
+   CardHeader,
+   CardTitle,
+ } from "@/components/ui/card"
+-import { DeltaBadge, getDeltaDirection } from "@/registry/dashboardcn/ui/delta-badge"
+-import { Sparkline } from "@/registry/dashboardcn/ui/sparkline"
+-import { MetricValue } from "@/registry/dashboardcn/ui/metric-value"
++import { DeltaBadge, getDeltaDirection } from "./delta-badge"
++import { Sparkline } from "./sparkline"
++import { MetricValue } from "./metric-value"
++import { Skeleton } from "@/components/ui/skeleton"
+ 
+ export interface KpiCardProps extends Omit<
+   React.ComponentProps<typeof Card>,
+@@ -37,6 +40,11 @@
+   invertDelta?: boolean
+   /** Optional icon shown before the label. */
+   icon?: React.ReactNode
++  /** Native loading state; no provisional number is shown. */
++  loading?: boolean
++  /** Stable accessible identity used by the enclosing navigation link. */
++  valueId?: string
++  valueClassName?: string
+   children?: React.ReactNode
+ }
+ 
+@@ -50,6 +58,9 @@
+   currency,
+   invertDelta = false,
+   icon,
++  loading = false,
++  valueId,
++  valueClassName,
+   className,
+   children,
+   ...props
+@@ -76,8 +87,8 @@
+           {icon}
+           {label}
+         </CardDescription>
+-        <CardTitle className="text-2xl font-semibold tabular-nums tracking-tight">
+-          <MetricValue value={value} format={format} currency={currency} />
++        <CardTitle id={valueId} className={cn("text-2xl font-semibold tabular-nums tracking-tight", valueClassName)}>
++          {loading ? <Skeleton className="h-8 w-12 sm:h-10 sm:w-16" aria-label={`${label} yuklanmoqda`} /> : <MetricValue value={value} format={format} currency={currency} compactFrom={Infinity} />}
+         </CardTitle>
+         {delta !== undefined ? (
+           <CardAction>
+--- upstream/metric-list.tsx
++++ local/metric-list.tsx
+@@ -1,12 +1,14 @@
++// dashboardcn, Copyright (c) 2026 dashboardcn contributors (MIT).
++// Manually reviewed at b1ffacbca0f7a0be60135c8665b9e8c267205c48; see PROVENANCE.md.
+ "use client"
+ 
+ import * as React from "react"
+ 
+-import { cn } from "@/lib/utils"
+-import { type NumberFormat } from "@/registry/dashboardcn/lib/format"
+-import { DeltaBadge, getDeltaDirection } from "@/registry/dashboardcn/ui/delta-badge"
+-import { Sparkline } from "@/registry/dashboardcn/ui/sparkline"
+-import { MetricValue } from "@/registry/dashboardcn/ui/metric-value"
++import { cn } from "cn"
++import { type NumberFormat } from "./format"
++import { DeltaBadge, getDeltaDirection } from "./delta-badge"
++import { Sparkline } from "./sparkline"
++import { MetricValue } from "./metric-value"
+ 
+ export interface MetricListItem {
+   label: string
+@@ -21,7 +23,7 @@
+ }
+ 
+ export interface MetricListProps extends React.ComponentProps<"div"> {
+-  items: MetricListItem[]
++  items: readonly MetricListItem[]
+   /** Sparkline variant. */
+   variant?: "area" | "line"
+   /** Sparkline area fill. */
+@@ -82,6 +84,7 @@
+                 value={item.value}
+                 format={item.format}
+                 currency={item.currency}
++                compactFrom={Infinity}
+                 className="font-medium"
+               />
+               {item.delta !== undefined ? (
+--- upstream/metric-value.tsx
++++ local/metric-value.tsx
+@@ -1,9 +1,11 @@
++// dashboardcn, Copyright (c) 2026 dashboardcn contributors (MIT).
++// Manually reviewed at b1ffacbca0f7a0be60135c8665b9e8c267205c48; see PROVENANCE.md.
+ "use client"
+ 
+ import * as React from "react"
+ 
+-import { cn } from "@/lib/utils"
+-import { formatNumber, type NumberFormat } from "@/registry/dashboardcn/lib/format"
++import { cn } from "cn"
++import { formatNumber, type NumberFormat } from "./format"
+ import {
+   Tooltip,
+   TooltipContent,
+@@ -39,10 +41,10 @@
+ }: MetricValueProps) {
+   const classes = cn("tabular-nums", className)
+ 
+-  if (typeof value !== "number") {
++  if (typeof value !== "number" || !Number.isFinite(value)) {
+     return (
+       <span data-slot="metric-value" className={classes} {...props}>
+-        {value}
++        {typeof value === "number" ? "—" : value}
+         {suffix}
+       </span>
+     )
+--- upstream/timeline.tsx
++++ local/timeline.tsx
+@@ -1,6 +1,8 @@
++// dashboardcn, Copyright (c) 2026 dashboardcn contributors (MIT).
++// Manually reviewed at b1ffacbca0f7a0be60135c8665b9e8c267205c48; see PROVENANCE.md.
+ import * as React from "react"
+ 
+-import { cn } from "@/lib/utils"
++import { cn } from "cn"
+ 
+ export type TimelineStatus = "default" | "current" | "done"
+ 
+--- upstream/dot-plot.tsx
++++ local/dot-plot.tsx
+@@ -1,8 +1,10 @@
++// dashboardcn, Copyright (c) 2026 dashboardcn contributors (MIT).
++// Manually reviewed at b1ffacbca0f7a0be60135c8665b9e8c267205c48; see PROVENANCE.md.
+ "use client"
+ 
+ import * as React from "react"
+ 
+-import { cn } from "@/lib/utils"
++import { cn } from "cn"
+ 
+ export interface DotPlotProps extends React.ComponentProps<"div"> {
+   /** One value per column, in order. */
+@@ -32,7 +34,7 @@
+   onActiveIndexChange?: (index: number | null) => void
+ }
+ 
+-const defaultFormatter = (value: number) => value.toLocaleString("en-US")
++const defaultFormatter = (value: number) => value.toLocaleString("uz-UZ")
+ 
+ /**
+  * A distribution drawn as columns of stacked dots, with the peak columns at full strength.
+--- upstream/heatmap-chart.tsx
++++ local/heatmap-chart.tsx
+@@ -1,9 +1,11 @@
++// dashboardcn, Copyright (c) 2026 dashboardcn contributors (MIT).
++// Manually reviewed at b1ffacbca0f7a0be60135c8665b9e8c267205c48; see PROVENANCE.md.
+ "use client"
+ 
+ import * as React from "react"
+ 
+-import { cn } from "@/lib/utils"
+-import { formatNumber } from "@/registry/dashboardcn/lib/format"
++import { cn } from "cn"
++import { formatNumber } from "./format"
+ import {
+   Tooltip,
+   TooltipContent,
+@@ -13,8 +15,8 @@
+ 
+ export interface HeatmapRow {
+   label: string
+-  /** One value per column, in column order. Missing entries read as 0. */
+-  values: number[]
++  /** One value per column. Null and missing cells have no qualified observation. */
++  values: (number | null)[]
+ }
+ 
+ /** A cell's position by row and column index. */
+@@ -26,7 +28,7 @@
+ export interface HeatmapDatum extends HeatmapCell {
+   rowLabel: string
+   columnLabel: string
+-  value: number
++  value: number | null
+ }
+ 
+ export interface HeatmapChartProps extends React.ComponentProps<"div"> {
+@@ -121,7 +123,7 @@
+     () =>
+       max ??
+       rows.reduce(
+-        (acc, row) => row.values.reduce((m, v) => Math.max(m, v), acc),
++        (acc, row) => row.values.reduce<number>((m, v) => typeof v === "number" && Number.isFinite(v) ? Math.max(m, v) : m, acc),
+         0
+       ),
+     [rows, max]
+@@ -133,7 +135,7 @@
+     fillFor(color, i / (steps - 1))
+   )
+ 
+-  const withUnit = (value: number) =>
++  const withUnit = (value: number | null) => value === null ? "Qayd olinmagan" :
+     unit ? `${valueFormatter(value)} ${unit}` : valueFormatter(value)
+ 
+   return (
+@@ -145,7 +147,7 @@
+       <TooltipProvider delayDuration={100} skipDelayDuration={0}>
+         <div
+           role="group"
+-          aria-label="Heatmap"
++          aria-label="Qiymatlar jadvali"
+           className="grid min-w-0"
+           style={{
+             gap,
+@@ -166,7 +168,8 @@
+                 </div>
+               ) : null}
+               {columns.map((column, c) => {
+-                const value = row.values[c] ?? 0
++                const input = row.values[c]
++                const value = typeof input === "number" && Number.isFinite(input) && input >= 0 ? input : null
+                 const datum: HeatmapDatum = {
+                   row: r,
+                   column: c,
+@@ -194,6 +197,7 @@
+                     data-row={r}
+                     data-column={c}
+                     data-active={isActive}
++                    data-unknown={value === null || undefined}
+                     onPointerEnter={() => setActive({ row: r, column: c })}
+                     onFocus={() => setActive({ row: r, column: c })}
+                     onBlur={(event) => {
+@@ -208,9 +212,10 @@
+                       "data-[active=true]:inset-ring-foreground/45 data-[active=true]:inset-ring-2",
+                       "focus-visible:inset-ring-ring focus-visible:inset-ring-2",
+                       onCellClick ? "cursor-pointer" : "cursor-default"
++                      ,value === null && "border border-dashed border-muted-foreground/50"
+                     )}
+                     style={{
+-                      backgroundColor: fillFor(
++                      backgroundColor: value === null ? "transparent" : fillFor(
+                         color,
+                         fractionFor(value, top, scale, levels)
+                       ),
+@@ -255,7 +260,7 @@
+ 
+       {showLegend ? (
+         <div className="text-muted-foreground flex items-center justify-end gap-1">
+-          <span className="mr-0.5">Less</span>
++          <span className="mr-0.5">Kam</span>
+           {swatches.map((fill, index) => (
+             <span
+               key={index}
+@@ -263,7 +268,7 @@
+               style={{ backgroundColor: fill }}
+             />
+           ))}
+-          <span className="ml-0.5">More</span>
++          <span className="ml-0.5">Ko‘p</span>
+         </div>
+       ) : null}
+     </div>
+--- upstream/period-tabs.tsx
++++ local/period-tabs.tsx
+@@ -1,8 +1,10 @@
++// dashboardcn, Copyright (c) 2026 dashboardcn contributors (MIT).
++// Manually reviewed at b1ffacbca0f7a0be60135c8665b9e8c267205c48; see PROVENANCE.md.
+ "use client"
+ 
+ import * as React from "react"
+ 
+-import { cn } from "@/lib/utils"
++import { cn } from "cn"
+ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+ 
+ export interface PeriodOption {
+--- upstream/composed-chart.tsx
++++ local/composed-chart.tsx
+@@ -1,3 +1,5 @@
++// dashboardcn, Copyright (c) 2026 dashboardcn contributors (MIT).
++// Manually reviewed at b1ffacbca0f7a0be60135c8665b9e8c267205c48; see PROVENANCE.md.
+ "use client"
+ 
+ import * as React from "react"
+@@ -13,7 +15,7 @@
+   YAxis,
+ } from "recharts"
+ 
+-import { cn } from "@/lib/utils"
++import { cn } from "cn"
+ import {
+   ChartContainer,
+   ChartLegend,
+@@ -71,6 +73,8 @@
+   xFormatter?: (value: unknown) => string
+   yFormatter?: (value: number) => string
+   rightYFormatter?: (value: number) => string
++  /** Exact recorded value in the tooltip, independent of the axis tick scale. */
++  tooltipValueFormatter?: (value: number) => string
+   barRadius?: number
+   /** Animate series after hydration and when their data changes. Respects reduced motion. */
+   animate?: boolean
+@@ -119,6 +123,7 @@
+   xFormatter = defaultXFormatter,
+   yFormatter,
+   rightYFormatter,
++  tooltipValueFormatter,
+   barRadius = 4,
+   animate = true,
+   animationDuration = 500,
+@@ -226,7 +231,7 @@
+                 labelFormatter={(value) => xFormatter(value)}
+                 formatter={(value, name, item) => {
+                   const s = series.find((entry) => entry.key === name)
+-                  const fmt = s?.axis === "right" ? (rightYFormatter ?? yFormatter) : yFormatter
++                  const fmt = tooltipValueFormatter ?? (s?.axis === "right" ? (rightYFormatter ?? yFormatter) : yFormatter)
+                   return (
+                     <div className="flex w-full items-center gap-2">
+                       <span
+--- upstream/sparkline.tsx
++++ local/sparkline.tsx
+@@ -1,3 +1,5 @@
++// dashboardcn, Copyright (c) 2026 dashboardcn contributors (MIT).
++// Manually reviewed at b1ffacbca0f7a0be60135c8665b9e8c267205c48; see PROVENANCE.md.
+ "use client"
+ 
+ import * as React from "react"
+@@ -11,7 +13,7 @@
+   type AreaRevealShapeProps,
+ } from "recharts"
+ 
+-import { cn } from "@/lib/utils"
++import { cn } from "cn"
+ 
+ export interface SparklineProps extends React.ComponentProps<"div"> {
+   /** Series to plot, oldest first. */
+--- upstream/delta-badge.tsx
++++ local/delta-badge.tsx
+@@ -1,8 +1,10 @@
++// dashboardcn, Copyright (c) 2026 dashboardcn contributors (MIT).
++// Manually reviewed at b1ffacbca0f7a0be60135c8665b9e8c267205c48; see PROVENANCE.md.
+ import * as React from "react"
+ import { Minus, TrendingDown, TrendingUp } from "lucide-react"
+ 
+-import { cn } from "@/lib/utils"
+-import { formatDelta } from "@/registry/dashboardcn/lib/format"
++import { cn } from "cn"
++import { formatDelta } from "./format"
+ 
+ export type DeltaDirection = "up" | "down" | "flat"
+ 
+--- upstream/format.ts
++++ local/format.ts
+@@ -1,3 +1,5 @@
++// dashboardcn, Copyright (c) 2026 dashboardcn contributors (MIT).
++// Manually reviewed at b1ffacbca0f7a0be60135c8665b9e8c267205c48; see PROVENANCE.md.
+ export type NumberFormat = "number" | "compact" | "currency" | "percent"
+ 
+ export interface FormatNumberOptions {
+@@ -36,7 +38,7 @@
+   {
+     format = "number",
+     currency = "USD",
+-    locale = "en-US",
++    locale = "uz-UZ",
+     maximumFractionDigits,
+     compact = false,
+   }: FormatNumberOptions = {}
+@@ -69,7 +71,9 @@
+       }).format(value)
+     default:
+       return getFormatter(locale, {
+-        maximumFractionDigits: maximumFractionDigits ?? 0,
++        ...(maximumFractionDigits === undefined && !compact
++          ? { maximumSignificantDigits: 21 }
++          : { maximumFractionDigits: maximumFractionDigits ?? 0 }),
+         ...compactOptions,
+       }).format(value)
+   }

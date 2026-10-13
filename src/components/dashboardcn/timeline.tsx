@@ -1,31 +1,176 @@
-// Adapted from dashboardcn, Copyright (c) 2026 dashboardcn contributors (MIT).
-// See LICENSE and PROVENANCE.md in this directory for source and modifications.
-import { Children, type ComponentProps } from 'react'
-import { cn } from 'cn'
+// dashboardcn, Copyright (c) 2026 dashboardcn contributors (MIT).
+// Manually reviewed at b1ffacbca0f7a0be60135c8665b9e8c267205c48; see PROVENANCE.md.
+import * as React from "react"
 
-export type TimelineStatus = 'default' | 'current' | 'done'
+import { cn } from "cn"
 
-/** Presentational chronology only. Server adapters own ordering and evidence. */
-export function Timeline({ className, ...props }: ComponentProps<'ol'>) {
-  return <ol data-slot="timeline" className={cn('flex flex-col', className)} {...props} />
+export type TimelineStatus = "default" | "current" | "done"
+
+/**
+ * Timeline owns only the chronology layout: an ordered list of items, each
+ * with a rail (marker + connector) beside its content. Put your own semantic
+ * content (headings, time, badges, avatars, cards) inside TimelineContent.
+ */
+function Timeline({ className, ...props }: React.ComponentProps<"ol">) {
+  return (
+    <ol
+      data-slot="timeline"
+      className={cn("flex flex-col", className)}
+      {...props}
+    />
+  )
 }
-export interface TimelineItemProps extends ComponentProps<'li'> { status?: TimelineStatus }
-export function TimelineItem({ status = 'default', className, ...props }: TimelineItemProps) {
-  return <li data-slot="timeline-item" data-status={status} aria-current={status === 'current' ? 'true' : undefined} className={cn('group/timeline-item relative', className)} {...props} />
+
+export interface TimelineItemProps extends React.ComponentProps<"li"> {
+  /**
+   * "current" marks the item as the present step (sets aria-current) and
+   * highlights its marker. "done" fills the marker.
+   */
+  status?: TimelineStatus
 }
-export function TimelineRail({ className, ...props }: ComponentProps<'div'>) {
-  return <div data-slot="timeline-rail" className={cn('relative row-span-2 flex justify-center sm:row-span-1', className)} {...props} />
+
+function TimelineItem({
+  status = "default",
+  className,
+  ...props
+}: TimelineItemProps) {
+  return (
+    <li
+      data-slot="timeline-item"
+      data-status={status}
+      aria-current={status === "current" ? "true" : undefined}
+      className={cn("group/timeline-item relative flex gap-3", className)}
+      {...props}
+    />
+  )
 }
-export function TimelineMarker({ className, children, ...props }: ComponentProps<'span'>) {
-  const empty = Children.count(children) === 0
-  return <span data-slot="timeline-marker" aria-hidden={empty ? 'true' : undefined} className={cn('relative z-20 mt-1 size-1.5 rounded-full bg-muted-foreground/70', className)} {...props}>{children}</span>
+
+/** The column beside the content that holds the marker and connector. */
+function TimelineRail({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="timeline-rail"
+      className={cn("flex w-6 shrink-0 flex-col items-center", className)}
+      {...props}
+    />
+  )
 }
-export function TimelineConnector({ className, ...props }: ComponentProps<'span'>) {
-  return <span data-slot="timeline-connector" aria-hidden="true" className={cn('absolute -bottom-7 -top-3 w-px bg-border group-last/timeline-item:hidden', className)} {...props} />
+
+/**
+ * The dot on the rail. Pass an icon, avatar, or image as children; with no
+ * children it renders a plain ring and is hidden from assistive technology.
+ */
+function TimelineMarker({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<"span">) {
+  const empty = React.Children.count(children) === 0
+  return (
+    <span
+      data-slot="timeline-marker"
+      aria-hidden={empty ? "true" : undefined}
+      className={cn(
+        "bg-background text-muted-foreground flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full border",
+        "[&>svg]:size-3 [&>img]:size-full [&>img]:object-cover",
+        "group-data-[status=current]/timeline-item:border-primary group-data-[status=current]/timeline-item:text-primary group-data-[status=current]/timeline-item:ring-primary/20 group-data-[status=current]/timeline-item:ring-2",
+        "group-data-[status=done]/timeline-item:bg-primary group-data-[status=done]/timeline-item:border-primary group-data-[status=done]/timeline-item:text-primary-foreground",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </span>
+  )
 }
-export function TimelineContent({ className, ...props }: ComponentProps<'div'>) {
-  return <div data-slot="timeline-content" className={cn('min-w-0', className)} {...props} />
+
+/** The line between markers. Decorative; hidden on the last item. */
+function TimelineConnector({
+  className,
+  ...props
+}: React.ComponentProps<"span">) {
+  return (
+    <span
+      data-slot="timeline-connector"
+      aria-hidden="true"
+      className={cn(
+        "bg-border my-1 w-px flex-1 group-last/timeline-item:hidden",
+        className
+      )}
+      {...props}
+    />
+  )
 }
-export function TimelineTime({ className, ...props }: ComponentProps<'time'>) {
-  return <time data-slot="timeline-time" className={cn('pt-0.5 text-right font-mono text-[11px] tabular-nums text-muted-foreground', className)} {...props} />
+
+function TimelineContent({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="timeline-content"
+      className={cn(
+        "flex min-w-0 flex-1 flex-col gap-1 pt-0.5 pb-6 group-last/timeline-item:pb-0",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+/** A row for the title, badges, and time. Time floats right via TimelineTime. */
+function TimelineHeader({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="timeline-header"
+      className={cn("flex flex-wrap items-center gap-x-2 gap-y-1", className)}
+      {...props}
+    />
+  )
+}
+
+function TimelineTitle({ className, ...props }: React.ComponentProps<"h3">) {
+  return (
+    <h3
+      data-slot="timeline-title"
+      className={cn("text-sm leading-5 font-medium", className)}
+      {...props}
+    />
+  )
+}
+
+function TimelineTime({ className, ...props }: React.ComponentProps<"time">) {
+  return (
+    <time
+      data-slot="timeline-time"
+      className={cn(
+        "text-muted-foreground ml-auto text-xs whitespace-nowrap tabular-nums",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function TimelineDescription({
+  className,
+  ...props
+}: React.ComponentProps<"p">) {
+  return (
+    <p
+      data-slot="timeline-description"
+      className={cn("text-muted-foreground text-sm", className)}
+      {...props}
+    />
+  )
+}
+
+export {
+  Timeline,
+  TimelineItem,
+  TimelineRail,
+  TimelineMarker,
+  TimelineConnector,
+  TimelineContent,
+  TimelineHeader,
+  TimelineTitle,
+  TimelineTime,
+  TimelineDescription,
 }

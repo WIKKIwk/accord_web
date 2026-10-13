@@ -1,0 +1,41 @@
+{
+  "upstreamCommit": "b1ffacbca0f7a0be60135c8665b9e8c267205c48",
+  "retrievedAt": "2026-10-13",
+  "algorithm": "sha256",
+  "files": {
+    "LICENSE": "0d2e3d453c120cc5a8f7e400becd3359185e69458ff9a9f070f028f719d985fa",
+    "composed-chart.json": "300262171dbbe6a2b786a3b81b094aa4dcefdd65ac62d7a22d3eb10247ee88f5",
+    "composed-chart.tsx": "f6877ee01ecbed9644dafeb86d82a19d735fc077a28c788b0c9369e12aa7ae6d",
+    "delta-badge.tsx": "83870bf2444373312b23478172fd05f6d63f97f3de43144d059c17bbed4bd71e",
+    "dot-plot.json": "4346e453a2c960e255a4ad08e7efc99e4cf61eba28caaba1b810b30dd6dff52b",
+    "dot-plot.tsx": "72b86ae21239559c56c7d2ad84605d54d201124e36ad64becb085f4692bb10a4",
+    "format.ts": "2173975dfab824afacd0f77d72cd8a6bdb27681fe4091812f117a08d7fdd187e",
+    "heatmap-chart.json": "9aa25fcc4f7d961ba31b5bb52ea2decc0260596ad785df27fa87fcc5de803e77",
+    "heatmap-chart.tsx": "a4c81d5950a8f96867554b8067e8734886ac1afefbb746cbed8b909c00959435",
+    "kpi-card.json": "526cc020e1379c2d1303779a677d2d39d84447c1f94b6c2317cdd77644bda57a",
+    "kpi-card.tsx": "04849d9c7bca95162b751ec9a274180ec7ae7f039eac5236d5229ed96da454a6",
+    "metric-list.json": "60bd2c161e1f073ee93e3d9b6c7cd02b08bd8e23d8cdef0a0025a98f88d02ede",
+    "metric-list.tsx": "b1f40ad90826ff69bed55bdf7b511cf6fb33bad23b5c62347918946f5e8a8b97",
+    "metric-value.json": "4c771baaa1e8c9f67c720f97ff29213be4ab879ebd172054ec7a698dd8d28c83",
+    "metric-value.tsx": "f58389e4ab35eee6854bb2ce79786b3b05a20decf157edde5e683caa51c131b3",
+    "package.json": "cd7a99141c040086483d6e2254fa40973b48c46c3898e74cb7aa50002cdc3ff1",
+    "period-tabs.json": "8323b9f88f092fccc0892142d280a19aa705f8d18cc2c1b62f1db30f412ae813",
+    "period-tabs.tsx": "442164f9f17a5aff8b1795daad55992176bbb07dc98faa3939709f7304e345db",
+    "radar-chart.json": "217a7e5c78379477bf7d468a65c89e9eb1df5da0d9439f6c33f043dfe48bfc6d",
+    "radar-chart.tsx": "74fb62c78289f543f325177e8a62c067b346a3303d85054cdd409e65c696d572",
+    "shadcn-chart-reviewed.tsx": "1869f68f2eb0108071681c78f3827280fb38212ce7b145139d7ed5d65823ec40",
+    "shadcn-nova-chart.json": "755bee32914a939772cd0ef56fcfc8bb0f0d231059243bf4115ad628269e4f30",
+    "sparkline.tsx": "4a97e425ba35e6a27581a502ff22bee46e1d9a35e9fb6963f1b3658d0bc803bd",
+    "timeline.json": "164beaa7d51c94a8f40b159a67f089a944adc606eea005edf60b9f6f97008ec0",
+    "timeline.tsx": "f7409c06981886db4a72bf360fd827f35a6c69cf47bd0a53fe776739c8e11d98"
+  },
+  "shadcnChart": {
+    "registryURL": "https://ui.shadcn.com/r/styles/radix-nova/chart.json",
+    "registrySha256": "755bee32914a939772cd0ef56fcfc8bb0f0d231059243bf4115ad628269e4f30",
+    "sourceSha256": "1869f68f2eb0108071681c78f3827280fb38212ce7b145139d7ed5d65823ec40",
+    "localChartSha256": "615007c4d49f27724e4d29da219042b863ae87fd841dd3e34a5f27e25d9cc981",
+    "licenseURL": "https://raw.githubusercontent.com/shadcn-ui/ui/main/LICENSE.md",
+    "licenseSha256": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f",
+    "immutableCommit": "Registry/source bytes hashed; separate shadcn commit SHA was not confirmed."
+  }
+}

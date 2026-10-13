@@ -63,17 +63,19 @@ describe('manufacturing time evidence in accessible views', () => {
     expect(html).toContain('Davomiylik baholanmagan')
   })
 
-  it('makes bounded cohort eligibility and unknown current status visible in the executive overview', () => {
+  it('keeps the time overview scoped to retained-history eligibility and observed stages', () => {
     const measured = buildManufacturingTimeline({ orderId, closedOrder: { order_id: orderId, title: 'Measured fixture', order_number: 'F-100', logs: logs(), completed_at_unix: now + 300 }, map: snapshot().maps[0].map, asOfUnix: now + 600 })
     const missing = buildManufacturingTimeline({ orderId: 'zakaz-missing', closedOrder: { order_id: 'zakaz-missing', title: 'Missing fixture', logs: [], completed_at_unix: now + 300 }, asOfUnix: now + 600 })
     const html = renderToStaticMarkup(<ManufacturingTimeOverview timelines={[measured, missing]} snapshot={snapshot()} onSelectOrder={() => {}} />)
     expect(html).toContain('eng so‘nggi 200 tagacha')
     expect(html).toContain('1 buyurtmada hisoblashga yetarli qayd yo‘q')
-    expect(html).toContain('1 holat noma’lum')
-    expect(html).toContain('— buyurtma navbatda')
+    expect(html).toContain('O‘lchanadigan bosqichlar')
+    expect(html).toContain('jarayon oralig‘i qayd etilgan')
+    expect(html).not.toContain('Hozir jarayonda')
     expect(html).toContain('Bosma')
     expect(html).toContain('5 daq 0 son')
-    expect(html).toContain('Joriy navbat qamrovi olinmagan')
+    expect(html).not.toContain('Joriy navbat bosimi')
+    expect(html).not.toContain('data-slot="metric-list"')
     expect(html).toMatch(/style="left:50%">01<\/span>/)
     expect(html).not.toContain('gradient')
   })

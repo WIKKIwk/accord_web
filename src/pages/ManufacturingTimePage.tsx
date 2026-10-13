@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowUpRight, RefreshCw } from 'lucide-react'
 import { DashboardNote, DashboardSurface } from '@/components/dashboard-surface'
-import { ManufacturingTimeOverview } from '@/components/manufacturing-time-overview'
+import { ManufacturingRecordedAnalytics, ManufacturingTimeOverview } from '@/components/manufacturing-time-overview'
 import { ManufacturingTimeTimeline } from '@/components/manufacturing-time-timeline'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -68,6 +68,7 @@ function ManufacturingTimeContent() {
     </div>
     <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-[10px] leading-5 text-muted-foreground"><span>Tarix: oxirgi eng ko‘p 200 ta yopilgan buyurtma · umumiy son API orqali olinmaydi.</span><span>Vaqt zonasi: {timeZone} · kuzatuv: <span className="font-mono tabular-nums">{manufacturingTimeLabel(Math.floor(Math.max(closed.dataUpdatedAt, production.dataUpdatedAt) / 1000), timeZone)}</span></span></div>
     {(closed.error || production.error || connection === 'offline') && <Alert><AlertTitle>{connection === 'offline' ? 'Server bilan aloqa uzilgan' : 'Tarixning bir qismi yuklanmadi'}</AlertTitle><AlertDescription>{closed.error ? message(closed.error) : production.error ? message(production.error) : 'Oxirgi yuklangan ma’lumotlar ko‘rsatilmoqda.'} Saqlangan kuzatuvlar joriy vaqtgacha uzaytirilmaydi.</AlertDescription></Alert>}
+    {!closed.isPending && <ManufacturingRecordedAnalytics timelines={timelines} historyAvailable={Boolean(closed.data)} asOfUnix={closed.dataUpdatedAt > 0 ? Math.floor(closed.dataUpdatedAt / 1000) : null} timeZone={timeZone} />}
     {closed.isPending && !closed.data ? <DashboardSurface className="grid grid-cols-2 gap-5 p-6 sm:grid-cols-4" role="status" aria-label="Vaqt tarixi yuklanmoqda"><Skeleton className="h-24" /><Skeleton className="h-24" /><Skeleton className="h-24" /><Skeleton className="h-24" /></DashboardSurface> : <ManufacturingTimeOverview timelines={timelines} historyAvailable={Boolean(closed.data)} snapshot={production.isError || connection === 'offline' ? undefined : production.data} onSelectOrder={selectOrder} />}
     <DashboardSurface aria-label="Buyurtma bo‘yicha tarix" className="px-5 py-5 sm:px-6">
       <div className="mb-4"><h2 className="text-sm font-medium tracking-tight">Buyurtma bo‘yicha tarix</h2><DashboardNote className="mt-1">Bosqichni tekshirish uchun buyurtma tanlang. Ochiq buyurtmada faqat joriy holat va mavjud rulonning cheklangan tarixi olinadi.</DashboardNote></div>

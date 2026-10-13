@@ -7,8 +7,9 @@ import {
   manufacturingTimeLabel, manufacturingTimeZone, manufacturingZoomWindow,
 } from '@/lib/manufacturing-time'
 import type { ManufacturingEvent, ManufacturingStage, ManufacturingTimeline, ManufacturingWindow } from '@/lib/manufacturing-time'
-import { DashboardMetric, DashboardNote, DashboardSurface } from '@/components/dashboard-surface'
-import { Timeline, TimelineConnector, TimelineContent as TimelineEventContent, TimelineItem, TimelineMarker, TimelineRail, TimelineTime } from '@/components/dashboardcn/timeline'
+import { DashboardNote, DashboardSurface } from '@/components/dashboard-surface'
+import { KpiCard } from '@/components/dashboardcn/kpi-card'
+import { Timeline, TimelineConnector, TimelineContent as TimelineEventContent, TimelineDescription, TimelineHeader, TimelineItem, TimelineMarker, TimelineRail, TimelineTime, TimelineTitle } from '@/components/dashboardcn/timeline'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -95,9 +96,9 @@ function TimelineContent({ timeline, timeZone = manufacturingTimeZone(), classNa
       <DashboardNote className="mt-3">Olingan vaqt: <span className="font-mono tabular-nums">{manufacturingTimeLabel(timeline.asOfUnix, timeZone)}</span> · {timeZone} vaqti</DashboardNote>
     </div>
     <div className="grid border-y border-border/65 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)]">
-      <DashboardMetric label="Qaydlar oynasi" value={manufacturingDurationLabel(timeline.observedWindowSeconds)} valueClassName="text-[2.1rem] sm:text-[2.5rem]" detail="Birinchi va oxirgi olingan hodisa orasida" />
-      <DashboardMetric className="border-t border-border/65 sm:border-l sm:border-t-0" label="O‘lchangan bosqichlar" value={`${timeline.coverage.measuredStageCount} / ${timeline.stages.length}`} valueClassName="text-[1.75rem]" detail="Mos holat qaydlaridan hisoblangan" />
-      <DashboardMetric className="border-t border-border/65 sm:border-l sm:border-t-0" label="Baholanmagan oraliqlar" value={timeline.source === 'closed_order' && timeline.stages.some(stage => stage.intervals.length || stage.gaps.length) ? String(timeline.coverage.gapCount) : '—'} valueClassName="text-[1.75rem]" detail={`${timeline.coverage.unattributedEvents} bosqichga ulanmagan hodisa`} />
+      <KpiCard className="rounded-none ring-0" label="Qaydlar oynasi" value={manufacturingDurationLabel(timeline.observedWindowSeconds)} valueClassName="text-[2.1rem] font-medium sm:text-[2.5rem]">Birinchi va oxirgi olingan hodisa orasida</KpiCard>
+      <KpiCard className="rounded-none border-t border-border/65 ring-0 sm:border-l sm:border-t-0" label="O‘lchangan bosqichlar" value={`${timeline.coverage.measuredStageCount} / ${timeline.stages.length}`} valueClassName="text-[1.75rem] font-medium">Mos holat qaydlaridan hisoblangan</KpiCard>
+      <KpiCard className="rounded-none border-t border-border/65 ring-0 sm:border-l sm:border-t-0" label="Baholanmagan oraliqlar" value={timeline.source === 'closed_order' && timeline.stages.some(stage => stage.intervals.length || stage.gaps.length) ? String(timeline.coverage.gapCount) : '—'} valueClassName="text-[1.75rem] font-medium">{timeline.coverage.unattributedEvents} bosqichga ulanmagan hodisa</KpiCard>
     </div>
     <div className="space-y-4 p-5 sm:p-6">
       <div className="flex items-start gap-2.5"><Clock3 className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" /><DashboardNote>{sourceExplanation}</DashboardNote></div>
@@ -176,16 +177,16 @@ function railInterval(timeline: ManufacturingTimeline, event: ManufacturingEvent
 export function ManufacturingEventRail({ timeline, events, selectedId, timeZone, onSelect }: { timeline: ManufacturingTimeline; events: readonly ManufacturingEvent[]; selectedId: string; timeZone: string; onSelect: (event: ManufacturingEvent) => void }) {
   return <div>
     <div className="flex items-center justify-between gap-3 border-b border-border/65 pb-2 text-[10px] text-muted-foreground"><span>Vaqt · {timeZone}</span><span>Qayd oralig‘i</span></div>
-    <Timeline aria-label={`Hodisalar ketma-ketligi · ${timeZone}`} className="pb-2">{events.map((event, index) => {
+    <Timeline aria-label={`Hodisalar ketma-ketligi · ${timeZone}`} className="pb-2 pt-4">{events.map((event, index) => {
       const interval = railInterval(timeline, event, events[index + 1])
       return <TimelineItem key={event.id}>
-        {(index === 0 || stageTitle(timeline, event) !== stageTitle(timeline, events[index - 1])) && <p className="ml-[6.9rem] pb-1 pt-4 text-[11px] font-medium text-muted-foreground">{stageTitle(timeline, event)}</p>}
-        <div className="relative grid grid-cols-[4.7rem_1rem_minmax(0,1fr)] gap-x-3 gap-y-1.5 py-3 sm:grid-cols-[4.7rem_1rem_minmax(0,1fr)_7.5rem]">
-          <TimelineTime dateTime={isoTime(event.atUnix)} title={manufacturingTimeLabel(event.atUnix, timeZone)}>{shortTime(event.atUnix, timeZone)}<span className="sr-only"> · {manufacturingTimeLabel(event.atUnix, timeZone)}</span></TimelineTime>
-          <TimelineRail aria-hidden="true"><TimelineConnector />{interval && <span data-rail-interval-state={interval.state} data-rail-start={interval.startEventId} data-rail-end={interval.endEventId} className={cn('absolute top-[.4rem] z-10 h-[calc(100%+1.5rem)] w-[7px] rounded-full', spanClasses[interval.state])} />}<TimelineMarker className={event.id === selectedId ? 'size-2 bg-foreground ring-4 ring-card' : undefined} /></TimelineRail>
-          <TimelineEventContent><Button variant="ghost" size="sm" className="h-auto max-w-full justify-start whitespace-normal px-0 text-left text-xs font-medium" aria-pressed={event.id === selectedId} onClick={() => onSelect(event)}>{event.label}</Button>{event.transition && event.fromState && event.toState && <p className="mt-1 text-[11px] text-muted-foreground">{manufacturingStateLabels[event.fromState]} → {manufacturingStateLabels[event.toState]}</p>}{event.actor && <p className="mt-1 text-[11px] text-muted-foreground">{event.actor}</p>}</TimelineEventContent>
-          <p className="col-start-3 min-w-0 break-words font-mono text-[11px] tabular-nums text-muted-foreground sm:col-start-4 sm:pt-0.5 sm:text-right" title={interval ? `${manufacturingStateLabels[interval.state]} · ${manufacturingTimeLabel(interval.startUnix, timeZone)} — ${manufacturingTimeLabel(interval.endUnix, timeZone)}` : undefined}>{interval ? <><span className="sr-only">Qayd oralig‘i: {manufacturingStateLabels[interval.state]} · </span>{manufacturingDurationLabel(interval.endUnix - interval.startUnix)}</> : <><span className="sr-only">Qayd oralig‘i baholanmagan</span>—</>}</p>
-        </div>
+        <TimelineRail aria-hidden="true" className="relative"><TimelineMarker className={event.id === selectedId ? 'border-foreground text-foreground ring-2 ring-foreground/15' : undefined} /><TimelineConnector />{interval && <span data-rail-interval-state={interval.state} data-rail-start={interval.startEventId} data-rail-end={interval.endEventId} className={cn('absolute bottom-0 left-1/2 top-7 z-10 w-1.5 -translate-x-1/2 rounded-full', spanClasses[interval.state])} />}</TimelineRail>
+        <TimelineEventContent>
+          <TimelineHeader><TimelineTitle><Button variant="ghost" size="sm" className="h-auto max-w-full justify-start whitespace-normal px-0 py-0 text-left text-sm font-medium" aria-pressed={event.id === selectedId} onClick={() => onSelect(event)}>{event.label}</Button></TimelineTitle><TimelineTime dateTime={isoTime(event.atUnix)} title={manufacturingTimeLabel(event.atUnix, timeZone)}>{shortTime(event.atUnix, timeZone)}<span className="sr-only"> · {manufacturingTimeLabel(event.atUnix, timeZone)}</span></TimelineTime></TimelineHeader>
+          <TimelineDescription className="text-xs">{stageTitle(timeline, event)}{event.actor ? ` · ${event.actor}` : ''}</TimelineDescription>
+          {event.transition && event.fromState && event.toState && <TimelineDescription className="text-[11px]">{manufacturingStateLabels[event.fromState]} → {manufacturingStateLabels[event.toState]}</TimelineDescription>}
+          <p className="mt-1 font-mono text-[11px] tabular-nums text-muted-foreground" title={interval ? `${manufacturingStateLabels[interval.state]} · ${manufacturingTimeLabel(interval.startUnix, timeZone)} — ${manufacturingTimeLabel(interval.endUnix, timeZone)}` : undefined}>{interval ? <>Qayd oralig‘i: <span className="sr-only">{manufacturingStateLabels[interval.state]} · </span>{manufacturingDurationLabel(interval.endUnix - interval.startUnix)}</> : <><span aria-hidden="true">Qayd oralig‘i: —</span><span className="sr-only">Qayd oralig‘i baholanmagan</span></>}</p>
+        </TimelineEventContent>
       </TimelineItem>
     })}</Timeline>
   </div>

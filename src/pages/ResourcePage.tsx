@@ -23,7 +23,7 @@ import {
 import { toast } from "sonner";
 import { useSession } from "@/lib/session";
 import { resourceListOptions } from "@/lib/resource-list";
-import { getDemoPage } from "@/lib/demo";
+import { demoProductionSnapshot, getDemoPage } from "@/lib/demo";
 import { isRecord, resourceDefinitions, text, valueAt } from "@/lib/api";
 import type { ApiClient } from "@/lib/api";
 import { MutationScope } from "@/lib/mutation-scope";
@@ -87,6 +87,8 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InfiniteListEnd } from "@/components/infinite-list-end";
+import { DomainMetrics } from "@/components/domain-metrics";
+import { supportsDomainMetrics } from "@/lib/dashboardcn-analytics";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -102,6 +104,7 @@ const ProgressPassportControls = lazy(() => import('@/components/progress-passpo
 const ProductionCompletionControls = lazy(() => import('@/components/production-completion-controls').then(module => ({ default: module.ProductionCompletionControls })));
 const MaterialIntakeControls = lazy(() => import('@/components/material-intake-controls').then(module => ({ default: module.MaterialIntakeControls })));
 const MaterialLinkRequestControls = lazy(() => import('@/components/material-link-request-controls').then(module => ({ default: module.MaterialLinkRequestControls })));
+const ClosedOrderEventHistory = lazy(() => import('@/components/closed-order-event-history').then(module => ({ default: module.ClosedOrderEventHistory })));
 
 function DeferredResourceControls({ children }: { children: ReactNode }) {
   return <Suspense fallback={<p role="status" className="py-2 text-xs text-muted-foreground">Boshqaruv yuklanmoqda…</p>}>{children}</Suspense>;
@@ -109,7 +112,7 @@ function DeferredResourceControls({ children }: { children: ReactNode }) {
 
 export function ResourcePage({ page }: { page: NavigationPage }) {
   const kind = page.resource!;
-  const { client, demo, scope, session } = useSession();
+  const { client, demo, scope, session, connection } = useSession();
   const queryClient = useQueryClient();
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState("");
@@ -149,10 +152,18 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
       query: { q, warehouse, ...(kind === "wip" ? { status } : {}), ...(role ? { role } : {}), ...(inactive ? { inactive: true } : {}) },
     }),
   );
+  const apparatusQueues = useQuery({
+    queryKey: [scope, 'production-snapshot'],
+    queryFn: ({ signal }) => demo ? demoProductionSnapshot : client!.productionSnapshot(signal),
+    enabled: kind === 'apparatus' && (demo || Boolean(client) && canViewPage(session, 'orders')),
+    retry: false,
+    refetchInterval: 30_000,
+  });
   const items = data.data?.pages.flatMap((page) => page.items) || [];
   const bounded = data.data?.pages.some((page) => page.bounded);
   function refreshList() {
     void queryClient.invalidateQueries({ queryKey: ["resource", scope, kind] });
+    if (kind === 'apparatus') void queryClient.invalidateQueries({ queryKey: [scope, 'production-snapshot'] });
   }
   const selectedId = params.get("selected");
   const selected =
@@ -517,6 +528,19 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
           value="overview"
           className="grid gap-4 pt-2 sm:grid-cols-2 lg:grid-cols-3"
         >
+          {supportsDomainMetrics(kind) ? <DomainMetrics
+            kind={kind}
+            items={shown}
+            available={Boolean(data.data)}
+            bounded={Boolean(bounded)}
+            hasMore={Boolean(data.hasNextPage)}
+            filtered={Boolean(q || status !== 'all')}
+            warehouse={warehouse}
+            snapshot={kind === 'apparatus' ? apparatusQueues.data : undefined}
+            snapshotFresh={connection === 'online' && !apparatusQueues.isError}
+            snapshotAsOfUnix={apparatusQueues.dataUpdatedAt > 0 ? Math.floor(apparatusQueues.dataUpdatedAt / 1000) : null}
+            className="sm:col-span-2 lg:col-span-3"
+          /> : <>
           <Card>
             <CardContent className="space-y-2 pt-6">
               <p className="text-sm text-muted-foreground">
@@ -545,6 +569,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
               </CardContent>
             </Card>
           ))}
+          </>}
         </TabsContent>
       </Tabs>}
       <CreateDialog
@@ -563,6 +588,8 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
       <DetailSheet
         key={`${scope}:${kind}:${selectedId ?? ''}`}
         kind={kind}
+        observedAt={data.dataUpdatedAt}
+        historyFresh={connection === 'online' && !data.isError}
         row={selected}
         warehouse={warehouse}
         onClose={() => pick(null)}
@@ -743,11 +770,15 @@ function DetailSheet({
   kind,
   row,
   warehouse,
+  observedAt,
+  historyFresh,
   onClose,
 }: {
   kind: ResourceKind;
   row: Row | null;
   warehouse: string;
+  observedAt: number;
+  historyFresh: boolean;
   onClose: () => void;
 }) {
   const { client, demo, scope, session } = useSession();
@@ -865,7 +896,9 @@ function DetailSheet({
               {capabilities.length > 0 && (
                 <TabsTrigger value="rights">Ruxsatlar</TabsTrigger>
               )}
+              {kind === 'closed' && <TabsTrigger value="events">Hodisalar</TabsTrigger>}
             </TabsList>
+            {kind === 'closed' && row && <TabsContent value="events" className="pt-3"><DeferredResourceControls><ClosedOrderEventHistory row={value} observedAt={observedAt} fresh={historyFresh} /></DeferredResourceControls></TabsContent>}
             <TabsContent value="details" className="space-y-5 pt-3">
               <dl className="divide-y">
                 {views[kind].columns.map((c) => (

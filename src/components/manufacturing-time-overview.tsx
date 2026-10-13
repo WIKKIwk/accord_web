@@ -1,14 +1,18 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import { cn } from 'cn'
-import { isRecord } from '@/lib/api'
 import type { ProductionSnapshot } from '@/lib/api-types'
-import { dashboardCount, dashboardOrderCounts, dashboardOrders, dashboardQueues } from '@/lib/dashboard'
-import { manufacturingDurationLabel, manufacturingOverview } from '@/lib/manufacturing-time'
+import { manufacturingDurationLabel, manufacturingOverview, manufacturingTimeLabel, manufacturingTimeZone } from '@/lib/manufacturing-time'
 import type { ManufacturingRanking, ManufacturingTimeline } from '@/lib/manufacturing-time'
-import { DashboardMetric, DashboardNote, DashboardSurface } from '@/components/dashboard-surface'
+import { retainedHistoryAnalytics } from '@/lib/dashboardcn-analytics'
+import type { RetainedHistoryPeriod } from '@/lib/dashboardcn-analytics'
+import { DashboardNote, DashboardSurface } from '@/components/dashboard-surface'
+import { KpiCard } from '@/components/dashboardcn/kpi-card'
+import { ComposedChart } from '@/components/dashboardcn/composed-chart'
+import { PeriodTabs } from '@/components/dashboardcn/period-tabs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export interface ManufacturingTimeOverviewProps {
   timelines: readonly ManufacturingTimeline[]
@@ -18,24 +22,39 @@ export interface ManufacturingTimeOverviewProps {
   className?: string
 }
 
-export function ManufacturingTimeOverview({ timelines, snapshot, historyAvailable = true, onSelectOrder, className }: ManufacturingTimeOverviewProps) {
+export function ManufacturingRecordedAnalytics({ timelines, historyAvailable, asOfUnix, timeZone = manufacturingTimeZone() }: { timelines: readonly ManufacturingTimeline[]; historyAvailable: boolean; asOfUnix: number | null; timeZone?: string }) {
+  const [period, setPeriod] = useState<RetainedHistoryPeriod>('all')
+  const analytics = useMemo(() => retainedHistoryAnalytics(timelines, period, asOfUnix, { timeZone }), [timelines, period, asOfUnix, timeZone])
+  return <section data-slot="manufacturing-recorded-analytics" aria-label="Olingan tarix bo‘yicha vaqt kuzatuvi" className="space-y-3">
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div><h2 className="text-sm font-medium">Sana bo‘yicha qayd etilgan vaqt</h2><DashboardNote className="mt-1">Eng so‘nggi 200 tagacha yopilgan buyurtma · vaqt filtri faqat shu qaydlarga qo‘llanadi.</DashboardNote></div>
+      <PeriodTabs value={period} onValueChange={value => setPeriod(value as RetainedHistoryPeriod)} options={analytics.asOfUnix === null ? [{ value: 'all', label: 'Olingan tarix' }] : [{ value: '7d', label: '7 kun' }, { value: '30d', label: '30 kun' }, { value: 'all', label: 'Olingan tarix' }]} aria-label="Olingan tarix vaqt oralig‘i" />
+    </div>
+    <Card className="min-w-0 gap-4 py-5">
+      <CardHeader className="px-5"><CardTitle className="text-sm">Jarayon va to‘xtash</CardTitle><CardDescription className="text-xs leading-5">Qayd etilgan apparat soati · vaqt zonasi: {analytics.timeZone ?? 'noma’lum'}</CardDescription></CardHeader>
+      <CardContent className="min-w-0 px-5">
+        {analytics.observedIntervalCount > 0 && analytics.series.length > 0 ? <ComposedChart aria-label={`Olingan tarixdagi jarayon va to‘xtash oralig‘i, apparat soati · ${analytics.timeZone}`} data={analytics.series} xKey="date" series={[{ key: 'inProgress', label: 'Qayd etilgan jarayon', type: 'bar', color: 'var(--foreground)' }, { key: 'paused', label: 'Qayd etilgan to‘xtash', type: 'line', color: 'var(--muted-foreground)', curve: 'linear', dashed: true, dots: true }]} showYAxis showLegend animate={false} yFormatter={value => `${new Intl.NumberFormat('uz-UZ', { maximumFractionDigits: 2 }).format(value / 3600)} soat`} tooltipValueFormatter={manufacturingDurationLabel} className="h-64" /> : <p className="flex min-h-64 items-center justify-center text-center text-xs text-muted-foreground">{analytics.timeZone === null ? 'Vaqt zonasi olinmagan. Sana bo‘yicha kuzatuv hisoblanmadi.' : historyAvailable ? 'Bu vaqt oralig‘ida hisoblashga yetarli jarayon yoki to‘xtash qaydi yo‘q.' : 'Buyurtma tarixi olinmagan.'}</p>}
+        <DashboardNote className="mt-3">Bir apparatdagi ustma-ust qaydlar har bir holat uchun bir marta olinadi, keyin apparatlar jamlanadi. Qaydsiz sanalar bo‘sh qoladi; filtr to‘liq kunlik hisobot bermaydi. Kuzatuv: {analytics.timeZone ? manufacturingTimeLabel(analytics.asOfUnix, analytics.timeZone) : '—'}.</DashboardNote>
+      </CardContent>
+    </Card>
+  </section>
+}
+
+export function ManufacturingTimeOverview({ timelines, historyAvailable = true, onSelectOrder, className }: ManufacturingTimeOverviewProps) {
   const overview = manufacturingOverview(timelines)
-  const orders = dashboardOrders(snapshot), live = dashboardOrderCounts(orders)
-  const queues = dashboardQueues(snapshot), queuesAvailable = Boolean(snapshot && isRecord(snapshot.visible_order_ids))
   const rankings = overview.rankings.slice(0, 8)
   const maximum = rankings[0]?.inProgressSeconds || 1
-  const queueMaximum = Math.max(1, ...queues.map(queue => queue.total))
   const [selectedKey, setSelectedKey] = useState('')
   const selected = rankings.find(row => rankingKey(row) === selectedKey) ?? rankings[0]
 
   return <DashboardSurface aria-label="Ishlab chiqarish vaqtiga umumiy qarash" className={className}>
     <div className="grid grid-cols-2 border-b border-border/65 xl:grid-cols-4">
-      <DashboardMetric className="border-r border-border/65" label="Olingan buyurtma tarixi" value={historyAvailable ? String(overview.loadedOrders) : '—'} detail="Yopilgan buyurtmalar ro‘yxati · eng so‘nggi 200 tagacha" />
-      <DashboardMetric className="xl:border-r xl:border-border/65" label="Vaqt oralig‘i mavjud" value={historyAvailable ? String(overview.eligibleOrders) : '—'} detail={historyAvailable ? `${overview.excludedOrders} buyurtmada hisoblashga yetarli qayd yo‘q` : 'Tarix ma’lumoti olinmagan'} />
-      <DashboardMetric className="border-r border-t border-border/65 xl:border-t-0" label="Qaydi yetarli bo‘lmagan" value={historyAvailable ? String(overview.ordersWithGaps) : '—'} detail="Vaqt qaydlari yo‘q, noaniq yoki bosqichga ulanmagan" />
-      <DashboardMetric className="border-t border-border/65 xl:border-t-0" label="Hozir jarayonda" value={dashboardCount(live.running, Boolean(snapshot), live.unknown > 0)} detail={snapshot ? `${dashboardCount(live.queued, true, live.unknown > 0)} buyurtma navbatda${live.unknown ? ` · ${live.unknown} holat noma’lum` : ''}` : 'Joriy holat olinmagan'} />
+      <KpiCard className="rounded-none border-r border-border/65 ring-0" label="Olingan buyurtma tarixi" value={historyAvailable ? String(overview.loadedOrders) : '—'} valueClassName="text-[2.5rem] font-medium">Yopilgan buyurtmalar ro‘yxati · eng so‘nggi 200 tagacha</KpiCard>
+      <KpiCard className="rounded-none ring-0 xl:border-r xl:border-border/65" label="Vaqt oralig‘i mavjud" value={historyAvailable ? String(overview.eligibleOrders) : '—'} valueClassName="text-[2.5rem] font-medium">{historyAvailable ? `${overview.excludedOrders} buyurtmada hisoblashga yetarli qayd yo‘q` : 'Tarix ma’lumoti olinmagan'}</KpiCard>
+      <KpiCard className="rounded-none border-r border-t border-border/65 ring-0 xl:border-t-0" label="Qaydi yetarli bo‘lmagan" value={historyAvailable ? String(overview.ordersWithGaps) : '—'} valueClassName="text-[2.5rem] font-medium">Vaqt qaydlari yo‘q, noaniq yoki bosqichga ulanmagan</KpiCard>
+      <KpiCard className="rounded-none border-t border-border/65 ring-0 xl:border-t-0" label="O‘lchanadigan bosqichlar" value={historyAvailable ? String(overview.rankings.length) : '—'} valueClassName="text-[2.5rem] font-medium">Olingan yopilgan buyurtmalar ichida · jarayon oralig‘i qayd etilgan</KpiCard>
     </div>
-    <div className="grid min-w-0 lg:grid-cols-[minmax(0,1fr)_17rem] xl:grid-cols-[minmax(0,1fr)_19rem]">
+    <div className="min-w-0">
       <section aria-label="Eng uzun qayd etilgan jarayonlar" className="min-w-0 px-5 pb-5 pt-6 sm:px-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0"><h2 className="text-sm font-medium tracking-tight">Eng uzun qayd etilgan jarayonlar</h2><p className="mt-1 text-[11px] leading-5 text-muted-foreground">Olingan yopilgan buyurtmalar ichida · ikki mos holat qaydi orasida</p></div>
@@ -60,16 +79,7 @@ export function ManufacturingTimeOverview({ timelines, snapshot, historyAvailabl
         </> : <div className="flex min-h-64 items-center justify-center text-center"><p className="max-w-sm text-sm leading-6 text-muted-foreground">{historyAvailable ? 'Qayd etilgan jarayon oralig‘ini ko‘rsatish uchun mos bosqich yozuvlari yetarli emas.' : 'Buyurtma tarixi olinmagan.'}</p></div>}
         <DashboardNote className="mt-3 border-t border-border/65 pt-3">Mahsulot va hajm tengligi bu ro‘yxatda tekshirilmagan. Samaradorlikni taqqoslash uchun bir xil mahsulot va hajm bo‘yicha to‘liq tarix kerak.</DashboardNote>
       </section>
-      <aside aria-label="Joriy navbat bosimi" className="min-w-0 border-t border-border/65 bg-muted/15 px-5 py-6 sm:px-6 lg:border-l lg:border-t-0">
-        <h2 className="text-sm font-medium tracking-tight">Joriy navbat bosimi</h2><DashboardNote className="mt-1">Uskunalarda ko‘rinadigan navbat va ishlayotgan buyurtmalar.</DashboardNote>
-        {queues.length ? <ul className="mt-4 divide-y divide-border/65">{queues.slice(0, 6).map(queue => <li key={queue.apparatusId} className="py-4 first:pt-1">
-          <div className="flex items-start justify-between gap-3"><p className="min-w-0 break-words text-xs font-medium">{queue.label}</p><p className="shrink-0 text-xl font-medium leading-none tracking-tight tabular-nums">{queue.total}<span className="ml-1 text-[10px] font-normal text-muted-foreground">buyurtma</span></p></div>
-          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true"><div className="h-full rounded-full bg-foreground/45" style={{ width: `${queue.total / queueMaximum * 100}%` }} /></div>
-          <p className="mt-2 text-[11px] leading-5 text-muted-foreground">Navbatda: <span className="font-mono tabular-nums text-foreground">{dashboardCount(queue.waiting, true, queue.unknown > 0)}</span> · Jarayonda: <span className="font-mono tabular-nums text-foreground">{dashboardCount(queue.running, true, queue.unknown > 0)}</span>{queue.unknown > 0 && ` · ${queue.unknown} holat noma’lum`}</p>
-          {onSelectOrder && queue.firstOrderId && <Button variant="ghost" size="sm" className="mt-1 h-auto max-w-full justify-start whitespace-normal px-0 text-left text-[11px]" onClick={() => onSelectOrder(queue.firstOrderId)}>{orders.find(order => order.id === queue.firstOrderId)?.saved.map.order_number ? `#${String(orders.find(order => order.id === queue.firstOrderId)!.saved.map.order_number)}` : queue.firstOrderId}<ArrowUpRight className="size-3 shrink-0" /></Button>}
-        </li>)}</ul> : <p className="py-10 text-sm leading-6 text-muted-foreground">{queuesAvailable ? 'Uskunalarning ko‘rinadigan navbatida buyurtma yo‘q.' : 'Joriy navbat qamrovi olinmagan.'}</p>}
-        <DashboardNote className="mt-4 border-t border-border/65 pt-3">Navbat soni ishga kirish vaqtini ko‘rsatmaydi. Kutish davomiyligi uchun navbatga kirish hodisasi talab qilinadi.</DashboardNote>
-      </aside>
+
     </div>
   </DashboardSurface>
 }
