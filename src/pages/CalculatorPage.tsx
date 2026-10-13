@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Calculator,
@@ -23,12 +23,26 @@ import { getDemoPage } from "@/lib/demo";
 import {
   automaticOrderTemplate,
   calculationInput,
-  calculationSignature,
   customerSelection,
   newOrderLayer,
 } from "@/lib/order-draft";
 import type { OrderDraft } from "@/lib/order-draft";
-import { useProductionWorkflow } from "@/lib/production-workflow";
+import {
+  CalculatorManagementActions,
+  CalculatorManagementNotice,
+  useCalculatorDraftState,
+  useCalculatorManagement,
+} from "@/components/calculator-management-controls";
+import {
+  CalculatorSaveUnknown,
+  calculatorManagementError,
+  calculatorMode,
+  draftFromCalculatorTemplate,
+  managedCalculationInput,
+  managedCalculationSignature,
+  managedCalculatorTemplate,
+} from "@/lib/calculator-management";
+import type { CalculatorMode, CalculatorSaveResult, CalculatorSource } from "@/lib/calculator-management";
 import { createOrderMap, productionMapFromRow } from "@/lib/production-map";
 import { CatalogPicker } from "@/components/catalog-picker";
 import { numberLabel } from "@/lib/presentation";
@@ -78,7 +92,20 @@ interface ScopedRequest {
 }
 
 export function CalculatorPage() {
+  const { scope } = useSession();
+  const [params] = useSearchParams();
+  let mode: CalculatorMode;
+  try { mode = calculatorMode(params); }
+  catch (error) {
+    return <Alert variant="destructive"><AlertDescription>{calculatorManagementError(error)} <Link className="underline" to="/app/calculate">Yangi buyurtma ochish</Link></AlertDescription></Alert>;
+  }
+  return <CalculatorContent key={`${scope}:${mode.kind}:${mode.kind === 'new' ? '' : `${mode.id}:${mode.kind === 'template' && mode.edit}`}`} mode={mode} />;
+}
+
+function CalculatorContent({ mode }: { mode: CalculatorMode }) {
   const { client, demo, scope } = useSession();
+  const management = useCalculatorManagement(mode);
+  const source = management.source ?? undefined;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const {
@@ -96,15 +123,17 @@ export function CalculatorPage() {
     setLocalImage,
     uncertain,
     setUncertain,
+    retainedDraft,
     reset,
-  } = useProductionWorkflow();
+  } = useCalculatorDraftState(mode);
   const [confirm, setConfirm] = useState(false);
   const productGeneration = useRef(0);
   const customerRequest = useRef<AbortController | null>(null);
   const [mutations] = useState(() => new MutationScope());
   const currentScope = useRef(scope);
   currentScope.current = scope;
-  const signature = calculationSignature(draft);
+  const hydrated = useRef<CalculatorSource | null>(null);
+  const signature = managedCalculationSignature(draft, source);
   const result = calculated?.signature === signature ? calculated.result : null;
 
   useEffect(
@@ -127,7 +156,7 @@ export function CalculatorPage() {
       if (!request.client || request.demo)
         throw new Error("Hisoblash uchun ERP serveriga kiring.");
       return request.client.calculate(
-        calculationInput(current),
+        source ? managedCalculationInput(current, source) : calculationInput(current),
         request.lease.controller.signal,
       );
     },
@@ -135,7 +164,7 @@ export function CalculatorPage() {
       if (isCurrent(request))
         setCalculated({
           result: data,
-          signature: calculationSignature(current),
+          signature: managedCalculationSignature(current, source),
         });
     },
     onSettled: (_data, _error, { request }) => mutations.finish(request.lease),
@@ -150,15 +179,18 @@ export function CalculatorPage() {
       result: Row | null;
       request: ScopedRequest;
     }) => {
-      if (!request.client || request.demo || !result)
+      if (!request.client || request.demo || !result || !management.api)
         throw new Error("Avval buyurtmani hisoblang.");
-      return request.client.autoOpenOrder(
-        automaticOrderTemplate(current, result),
+      if (!isCurrent(request)) throw new DOMException('So‘rov bekor qilindi.', 'AbortError');
+      const template = source?.kind === 'template' ? managedCalculatorTemplate(current, result, source) : automaticOrderTemplate(current, result);
+      return management.api.automaticOpen(
+        template,
         request.lease.controller.signal,
       );
     },
     onSuccess: (data, { request }) => {
       if (!isCurrent(request)) return;
+      management.clearAutomatic();
       const saved = isRecord(data.saved) ? data.saved : {};
       const map = isRecord(saved.map) ? saved.map : {};
       toast.success(
@@ -170,6 +202,7 @@ export function CalculatorPage() {
     },
     onError: (error, { request }) => {
       if (!isCurrent(request)) return;
+      if (error instanceof ApiError && error.status > 0 && error.status < 500) management.clearAutomatic();
       setUncertain(
         error instanceof ApiError &&
           (error.status === 0 || error.status >= 500),
@@ -199,8 +232,30 @@ export function CalculatorPage() {
     onSettled: (_data, _error, { request }) => mutations.finish(request.lease),
   });
   const busy =
-    calculation.isPending || opening.isPending || imageUpload.isPending;
+    calculation.isPending || opening.isPending || imageUpload.isPending || management.pending;
   const imageMissing = Boolean(localImage && !draft.image?.image_id);
+  const completedPending = source?.kind === 'pending' && !!source.pending.completion;
+  const managementOpenUnknown = management.error instanceof CalculatorSaveUnknown;
+
+  useEffect(() => {
+    const changed = mode.kind !== 'new' && source && retainedDraft && JSON.stringify(draft) !== JSON.stringify(draftFromCalculatorTemplate(source.template, source.kind === 'order' || source.kind === 'pending'));
+    if (!changed && !uncertain && !opening.isPending && !management.pending && !management.error) return;
+    const beforeUnload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    window.addEventListener('beforeunload', beforeUnload);
+    return () => window.removeEventListener('beforeunload', beforeUnload);
+  }, [draft, source, mode.kind, retainedDraft, uncertain, opening.isPending, management.pending, management.error]);
+
+  useEffect(() => {
+    if (!source || hydrated.current === source) return;
+    hydrated.current = source;
+    productGeneration.current += 1;
+    customerRequest.current?.abort();
+    mutations.cancelAll();
+    if (retainedDraft) return;
+    setDraft(draftFromCalculatorTemplate(source.template, source.kind === 'order' || source.kind === 'pending'));
+    setSelectedMaterials({}); setCalculated(null); setMap(null); setMapSignature(''); setLocalImage(''); setUncertain(false);
+    calculation.reset(); opening.reset(); imageUpload.reset(); setConfirm(false);
+  }, [source, mutations, setDraft, setSelectedMaterials, setCalculated, setMap, setMapSignature, setLocalImage, setUncertain]);
 
   function scopedRequest(): ScopedRequest {
     return { scope, client, demo, lease: mutations.begin() };
@@ -232,7 +287,7 @@ export function CalculatorPage() {
   function selectCustomer(row: Row) {
     productGeneration.current += 1;
     customerRequest.current?.abort();
-    setDraft((old) => customerSelection(old, row));
+    setDraft((old) => source?.kind === 'order' ? { ...old, customer_ref: text(row.ref, ''), customer: text(row.name || row.ref, '') } : customerSelection(old, row));
     calculation.reset();
   }
   async function selectProduct(row: Row) {
@@ -313,12 +368,29 @@ export function CalculatorPage() {
       ? result.results.filter(isRecord)
       : [];
 
+  function managementSaved(saved: CalculatorSaveResult) {
+    if (saved.kind === 'template') {
+      toast.success('Buyurtma shabloni saqlandi.');
+      navigate(`/app/templates?selected=${encodeURIComponent(text(saved.template.id, ''))}`);
+    } else if (saved.kind === 'deleted') {
+      toast.success('Shablon o‘chirildi.'); navigate('/app/templates');
+    } else {
+      const map = saved.kind === 'order' ? saved.order.map : isRecord(saved.saved.map) ? saved.saved.map : {};
+      toast.success(saved.kind === 'order' ? `Buyurtma №${text(map.order_number)} tahrirlandi.` : `Buyurtma №${text(map.order_number)} ishlab chiqarishga ochildi.`);
+      navigate(`/app/orders?selected=${encodeURIComponent(text(map.id, ''))}`);
+    }
+  }
+  if (mode.kind !== 'new' && (!source || hydrated.current !== source || demo || !management.allowed)) {
+    const error = management.error || management.loadError || (demo ? new Error('Bu amal uchun ERP serveriga ulaning.') : !management.allowed ? new ApiError(403, 'forbidden') : null);
+    return <div className="space-y-4"><h1 className="text-2xl font-semibold">Buyurtma ma’lumotlari</h1>{error ? <Alert variant="destructive"><AlertDescription>{calculatorManagementError(error)}</AlertDescription></Alert> : <p role="status" className="flex items-center gap-2 text-muted-foreground"><Loader2 className="size-4 animate-spin" />Buyurtma yuklanmoqda…</p>}<div className="flex gap-2">{error && !demo && <Button variant="outline" disabled={management.pending} onClick={() => void management.reload()}>Qayta yuklash</Button>}<Button variant="outline" asChild><Link to={mode.kind === 'pending' ? '/app/pending' : mode.kind === 'order' ? '/app/orders' : '/app/templates'}>Ro‘yxatga qaytish</Link></Button></div></div>;
+  }
+
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">
-            Buyurtma ochish
+            {mode.kind === 'order' ? `Buyurtma №${text(source?.template.order_number)} tahriri` : mode.kind === 'pending' ? `Kutilayotgan buyurtma №${text(source?.template.order_number)}` : mode.kind === 'template' ? mode.edit ? 'Shablonni tahrirlash' : 'Shablondan buyurtma ochish' : 'Buyurtma ochish'}
           </h1>
           <p className="text-sm text-muted-foreground">
             Mahsulot, ishlab chiqarish turi va hisob parametrlari.
@@ -342,11 +414,14 @@ export function CalculatorPage() {
           </AlertDescription>
         </Alert>
       )}
+      {source?.kind === 'order' && <Alert><AlertDescription>Mavjud xarita yo‘nalishi saqlanadi. Buyurtma turi, bosma usuli va bir qatlamli yoki ko‘p qatlamli tuzilishni avvalgidek qoldiring.</AlertDescription></Alert>}
+      {completedPending && <Alert><AlertDescription>Bu buyurtma ishlab chiqarishga chiqarilgan.</AlertDescription></Alert>}
+      {mode.kind === 'template' && mode.edit && <Button variant="outline" asChild><Link to={`/app/calculate?templateId=${encodeURIComponent(mode.id)}`}>Yangi buyurtmaga ishlatish</Link></Button>}
       <form
         onSubmit={submit}
         className="grid items-start gap-6 xl:grid-cols-[1fr_360px]"
       >
-        <fieldset disabled={busy} className="min-w-0 space-y-6">
+        <fieldset disabled={busy || completedPending} className="min-w-0 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Buyurtma ma’lumotlari</CardTitle>
@@ -366,7 +441,7 @@ export function CalculatorPage() {
                   onSelect={selectCustomer}
                 />
               </div>
-              <div className="space-y-2">
+              <fieldset disabled={source?.kind === 'order' && Array.isArray(source.order.map.nodes) && source.order.map.nodes.some(node => isRecord(node) && text(node.item_code, '').trim())} className="space-y-2">
                 <Label htmlFor="order-product">Mahsulot *</Label>
                 <CatalogPicker
                   key={draft.customer_ref}
@@ -381,11 +456,12 @@ export function CalculatorPage() {
                     void selectProduct(row);
                   }}
                 />
-              </div>
+              </fieldset>
               <div className="space-y-2">
                 <Label htmlFor="order-status">Buyurtma turi</Label>
                 <Select
-                  value={draft.status}
+                  value={source?.kind === 'order' ? text(source.template.status, draft.status) : draft.status}
+                  disabled={source?.kind === 'order'}
                   onValueChange={(v) =>
                     change("status", v as OrderDraft["status"])
                   }
@@ -394,8 +470,7 @@ export function CalculatorPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Rulon">Rulon</SelectItem>
-                    <SelectItem value="Paket">Paket</SelectItem>
+                    {source?.kind === 'order' ? <SelectItem value={text(source.template.status, draft.status)}>{text(source.template.status, '').toLowerCase() === 'flexo' ? 'Flexo' : draft.status}</SelectItem> : <><SelectItem value="Rulon">Rulon</SelectItem><SelectItem value="Paket">Paket</SelectItem></>}
                   </SelectContent>
                 </Select>
               </div>
@@ -403,6 +478,7 @@ export function CalculatorPage() {
                 <Label htmlFor="print-method">Ishlab chiqarish turi</Label>
                 <Select
                   value={draft.print_method}
+                  disabled={source?.kind === 'order'}
                   onValueChange={(v) =>
                     change("print_method", v as OrderDraft["print_method"])
                   }
@@ -476,6 +552,7 @@ export function CalculatorPage() {
                     </div>
                   </div>
                 )}
+                {!localImage && draft.image?.image_id ? <div className="flex items-center justify-between gap-3 rounded-md border p-3"><p className="break-words text-sm">{text(draft.image.image_name, 'Mavjud buyurtma rasmi')}</p><Button type="button" variant="outline" size="sm" onClick={() => change('image', null)}><Trash2 />Olib tashlash</Button></div> : null}
               </div>
             </CardContent>
           </Card>
@@ -508,7 +585,7 @@ export function CalculatorPage() {
                 onChange={(v) => change("frame_count", v)}
                 required
               />
-              {draft.print_method === "flexo" && (
+              {(draft.print_method === "flexo" || mode.kind !== 'new') && (
                 <NumberField
                   id="edge_allowance_mm"
                   label="Qo‘shimcha uzunlik, mm *"
@@ -754,7 +831,7 @@ export function CalculatorPage() {
                   </p>
                 </div>
               )}
-              <Button type="submit" className="w-full" disabled={demo || busy}>
+              <Button type="submit" className="w-full" disabled={demo || busy || completedPending}>
                 {calculation.isPending ? (
                   <Loader2 className="animate-spin" />
                 ) : (
@@ -762,7 +839,7 @@ export function CalculatorPage() {
                 )}
                 Hisoblash
               </Button>
-              <Button
+              {mode.kind === 'new' && <Button
                 type="button"
                 className="w-full"
                 disabled={
@@ -776,8 +853,10 @@ export function CalculatorPage() {
               >
                 <Waypoints />
                 Mapni ulash
-              </Button>
-              <Button
+              </Button>}
+              <CalculatorManagementActions mode={mode} management={management} result={result} productName={draft.product} prepareTemplate={(reusable, name) => managedCalculatorTemplate(draft, result, source, reusable, name)} busy={busy || uncertain || managementOpenUnknown || imageMissing || Boolean(imageUpload.error)} onSaved={managementSaved} />
+              {!opening.isPending && <CalculatorManagementNotice management={management} onSaved={managementSaved} />}
+              {(mode.kind === 'new' || mode.kind === 'template' && !mode.edit) && <Button
                 type="button"
                 className="w-full"
                 variant="outline"
@@ -786,6 +865,7 @@ export function CalculatorPage() {
                   busy ||
                   !result ||
                   uncertain ||
+                  managementOpenUnknown ||
                   Boolean(imageUpload.error) ||
                   imageMissing
                 }
@@ -793,7 +873,7 @@ export function CalculatorPage() {
               >
                 <ClipboardPlus />
                 Avtomatik buyurtma ochish
-              </Button>
+              </Button>}
               {uncertain && !opening.isPending && (
                 <Alert variant="destructive">
                   <AlertDescription>
@@ -802,14 +882,7 @@ export function CalculatorPage() {
                       buyurtmalar ro‘yxatini tekshiring
                     </Link>
                     .{" "}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={reset}
-                    >
-                      Yangi buyurtma boshlash
-                    </Button>
+                    {mode.kind === 'new' ? <Button type="button" variant="outline" size="sm" onClick={() => { management.clearAutomatic(); reset(); }}>Yangi buyurtma boshlash</Button> : <Button type="button" variant="outline" size="sm" asChild><Link to="/app/calculate">Yangi buyurtma boshlash</Link></Button>}
                   </AlertDescription>
                 </Alert>
               )}
