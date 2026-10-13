@@ -66,7 +66,7 @@ function loadFactoryMapRenderer(): Promise<FactoryRendererModule> {
     const script = document.createElement('script')
     const attempt = String(rendererAttempt++)
     script.type = 'module'
-    script.src = `${assetBase}factory-map-entry.js?v=20261013cadIsolation1&attempt=${attempt}`
+    script.src = `${assetBase}factory-map-entry.js?v=20261013cadTheme1&attempt=${attempt}`
     script.dataset.accordFactoryMapModule = 'true'
     const timeout = window.setTimeout(() => fail('3D xarita moduli yuklanishi tugamadi.'), 60_000)
     const cleanup = () => {
@@ -122,8 +122,10 @@ export function FactoryMapViewer(props: FactoryMapViewerProps) {
   const [loading, setLoading] = useState(true)
   const [progress, setProgress] = useState({ loaded: 0, total: 0, preparing: false })
   const [error, setError] = useState('')
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => document.documentElement.classList.contains('dark') ? 'dark' : 'light')
   const rendererState = JSON.stringify({
     enabled: true,
+    theme,
     live: props.liveState ?? {},
     stock: props.stockState ?? {},
     selectedObjectId: props.selectedObjectId ?? '',
@@ -134,6 +136,15 @@ export function FactoryMapViewer(props: FactoryMapViewerProps) {
     showLabels: props.showLabels !== false,
     renderSuspended: props.renderSuspended === true,
   })
+
+  useEffect(() => {
+    const root = document.documentElement
+    const update = () => setTheme(root.classList.contains('dark') ? 'dark' : 'light')
+    const observer = new MutationObserver(update)
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] })
+    update()
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     const host = hostRef.current
@@ -215,7 +226,7 @@ export function FactoryMapViewer(props: FactoryMapViewerProps) {
   const percentage = progress.preparing ? 95 : progress.total ? Math.min(94, Math.round(progress.loaded / progress.total * 94)) : 0
 
   return (
-    <div ref={hostRef} className={cn('relative isolate min-h-[360px] w-full overflow-hidden bg-zinc-100 [&_.factory-live-label]:!rounded-md [&_.factory-live-label]:!bg-white [&_.factory-live-label_b]:!text-[13px] [&_.factory-live-label_small]:!text-zinc-600 [&_.factory-live-label_span]:!text-zinc-700', props.className)} data-model-viewer-state={rendererState} aria-busy={loading}>
+    <div ref={hostRef} className={cn('relative isolate min-h-[360px] w-full overflow-hidden bg-zinc-100 dark:bg-neutral-900 [&_.factory-live-label]:!rounded-md [&_.factory-live-label]:!bg-white dark:[&_.factory-live-label]:!bg-neutral-800 dark:[&_.factory-live-label]:!text-neutral-100 dark:[&_.factory-live-label]:!border-y-neutral-700 dark:[&_.factory-live-label]:!border-r-neutral-700 [&_.factory-live-label_b]:!text-[13px] [&_.factory-live-label_small]:!text-zinc-600 dark:[&_.factory-live-label_small]:!text-zinc-300 [&_.factory-live-label_span]:!text-zinc-700 dark:[&_.factory-live-label_span]:!text-zinc-200', props.className)} data-model-viewer-state={rendererState} aria-busy={loading}>
       <p id={instructionsId} className="sr-only">Apparatlar orasida o‘tish uchun yo‘nalish tugmalaridan foydalaning. Home: birinchi apparat. End: oxirgi apparat. Enter: tanlash. Escape: umumiy ko‘rinish. Bosqichlar va apparatlar ro‘yxati orqali ham tanlash mumkin.</p>
       <canvas
         key={attempt}

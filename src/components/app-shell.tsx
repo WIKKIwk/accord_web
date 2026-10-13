@@ -90,6 +90,13 @@ export function ThemeButton() {
       /* Optional preference. */
     }
   }, [dark]);
+  useEffect(() => {
+    // The map's fullscreen toolbar shares the same application theme. Keep
+    // every switch label in sync when another mounted switch changes it.
+    const observer = new MutationObserver(() => setDark(document.documentElement.classList.contains("dark")));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
   return (
     <Button
       variant="ghost"

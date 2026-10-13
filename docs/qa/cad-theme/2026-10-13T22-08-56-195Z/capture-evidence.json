@@ -1,0 +1,717 @@
+{
+  "synthetic": true,
+  "productionVerified": false,
+  "status": "passed",
+  "sourceRevision": "d1b8e90-plus-frozen-visible-fixes",
+  "buildDirectory": "/tmp/accord-web-quality-static-visible-guarded-ByOGar",
+  "capturedAt": "2026-10-13T22:10:31.538Z",
+  "captures": [
+    "factory-overview-light.png",
+    "factory-overview-dark.png",
+    "isolated-print-light.png",
+    "isolated-print-dark.png",
+    "isolated-laminate-light.png",
+    "isolated-laminate-dark.png",
+    "fullscreen-lamination-dark.png",
+    "responsive-lamination-dark.png"
+  ],
+  "proof": [
+    {
+      "label": "overview-light-initial",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "overview",
+      "object": "",
+      "selected": "",
+      "cadSegments": 0,
+      "triangles": 306327,
+      "activeReels": 2,
+      "cameraPosition": "82.273,86.027,89.472",
+      "cameraTarget": "21.443,0.000,28.642",
+      "cameraClip": "0.10000,400.000",
+      "cameraOrbit": "24.000,235.168",
+      "cameraAutoRotate": "false",
+      "visible": [],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "overview-dark-1",
+      "theme": "dark",
+      "cadTheme": "dark",
+      "view": "overview",
+      "object": "",
+      "selected": "",
+      "cadSegments": 0,
+      "triangles": 306327,
+      "activeReels": 2,
+      "cameraPosition": "82.273,86.027,89.472",
+      "cameraTarget": "21.443,0.000,28.642",
+      "cameraClip": "0.10000,400.000",
+      "cameraOrbit": "24.000,235.168",
+      "cameraAutoRotate": "false",
+      "visible": [],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "overview-light-restored-1",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "overview",
+      "object": "",
+      "selected": "",
+      "cadSegments": 0,
+      "triangles": 306327,
+      "activeReels": 2,
+      "cameraPosition": "82.273,86.027,89.472",
+      "cameraTarget": "21.443,0.000,28.642",
+      "cameraClip": "0.10000,400.000",
+      "cameraOrbit": "24.000,235.168",
+      "cameraAutoRotate": "false",
+      "visible": [],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "overview-dark-2",
+      "theme": "dark",
+      "cadTheme": "dark",
+      "view": "overview",
+      "object": "",
+      "selected": "",
+      "cadSegments": 0,
+      "triangles": 306327,
+      "activeReels": 2,
+      "cameraPosition": "82.273,86.027,89.472",
+      "cameraTarget": "21.443,0.000,28.642",
+      "cameraClip": "0.10000,400.000",
+      "cameraOrbit": "24.000,235.168",
+      "cameraAutoRotate": "false",
+      "visible": [],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "overview-light-restored-2",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "overview",
+      "object": "",
+      "selected": "",
+      "cadSegments": 0,
+      "triangles": 306327,
+      "activeReels": 2,
+      "cameraPosition": "82.273,86.027,89.472",
+      "cameraTarget": "21.443,0.000,28.642",
+      "cameraClip": "0.10000,400.000",
+      "cameraOrbit": "24.000,235.168",
+      "cameraAutoRotate": "false",
+      "visible": [],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "overview-dark-3",
+      "theme": "dark",
+      "cadTheme": "dark",
+      "view": "overview",
+      "object": "",
+      "selected": "",
+      "cadSegments": 0,
+      "triangles": 306327,
+      "activeReels": 2,
+      "cameraPosition": "82.273,86.027,89.472",
+      "cameraTarget": "21.443,0.000,28.642",
+      "cameraClip": "0.10000,400.000",
+      "cameraOrbit": "24.000,235.168",
+      "cameraAutoRotate": "false",
+      "visible": [],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "overview-light-restored-3",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "overview",
+      "object": "",
+      "selected": "",
+      "cadSegments": 0,
+      "triangles": 306327,
+      "activeReels": 2,
+      "cameraPosition": "82.273,86.027,89.472",
+      "cameraTarget": "21.443,0.000,28.642",
+      "cameraClip": "0.10000,400.000",
+      "cameraOrbit": "24.000,235.168",
+      "cameraAutoRotate": "false",
+      "visible": [],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "overview-after-user-orbit",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "overview",
+      "object": "",
+      "selected": "",
+      "cadSegments": 0,
+      "triangles": 306327,
+      "activeReels": 2,
+      "cameraPosition": "57.512,96.234,93.752",
+      "cameraTarget": "21.443,0.000,28.642",
+      "cameraClip": "0.10000,400.000",
+      "cameraOrbit": "24.000,235.168",
+      "cameraAutoRotate": "false",
+      "visible": [],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "orbited-overview-dark",
+      "theme": "dark",
+      "cadTheme": "dark",
+      "view": "overview",
+      "object": "",
+      "selected": "",
+      "cadSegments": 0,
+      "triangles": 306327,
+      "activeReels": 2,
+      "cameraPosition": "57.512,96.234,93.752",
+      "cameraTarget": "21.443,0.000,28.642",
+      "cameraClip": "0.10000,400.000",
+      "cameraOrbit": "24.000,235.168",
+      "cameraAutoRotate": "false",
+      "visible": [],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "orbited-overview-light",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "overview",
+      "object": "",
+      "selected": "",
+      "cadSegments": 0,
+      "triangles": 306327,
+      "activeReels": 2,
+      "cameraPosition": "57.512,96.234,93.752",
+      "cameraTarget": "21.443,0.000,28.642",
+      "cameraClip": "0.10000,400.000",
+      "cameraOrbit": "24.000,235.168",
+      "cameraAutoRotate": "false",
+      "visible": [],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "print-light-initial",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "isolated",
+      "object": "node:1:instance:0",
+      "selected": "node:1:instance:0",
+      "cadSegments": 7904,
+      "triangles": 13712,
+      "activeReels": 2,
+      "cameraPosition": "13.931,28.713,63.275",
+      "cameraTarget": "3.804,1.694,44.994",
+      "cameraClip": "0.14255,121.483",
+      "cameraOrbit": "10.644,102.476",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:1:instance:0"
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "print-dark-1",
+      "theme": "dark",
+      "cadTheme": "dark",
+      "view": "isolated",
+      "object": "node:1:instance:0",
+      "selected": "node:1:instance:0",
+      "cadSegments": 7904,
+      "triangles": 13712,
+      "activeReels": 2,
+      "cameraPosition": "13.931,28.713,63.275",
+      "cameraTarget": "3.804,1.694,44.994",
+      "cameraClip": "0.14255,121.483",
+      "cameraOrbit": "10.644,102.476",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:1:instance:0"
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "print-light-restored-1",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "isolated",
+      "object": "node:1:instance:0",
+      "selected": "node:1:instance:0",
+      "cadSegments": 7904,
+      "triangles": 13712,
+      "activeReels": 2,
+      "cameraPosition": "13.931,28.713,63.275",
+      "cameraTarget": "3.804,1.694,44.994",
+      "cameraClip": "0.14255,121.483",
+      "cameraOrbit": "10.644,102.476",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:1:instance:0"
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "print-dark-2",
+      "theme": "dark",
+      "cadTheme": "dark",
+      "view": "isolated",
+      "object": "node:1:instance:0",
+      "selected": "node:1:instance:0",
+      "cadSegments": 7904,
+      "triangles": 13712,
+      "activeReels": 2,
+      "cameraPosition": "13.931,28.713,63.275",
+      "cameraTarget": "3.804,1.694,44.994",
+      "cameraClip": "0.14255,121.483",
+      "cameraOrbit": "10.644,102.476",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:1:instance:0"
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "print-light-restored-2",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "isolated",
+      "object": "node:1:instance:0",
+      "selected": "node:1:instance:0",
+      "cadSegments": 7904,
+      "triangles": 13712,
+      "activeReels": 2,
+      "cameraPosition": "13.931,28.713,63.275",
+      "cameraTarget": "3.804,1.694,44.994",
+      "cameraClip": "0.14255,121.483",
+      "cameraOrbit": "10.644,102.476",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:1:instance:0"
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "print-dark-3",
+      "theme": "dark",
+      "cadTheme": "dark",
+      "view": "isolated",
+      "object": "node:1:instance:0",
+      "selected": "node:1:instance:0",
+      "cadSegments": 7904,
+      "triangles": 13712,
+      "activeReels": 2,
+      "cameraPosition": "13.931,28.713,63.275",
+      "cameraTarget": "3.804,1.694,44.994",
+      "cameraClip": "0.14255,121.483",
+      "cameraOrbit": "10.644,102.476",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:1:instance:0"
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "print-light-restored-3",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "isolated",
+      "object": "node:1:instance:0",
+      "selected": "node:1:instance:0",
+      "cadSegments": 7904,
+      "triangles": 13712,
+      "activeReels": 2,
+      "cameraPosition": "13.931,28.713,63.275",
+      "cameraTarget": "3.804,1.694,44.994",
+      "cameraClip": "0.14255,121.483",
+      "cameraOrbit": "10.644,102.476",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:1:instance:0"
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "laminate-light-initial",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "isolated",
+      "object": "node:6:instance:6",
+      "selected": "node:6:instance:6",
+      "cadSegments": 10930,
+      "triangles": 17454,
+      "activeReels": 0,
+      "cameraPosition": "18.120,10.196,32.769",
+      "cameraTarget": "14.801,1.342,26.779",
+      "cameraClip": "0.04891,40.101",
+      "cameraOrbit": "3.652,33.579",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:6:instance:6"
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "laminate-dark-1",
+      "theme": "dark",
+      "cadTheme": "dark",
+      "view": "isolated",
+      "object": "node:6:instance:6",
+      "selected": "node:6:instance:6",
+      "cadSegments": 10930,
+      "triangles": 17454,
+      "activeReels": 0,
+      "cameraPosition": "18.120,10.196,32.769",
+      "cameraTarget": "14.801,1.342,26.779",
+      "cameraClip": "0.04891,40.101",
+      "cameraOrbit": "3.652,33.579",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:6:instance:6"
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "laminate-light-restored-1",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "isolated",
+      "object": "node:6:instance:6",
+      "selected": "node:6:instance:6",
+      "cadSegments": 10930,
+      "triangles": 17454,
+      "activeReels": 0,
+      "cameraPosition": "18.120,10.196,32.769",
+      "cameraTarget": "14.801,1.342,26.779",
+      "cameraClip": "0.04891,40.101",
+      "cameraOrbit": "3.652,33.579",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:6:instance:6"
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "laminate-dark-2",
+      "theme": "dark",
+      "cadTheme": "dark",
+      "view": "isolated",
+      "object": "node:6:instance:6",
+      "selected": "node:6:instance:6",
+      "cadSegments": 10930,
+      "triangles": 17454,
+      "activeReels": 0,
+      "cameraPosition": "18.120,10.196,32.769",
+      "cameraTarget": "14.801,1.342,26.779",
+      "cameraClip": "0.04891,40.101",
+      "cameraOrbit": "3.652,33.579",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:6:instance:6"
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "laminate-light-restored-2",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "isolated",
+      "object": "node:6:instance:6",
+      "selected": "node:6:instance:6",
+      "cadSegments": 10930,
+      "triangles": 17454,
+      "activeReels": 0,
+      "cameraPosition": "18.120,10.196,32.769",
+      "cameraTarget": "14.801,1.342,26.779",
+      "cameraClip": "0.04891,40.101",
+      "cameraOrbit": "3.652,33.579",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:6:instance:6"
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "laminate-dark-3",
+      "theme": "dark",
+      "cadTheme": "dark",
+      "view": "isolated",
+      "object": "node:6:instance:6",
+      "selected": "node:6:instance:6",
+      "cadSegments": 10930,
+      "triangles": 17454,
+      "activeReels": 0,
+      "cameraPosition": "18.120,10.196,32.769",
+      "cameraTarget": "14.801,1.342,26.779",
+      "cameraClip": "0.04891,40.101",
+      "cameraOrbit": "3.652,33.579",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:6:instance:6"
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "laminate-light-restored-3",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "isolated",
+      "object": "node:6:instance:6",
+      "selected": "node:6:instance:6",
+      "cadSegments": 10930,
+      "triangles": 17454,
+      "activeReels": 0,
+      "cameraPosition": "18.120,10.196,32.769",
+      "cameraTarget": "14.801,1.342,26.779",
+      "cameraClip": "0.04891,40.101",
+      "cameraOrbit": "3.652,33.579",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:6:instance:6"
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "fullscreen-lamination-light",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "isolated",
+      "object": "node:6:instance:6",
+      "selected": "node:6:instance:6",
+      "cadSegments": 10930,
+      "triangles": 17454,
+      "activeReels": 0,
+      "cameraPosition": "18.120,10.196,32.769",
+      "cameraTarget": "14.801,1.342,26.779",
+      "cameraClip": "0.04891,40.101",
+      "cameraOrbit": "3.652,33.579",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:6:instance:6"
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "fullscreen-lamination-dark",
+      "theme": "dark",
+      "cadTheme": "dark",
+      "view": "isolated",
+      "object": "node:6:instance:6",
+      "selected": "node:6:instance:6",
+      "cadSegments": 10930,
+      "triangles": 17454,
+      "activeReels": 0,
+      "cameraPosition": "18.120,10.196,32.769",
+      "cameraTarget": "14.801,1.342,26.779",
+      "cameraClip": "0.04891,40.101",
+      "cameraOrbit": "3.652,33.579",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:6:instance:6"
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "fullscreen-lamination-light-restored",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "isolated",
+      "object": "node:6:instance:6",
+      "selected": "node:6:instance:6",
+      "cadSegments": 10930,
+      "triangles": 17454,
+      "activeReels": 0,
+      "cameraPosition": "18.120,10.196,32.769",
+      "cameraTarget": "14.801,1.342,26.779",
+      "cameraClip": "0.04891,40.101",
+      "cameraOrbit": "3.652,33.579",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:6:instance:6"
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1150
+      }
+    },
+    {
+      "label": "responsive-lamination-light",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "isolated",
+      "object": "node:6:instance:6",
+      "selected": "node:6:instance:6",
+      "cadSegments": 10930,
+      "triangles": 17454,
+      "activeReels": 0,
+      "cameraPosition": "18.972,12.470,34.308",
+      "cameraTarget": "14.801,1.342,26.779",
+      "cameraClip": "0.04891,48.726",
+      "cameraOrbit": "3.652,42.204",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:6:instance:6"
+      ],
+      "viewport": {
+        "width": 800,
+        "height": 900
+      }
+    },
+    {
+      "label": "responsive-lamination-dark",
+      "theme": "dark",
+      "cadTheme": "dark",
+      "view": "isolated",
+      "object": "node:6:instance:6",
+      "selected": "node:6:instance:6",
+      "cadSegments": 10930,
+      "triangles": 17454,
+      "activeReels": 0,
+      "cameraPosition": "18.972,12.470,34.308",
+      "cameraTarget": "14.801,1.342,26.779",
+      "cameraClip": "0.04891,48.726",
+      "cameraOrbit": "3.652,42.204",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:6:instance:6"
+      ],
+      "viewport": {
+        "width": 800,
+        "height": 900
+      }
+    },
+    {
+      "label": "responsive-lamination-light-restored",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "isolated",
+      "object": "node:6:instance:6",
+      "selected": "node:6:instance:6",
+      "cadSegments": 10930,
+      "triangles": 17454,
+      "activeReels": 0,
+      "cameraPosition": "18.972,12.470,34.308",
+      "cameraTarget": "14.801,1.342,26.779",
+      "cameraClip": "0.04891,48.726",
+      "cameraOrbit": "3.652,42.204",
+      "cameraAutoRotate": "false",
+      "visible": [
+        "node:6:instance:6"
+      ],
+      "viewport": {
+        "width": 800,
+        "height": 900
+      }
+    },
+    {
+      "label": "remount-light-overview",
+      "theme": "light",
+      "cadTheme": "light",
+      "view": "overview",
+      "object": "",
+      "selected": "",
+      "cadSegments": 0,
+      "triangles": 306327,
+      "activeReels": 2,
+      "cameraPosition": "32.010,88.271,116.279",
+      "cameraTarget": "21.443,0.000,28.642",
+      "cameraClip": "0.10000,400.000",
+      "cameraOrbit": "24.000,235.168",
+      "cameraAutoRotate": "false",
+      "visible": [],
+      "viewport": {
+        "width": 800,
+        "height": 900
+      }
+    }
+  ],
+  "assets": [
+    "/factory-map/zavod6-cad-line-art.glb.gz",
+    "/factory-map/zavod6-cad-line-art.glb.gz"
+  ],
+  "outsideRequests": [],
+  "pageErrors": []
+}

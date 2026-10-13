@@ -106,7 +106,7 @@ function companion(source, target, vertices, objectId) {
   return lines;
 }
 
-export function createFactoryCadCompanions(root) {
+export function createFactoryCadCompanions(root, onCreate = () => {}) {
   root.updateMatrixWorld(true);
   const sources = [];
   root.traverse(object => {
@@ -122,6 +122,7 @@ export function createFactoryCadCompanions(root) {
       const companions = sources.flatMap(source => {
         if (!indices.has(source)) indices.set(source, lineIndex(source));
         const lines = companion(source, target, indices.get(source), objectId);
+        if (lines) onCreate(lines, source);
         return lines ? [lines] : [];
       });
       cache.set(target, companions);

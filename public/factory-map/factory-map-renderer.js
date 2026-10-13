@@ -9,7 +9,8 @@ import { apparatusHit, apparatusObjectId, cleanFactoryMapGeometry, FACTORY_MAP_C
 import { createFactoryLive, FrameBudget } from './factory-map-live.js?v=20261013stages1';
 import { createFactoryStock } from './factory-map-stock.js?v=20261013stages1';
 import { createFactoryStageView } from './factory-map-stage-view.js?v=20261013cadIsolation1';
-import { createFactoryCadCompanions } from './factory-map-cad-companions.js?v=20261013cadIsolation1';
+import { createFactoryCadCompanions } from './factory-map-cad-companions.js?v=20261013cadTheme1';
+import { createFactoryCadTheme, FACTORY_CAD_THEME } from './factory-map-cad-theme.js?v=20261013cadTheme1';
 import { lockFactoryMapGestures } from './factory-map-gestures.js?v=20260907touch1';
 
 // The module is cached by the browser; mounting is explicit so route re-entry
@@ -56,6 +57,7 @@ let liveView = null;
 let stockView = null;
 let stageView = null;
 let cadCompanions = null;
+let cadTheme = null;
 let beforeStageView = null;
 let isolatedBounds = null;
 let viewportVisible = true;
@@ -801,6 +803,14 @@ function handleRendererState() {
   catch { return; }
   const previous = lastState;
   lastState = state;
+  // Material/background swaps are independent of camera, isolation and live
+  // motion state. No renderer remount, model parse or focus flight is needed.
+  const theme = state.theme === 'dark' ? 'dark' : 'light';
+  if (cadTheme) {
+    cadTheme.setTheme(theme);
+    scene.background.setHex(FACTORY_CAD_THEME[theme].background);
+  }
+  canvas.dataset.cadTheme = theme;
   canvas.dataset.renderSuspended = String(state.renderSuspended === true);
   // A sheet pauses GPU work, not the ERP labels visible behind it.
   // Both projections retain their expiry timers and update their DOM here.
@@ -1077,6 +1087,7 @@ function dispose() {
   liveView?.dispose();
   stockView?.dispose();
   stageView?.restore();
+  cadTheme?.dispose();
   controls.dispose();
   disposeScene(scene);
   renderer.dispose();
@@ -1120,12 +1131,12 @@ async function loadModel() {
             (object) => object.userData.factory_map_object_id,
           ).length);
           const bounds = new THREE.Box3().setFromObject(root);
-          // This export carries intentional unlit greys and black contours.
-          // Retain those materials rather than recoloring a user-authored model.
+          // Light mode retains this export's exact unlit greys and black
+          // contours. Dark variants affect only this renderer's cloned materials.
           if (root.userData.factory_map_style === 'cad-line-art') {
             renderer.toneMapping = THREE.NoToneMapping;
             renderer.shadowMap.enabled = false;
-            scene.background.setHex(0xf4f4f5);
+            scene.background.setHex(FACTORY_CAD_THEME.light.background);
           } else {
             enableRealShadows(root, bounds);
             applyApparatusMarkerTint(root);
@@ -1135,7 +1146,12 @@ async function loadModel() {
           // solids for stock placement, including the complete apparatus body.
           const stockObstacles = visibleWorldBoxes(root);
           const optimized = optimizeStaticMap(root);
-          cadCompanions = root.userData.factory_map_style === 'cad-line-art' ? createFactoryCadCompanions(root) : null;
+          if (root.userData.factory_map_style === 'cad-line-art') {
+            cadTheme = createFactoryCadTheme(root);
+            cadTheme.setTheme(lastState.theme);
+            scene.background.setHex(FACTORY_CAD_THEME[cadTheme.theme].background);
+            cadCompanions = createFactoryCadCompanions(root, (lines, source) => cadTheme.register(lines, source));
+          }
           stageView = createFactoryStageView(root, id => {
             const target = selectableTargetForId(id);
             return target && isFactoryMapApparatus(target.object) ? { ...target, companions: cadCompanions?.get(id, target.object) || [] } : null;

@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowUpRight, CircleHelp, Expand, Factory, Focus, Link2, Loa
 import { toast } from 'sonner'
 import { FactoryMapViewer, type FactoryMapObject } from '@/components/FactoryMapViewer'
 import { FactoryStageStrip } from '@/components/factory-stage-strip'
+import { ThemeButton } from '@/components/app-shell'
 import { InfiniteListEnd } from '@/components/infinite-list-end'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -166,6 +167,7 @@ export default function FactoryMapPage() {
             <div className="flex items-center gap-1">
               <Button size="sm" variant="ghost" aria-label="Umumiy ko‘rinish" title="Umumiy ko‘rinish" onClick={showOverview}><Focus /><span className="hidden sm:inline">Umumiy ko‘rinish</span></Button>
               <Button size="icon-sm" variant={showLabels ? 'secondary' : 'ghost'} aria-label="Apparat yozuvlarini ko‘rsatish" title="Apparat yozuvlari" aria-pressed={showLabels} onClick={() => setShowLabels(value => !value)}><Tags /></Button>
+              {expanded && <ThemeButton />}
               <Button size="icon-sm" variant="ghost" aria-label={expanded ? 'To‘liq ekrandan chiqish' : 'To‘liq ekran'} title={expanded ? 'To‘liq ekrandan chiqish' : 'To‘liq ekran'} onClick={() => setExpanded(value => !value)}>{expanded ? <Shrink /> : <Expand />}</Button>
             </div>
           </div>
