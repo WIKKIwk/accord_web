@@ -39,6 +39,7 @@ import { ApparatusPlanningControls, OrderSchedulingControls } from "@/components
 import { WorkerProfileControls } from "@/components/worker-profile-controls";
 import { InventoryAdminControls, InventoryAdminToolbar } from "@/components/inventory-admin-controls";
 import { ResourceCreateNotice, useResourceCreate } from "@/components/resource-create-controls";
+import { ApparatusAdminControls, ApparatusAdminToolbar } from "@/components/apparatus-admin-controls";
 import { resourceCreateItemCodePolicy } from "@/lib/resource-create";
 import type { CatalogKind } from "@/lib/catalog-admin";
 import type { MutationLease } from "@/lib/mutation-scope";
@@ -226,6 +227,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
           {kind === 'roles' && <AdminRoleCreateButton onSaved={refreshList} />}
           {kind === 'materials' && <MaterialCatalogToolbar onSaved={refreshList} />}
           {kind === 'opening-wip' && <WipAdminToolbar onSaved={refreshList} />}
+          {kind === 'apparatus' && <ApparatusAdminToolbar onSaved={refreshList} />}
           {(kind === 'assets' || kind === 'locations') && <InventoryAdminToolbar kind={kind} onSaved={refreshList} />}
           {(kind === "orders" || kind === "templates") && canViewPage(session, 'calculate') ? (
             <Button asChild>
@@ -910,6 +912,7 @@ function DetailSheet({
               {row && !detail.isPending && !detail.error && (kind === 'wip' || kind === 'opening-wip') && <WipAdminControls kind={kind} row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderWipAdminControls row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && kind === 'apparatus' && <ApparatusPlanningControls row={value} onSaved={refreshMaterialDetail} />}
+              {row && !detail.isPending && !detail.error && kind === 'apparatus' && <ApparatusAdminControls row={value} onSaved={refreshMaterialDetail} onRetired={onClose} />}
               {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderSchedulingControls row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && (kind === 'assets' || kind === 'locations') && <InventoryAdminControls kind={kind} row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && (kind === 'orders' || kind === 'closed') && canViewPage(session, 'production-time') && <Button variant="outline" asChild className="w-full"><Link to={`/app/production-time?orderId=${encodeURIComponent(text(kind === 'closed' ? value.order_id : map.id, ''))}`} onClick={onClose}>Bosqichlar vaqtini ko‘rish<ChevronRight /></Link></Button>}
