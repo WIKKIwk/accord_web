@@ -206,6 +206,8 @@ export interface RequestOptions {
   signal?: AbortSignal
   authorized?: boolean
   timeoutMs?: number
+  /** Optional exact success status required by a native command contract. */
+  expectedStatus?: number
 }
 
 /** Each instance is bound to one server and token; callers key caches by that session. */
@@ -253,6 +255,7 @@ export class ApiClient {
         const detail = isRecord(payload) && typeof payload.detail === 'string' && payload.detail.trim() ? payload.detail : undefined
         throw new ApiError(response.status, error, detail)
       }
+      if (options.expectedStatus !== undefined && response.status !== options.expectedStatus) throw new ApiError(response.status, 'invalid_response', 'Server javobi kutilgan tasdiqqa mos kelmadi.')
       // A cancelled identity must not publish an old server's response.
       if (options.signal?.aborted) throw new DOMException('So‘rov bekor qilindi.', 'AbortError')
       return payload as T

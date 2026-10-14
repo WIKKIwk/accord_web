@@ -107,6 +107,7 @@ const MaterialLinkRequestControls = lazy(() => import('@/components/material-lin
 const ClosedOrderEventHistory = lazy(() => import('@/components/closed-order-event-history').then(module => ({ default: module.ClosedOrderEventHistory })));
 const ProductionSequenceQueue = lazy(() => import('@/components/production-sequence-queue').then(module => ({ default: module.ProductionSequenceQueue })));
 const WorkerGroupToolbar = lazy(() => import('@/components/worker-group-controls').then(module => ({ default: module.WorkerGroupToolbar })));
+const ApparatusCollectionToolbar = lazy(() => import('@/components/apparatus-collection-controls').then(module => ({ default: module.ApparatusCollectionToolbar })));
 
 function DeferredResourceControls({ children }: { children: ReactNode }) {
   return <Suspense fallback={<p role="status" className="py-2 text-xs text-muted-foreground">Boshqaruv yuklanmoqda…</p>}>{children}</Suspense>;
@@ -253,6 +254,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
           </Button>
           {kind === 'roles' && <AdminRoleCreateButton onSaved={refreshList} />}
           {kind === 'workers' && <DeferredResourceControls><WorkerGroupToolbar onSaved={refreshList} /></DeferredResourceControls>}
+          {kind === 'apparatus' && <DeferredResourceControls><ApparatusCollectionToolbar onSaved={refreshList} /></DeferredResourceControls>}
           {kind === 'materials' && <MaterialCatalogToolbar onSaved={refreshList} />}
           {kind === 'opening-wip' && <WipAdminToolbar onSaved={refreshList} />}
           {kind === 'apparatus' && <DeferredResourceControls><ApparatusAdminToolbar onSaved={refreshList} /></DeferredResourceControls>}

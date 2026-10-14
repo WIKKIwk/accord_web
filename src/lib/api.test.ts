@@ -15,6 +15,20 @@ function calledBody(fetch: ReturnType<typeof respond>, index = 0): Row { return 
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks() })
 
 describe('ERP transport and session authority', () => {
+  it('accepts an exact native204 deletion and rejects an empty200 as its confirmation', async () => {
+    const fetch = vi.fn().mockResolvedValueOnce(new Response(null, { status: 204 })).mockResolvedValueOnce(new Response(null, { status: 200 }))
+    vi.stubGlobal('fetch', fetch)
+    await expect(client().request('/v1/mobile/admin/apparatus-collections/known', 'DELETE', { body: { expected_revision: 1 }, expectedStatus: 204 })).resolves.toBeUndefined()
+    await expect(client().request('/v1/mobile/admin/apparatus-collections/known', 'DELETE', { body: { expected_revision: 1 }, expectedStatus: 204 })).rejects.toMatchObject({ status: 200, code: 'invalid_response' })
+    expect(fetch).toHaveBeenCalledTimes(2)
+  })
+  it('keeps known native refusal status and preserves callers without an exact success requirement', async () => {
+    respond({ error: 'forbidden' }, 403)
+    await expect(client().request('/v1/mobile/admin/apparatus-collections/known', 'DELETE', { expectedStatus: 204 })).rejects.toMatchObject({ status: 403, code: 'forbidden' })
+    respond({ ok: true }, 201)
+    await expect(client().request('/v1/mobile/admin/apparatus-collections', 'POST')).resolves.toEqual({ ok: true })
+    await expect(client().request('/v1/mobile/admin/apparatus-collections', 'POST', { expectedStatus: 200 })).rejects.toMatchObject({ status: 201, code: 'invalid_response' })
+  })
   it('explains protected deletion blockers without exposing arbitrary server error text', () => {
     expect(new ApiError(409, 'item is used by active order').message).toContain('faol buyurtmada')
     expect(new ApiError(409, 'warehouse contains 3 products').message).toContain('3 ta mahsulot')
