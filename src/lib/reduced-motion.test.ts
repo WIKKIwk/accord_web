@@ -14,7 +14,7 @@ const isUiMotionGuard = (rule: Rule): rule is MotionMedia => rule.type === 'medi
 beforeAll(async () => {
   const path = new URL('../index.css', import.meta.url), source = readFileSync(path, 'utf8')
   const options = { base: fileURLToPath(new URL('.', path)), onDependency: () => {} }
-  const candidates = ['data-open:animate-in', 'data-closed:animate-out', 'data-open:fade-in-0', 'data-closed:fade-out-0', 'data-open:zoom-in-95', 'data-closed:zoom-out-95', 'data-[side=right]:data-open:slide-in-from-right-10', 'duration-100', 'duration-200', 'animate-spin', 'animate-pulse', 'shimmer', 'hidden', '-translate-x-1/2', '-translate-y-1/2', 'focus-visible:ring-3']
+  const candidates = ['data-open:animate-in', 'data-closed:animate-out', 'data-open:animate-ui-enter', 'data-closed:animate-ui-exit', 'data-open:fade-in-0', 'data-closed:fade-out-0', 'data-open:zoom-in-95', 'data-closed:zoom-out-95', 'data-[side=right]:data-open:slide-in-from-right-10', 'duration-100', 'duration-200', 'animate-spin', 'animate-pulse', 'shimmer', 'hidden', '-translate-x-1/2', '-translate-y-1/2', 'focus-visible:ring-3']
   compiled = (await compile(source, options)).build(candidates)
   withoutGuard = (await compile(source.slice(0, source.lastIndexOf('@media (prefers-reduced-motion: reduce)')), options)).build(candidates)
   transform({ filename: 'app.css', code: Buffer.from(compiled), visitor: { Rule(rule) { if (isUiMotionGuard(rule)) motionRules.push(rule) } } })
@@ -29,10 +29,33 @@ describe('compiled first-party reduced-motion safeguard', () => {
     const style = media.value.rules[0]
     expect(style.type).toBe('style')
     if (style.type !== 'style') throw new Error('Reduced-motion style is missing')
-    expect(style.value.selectors).toHaveLength(slots.length + 3)
-    expect(style.value.selectors.every(selector => selector.length === 1)).toBe(true)
-    expect(style.value.selectors.map(selector => selector[0]).filter(part => part.type === 'attribute').map(part => part.type === 'attribute' ? part.operation?.value : '')).toEqual(slots)
+    expect(style.value.selectors).toHaveLength(slots.length + 4)
+    const singleSelectors = style.value.selectors.filter(selector => selector.length === 1)
+    expect(singleSelectors).toHaveLength(slots.length + 3)
+    expect(singleSelectors.map(selector => selector[0]).filter(part => part.type === 'attribute').map(part => part.type === 'attribute' ? part.operation?.value : '')).toEqual(slots)
     expect(style.value.selectors.map(selector => selector[0]).filter(part => part.type === 'class').map(part => part.type === 'class' ? part.name : '')).toEqual(['animate-spin', 'animate-pulse', 'shimmer'])
+  })
+
+  it('suppresses the mobile Sidebar Sheet override without targeting desktop sidebars or altering its slot', () => {
+    const style = motionRules[0].value.rules[0]
+    if (style.type !== 'style') throw new Error('Reduced-motion style is missing')
+    const compound = style.value.selectors.filter(selector => selector.length > 1)
+    expect(compound).toHaveLength(1)
+    const selector = compound[0]
+    expect(selector).toMatchObject([
+      { type: 'attribute', name: 'data-slot', operation: { operator: 'equal', value: 'sidebar' } },
+      { type: 'attribute', name: 'data-mobile', operation: { operator: 'equal', value: 'true' } },
+    ])
+    expect(selector).toHaveLength(2)
+    const matches = (attributes: Record<string, string>) => selector.every(part => part.type === 'attribute' && part.operation?.operator === 'equal' && attributes[part.name] === part.operation.value)
+    expect(matches({ 'data-slot': 'sidebar', 'data-mobile': 'true', 'data-state': 'open' })).toBe(true)
+    expect(matches({ 'data-slot': 'sidebar', 'data-mobile': 'true', 'data-state': 'closed' })).toBe(true)
+    expect(matches({ 'data-slot': 'sidebar' })).toBe(false)
+    expect(matches({ 'data-slot': 'sidebar', 'data-mobile': 'false' })).toBe(false)
+    expect(matches({ 'data-slot': 'sidebar-container', 'data-mobile': 'true' })).toBe(false)
+    expect(style.value.declarations?.importantDeclarations?.map(declaration => declaration.property)).toEqual(['animation', 'transition'])
+    expect(withoutGuard).toContain('accord-ui-enter')
+    expect(withoutGuard).toContain('accord-ui-exit')
   })
 
   it('wins over enter/exit and repeated loading animations without overriding visibility, positions, pointer input, focus, text or colors', () => {

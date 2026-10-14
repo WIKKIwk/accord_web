@@ -130,12 +130,52 @@
     }
 }
 
+/* Reuse tw-animate-css fade/scale/slide variables without animating filters or layout. */
+@theme inline {
+  --animate-ui-enter: accord-ui-enter var(--tw-duration, 150ms) ease-out;
+  --animate-ui-exit: accord-ui-exit var(--tw-duration, 100ms) ease-in;
+  --animate-ui-fade-in: accord-ui-fade-in var(--tw-duration, 100ms) ease-out;
+  --animate-ui-fade-out: accord-ui-fade-out var(--tw-duration, 100ms) ease-in;
+
+  @keyframes accord-ui-enter {
+    from {
+      opacity: var(--tw-enter-opacity, 1);
+      transform: translate3d(var(--tw-enter-translate-x, 0), var(--tw-enter-translate-y, 0), 0) scale3d(var(--tw-enter-scale, 1), var(--tw-enter-scale, 1), var(--tw-enter-scale, 1));
+    }
+  }
+  @keyframes accord-ui-exit {
+    to {
+      opacity: var(--tw-exit-opacity, 1);
+      transform: translate3d(var(--tw-exit-translate-x, 0), var(--tw-exit-translate-y, 0), 0) scale3d(var(--tw-exit-scale, 1), var(--tw-exit-scale, 1), var(--tw-exit-scale, 1));
+    }
+  }
+  @keyframes accord-ui-fade-in {
+    from { opacity: var(--tw-enter-opacity, 0); }
+  }
+  @keyframes accord-ui-fade-out {
+    to { opacity: var(--tw-exit-opacity, 0); }
+  }
+}
+
+@keyframes accord-list-enter {
+  from { opacity: 0.85; transform: translate3d(0, 4px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+/* One opt-in wrapper per load; content and input remain available immediately. */
+@media (prefers-reduced-motion: no-preference) {
+  .motion-list-enter {
+    animation: accord-list-enter 160ms ease-out;
+  }
+}
+
 /* Keep Radix presence, positioning and focus behavior; only motion is reduced. */
 @media (prefers-reduced-motion: reduce) {
   [data-slot="dialog-overlay"],
   [data-slot="dialog-content"],
   [data-slot="sheet-overlay"],
   [data-slot="sheet-content"],
+  [data-slot="sidebar"][data-mobile="true"],
   [data-slot="dropdown-menu-content"],
   [data-slot="dropdown-menu-sub-content"],
   [data-slot="select-content"],
