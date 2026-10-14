@@ -1,0 +1,86 @@
+{
+  "results": [
+    {
+      "operation": "create_library_file",
+      "status": "succeeded",
+      "path": "/accord-demo-order-thumbnails-light.png",
+      "file_id": "file_00000000485c81f5816bc00e3c74dbf6",
+      "library_file_id": "libfile_777cdbc01ef081918b432d9d83d4b471",
+      "file_name": "accord-demo-order-thumbnails-light.png",
+      "current_version_number": 0,
+      "restored_from_version_number": null,
+      "xattrs": [
+        {
+          "name": "user.library-file-version",
+          "value": "0"
+        }
+      ],
+      "directory_id": "libdir_095f362455848191b4a1e8aba0afd354",
+      "mime_type": "image/png",
+      "library_artifact_type": "image",
+      "file_size_bytes": 148702
+    },
+    {
+      "operation": "create_library_file",
+      "status": "succeeded",
+      "path": "/accord-demo-order-image-enlarged-light.png",
+      "file_id": "file_0000000045648210aad5bda197071072",
+      "library_file_id": "libfile_408de4958e408191a2951a60a30d4fb4",
+      "file_name": "accord-demo-order-image-enlarged-light.png",
+      "current_version_number": 0,
+      "restored_from_version_number": null,
+      "xattrs": [
+        {
+          "name": "user.library-file-version",
+          "value": "0"
+        }
+      ],
+      "directory_id": "libdir_095f362455848191b4a1e8aba0afd354",
+      "mime_type": "image/png",
+      "library_artifact_type": "image",
+      "file_size_bytes": 127331
+    },
+    {
+      "operation": "create_library_file",
+      "status": "succeeded",
+      "path": "/accord-demo-order-thumbnails-responsive-dark.png",
+      "file_id": "file_000000003e4882469f77653b4ee1d84d",
+      "library_file_id": "libfile_9b7c01eb7db08191b00070e9b5afa1d4",
+      "file_name": "accord-demo-order-thumbnails-responsive-dark.png",
+      "current_version_number": 0,
+      "restored_from_version_number": null,
+      "xattrs": [
+        {
+          "name": "user.library-file-version",
+          "value": "0"
+        }
+      ],
+      "directory_id": "libdir_095f362455848191b4a1e8aba0afd354",
+      "mime_type": "image/png",
+      "library_artifact_type": "image",
+      "file_size_bytes": 66349
+    },
+    {
+      "operation": "create_library_file",
+      "status": "succeeded",
+      "path": "/accord-demo-order-image-responsive-dark.png",
+      "file_id": "file_000000001608820cb6eabf4ebff5a805",
+      "library_file_id": "libfile_0811e28cc0a8819181b2f908b21798b2",
+      "file_name": "accord-demo-order-image-responsive-dark.png",
+      "current_version_number": 0,
+      "restored_from_version_number": null,
+      "xattrs": [
+        {
+          "name": "user.library-file-version",
+          "value": "0"
+        }
+      ],
+      "directory_id": "libdir_095f362455848191b4a1e8aba0afd354",
+      "mime_type": "image/png",
+      "library_artifact_type": "image",
+      "file_size_bytes": 37742
+    }
+  ],
+  "warnings": [],
+  "external_connectors_accessed": false
+}

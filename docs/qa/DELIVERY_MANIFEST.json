@@ -13,7 +13,9 @@
     "paddonHandoffUnknownWording": "48e1a6ba98692416878769183f278d7c24274954",
     "paddonQrLabels": "26fbde577eb812800a279641148bca53fea20fb6",
     "paddonFreeMovementSettings": "94cfa58247427ae2bbb3a5eb77733a6363a8a8af",
-    "paddonCompactHandoff": "26fbde577eb812800a279641148bca53fea20fb6"
+    "paddonCompactHandoff": "26fbde577eb812800a279641148bca53fea20fb6",
+    "orderThumbnails": "81628df88a4f1d1207a1fa228762e1315b838f96",
+    "uiMotion": "5660703d792c6b90129c87a58bbf4edb5286d910"
   },
   "entries": [
     {
@@ -165,6 +167,42 @@
       "sha256": "2a6a825e116bcfbc97d4f67dcf6ffceb33b17923c17fa2b4344e3417fdeafb7c",
       "captureReport": "paddon-label/2026-10-14T14-46-16-315Z/results.json",
       "metadataReport": "PADDON_LABEL_SETTINGS_LIBRARY_RESULT.json"
+    },
+    {
+      "localFile": "deliverables/accord-demo-order-thumbnails-light.png",
+      "libraryFileId": "libfile_777cdbc01ef081918b432d9d83d4b471",
+      "version": 0,
+      "fileId": "file_00000000485c81f5816bc00e3c74dbf6",
+      "status": "succeeded",
+      "sourceRevision": "81628df88a4f1d1207a1fa228762e1315b838f96",
+      "captureReport": "docs/qa/order-images/2026-10-14T16-25-19-434Z/results.json"
+    },
+    {
+      "localFile": "deliverables/accord-demo-order-image-enlarged-light.png",
+      "libraryFileId": "libfile_408de4958e408191a2951a60a30d4fb4",
+      "version": 0,
+      "fileId": "file_0000000045648210aad5bda197071072",
+      "status": "succeeded",
+      "sourceRevision": "81628df88a4f1d1207a1fa228762e1315b838f96",
+      "captureReport": "docs/qa/order-images/2026-10-14T16-25-19-434Z/results.json"
+    },
+    {
+      "localFile": "deliverables/accord-demo-order-thumbnails-responsive-dark.png",
+      "libraryFileId": "libfile_9b7c01eb7db08191b00070e9b5afa1d4",
+      "version": 0,
+      "fileId": "file_000000003e4882469f77653b4ee1d84d",
+      "status": "succeeded",
+      "sourceRevision": "81628df88a4f1d1207a1fa228762e1315b838f96",
+      "captureReport": "docs/qa/order-images/2026-10-14T16-25-19-434Z/results.json"
+    },
+    {
+      "localFile": "deliverables/accord-demo-order-image-responsive-dark.png",
+      "libraryFileId": "libfile_0811e28cc0a8819181b2f908b21798b2",
+      "version": 0,
+      "fileId": "file_000000001608820cb6eabf4ebff5a805",
+      "status": "succeeded",
+      "sourceRevision": "81628df88a4f1d1207a1fa228762e1315b838f96",
+      "captureReport": "docs/qa/order-images/2026-10-14T16-25-19-434Z/results.json"
     }
   ]
 }

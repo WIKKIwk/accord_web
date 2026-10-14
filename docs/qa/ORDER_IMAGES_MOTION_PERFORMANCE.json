@@ -1,0 +1,23 @@
+{
+  "acceptedReport": "docs/qa/order-images/2026-10-14T16-25-19-434Z/results.json",
+  "traceJson": "docs/qa/order-images/2026-10-14T16-25-19-434Z/bounded-motion-frame-cadence-and-main-thread-trace-trace.json",
+  "retainedGzip": "docs/qa/order-images/2026-10-14T16-25-19-434Z/bounded-motion-frame-cadence-and-main-thread-trace-trace.json.gz",
+  "traceSha256": "dabc8c86deefc1f10c8b8ba8487a6236d137c7e2508030c92823ad5b7057353a",
+  "gzipSha256": "52a3290ffbe35e3bbbdd5260122a05943d6850ce9bbc8dcb4a0180dae8d0f9c8",
+  "traceBytes": 16507417,
+  "gzipBytes": 1063065,
+  "eventCount": 67800,
+  "frameEvidence": {
+    "trace": "bounded-motion-frame-cadence-and-main-thread-trace-trace.json",
+    "durationMs": 5782.5,
+    "frameSamples": 339,
+    "medianMs": 16.699999999999818,
+    "p95Ms": 16.799999999999272,
+    "p99Ms": 33.399999999999636,
+    "meanMs": 17.05929203539825,
+    "intervalsOver20Ms": 8,
+    "intervalsOver33_4Ms": 3,
+    "longTasks": [],
+    "scope": "Eight repeated column-menu and image-dialog open/close interactions on a fresh isolated Chromium context, localhost synthetic fixtures; rAF cadence plus main-thread trace, not universal displayed60fps proof."
+  }
+}
