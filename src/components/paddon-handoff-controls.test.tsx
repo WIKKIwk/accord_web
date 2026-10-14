@@ -41,7 +41,8 @@ describe('server-owned paddon handoff presentation', () => {
   it('never promotes active readback to a command receipt or repeats a successor action', () => {
     for (const operation of [choosePaddonOperation(active, '00003'), clearPaddonOperation(active), nextPaddonOperation(active, row)]) {
       const html = renderToStaticMarkup(<HandoffRecovery intent={{ operation, status: 'unknown', observation: { active, state: operation.kind === 'next' ? 'observed' : 'different' } }} checking={false} canCheck error={null} onCheck={vi.fn()} onReviewed={vi.fn()} />)
-      for (const value of ['Asl so‘rov qayta yuborilmaydi', 'Bu asl amal natijasini tasdiqlamaydi', 'boshqa qurilmadagi tanlovni almashtirishi mumkin', 'To‘liq yangilash yoki hisobdan chiqish', 'disabled=""']) expect(html).toContain(value)
+      for (const value of ['Avvalgi amal shu sessiya xotirasida saqlandi', 'Asl so‘rov qayta yuborilmaydi', 'Bu asl amal natijasini tasdiqlamaydi', 'boshqa qurilmadagi tanlovni almashtirishi mumkin', 'To‘liq yangilash yoki hisobdan chiqish', 'disabled=""']) expect(html).toContain(value)
+      expect(html).not.toContain('Avvalgi tanlov saqlandi')
       expect(html).not.toContain('Keyingi paddon serverda tayinlandi.')
     }
   })

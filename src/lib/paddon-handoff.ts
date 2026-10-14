@@ -71,7 +71,7 @@ export class PaddonHandoffConflict extends Error {
 export class PaddonHandoffUnknown extends Error {
   readonly operation: PaddonHandoffOperation
   constructor(operation: PaddonHandoffOperation) {
-    super('Faol paddon amali natijasi noma’lum. Avvalgi tanlov saqlandi; so‘rov qayta yuborilmaydi. Serverdagi joriy tanlovni tekshiring.')
+    super('Faol paddon amali natijasi noma’lum. Avvalgi amal shu sessiya xotirasida saqlandi; so‘rov qayta yuborilmaydi. Serverdagi joriy tanlovni tekshiring.')
     this.name = 'PaddonHandoffUnknown'; this.operation = operation
   }
 }
