@@ -5,7 +5,8 @@
     "cadTheme": "87a54c3",
     "nestedDialog": "ab2f7d0",
     "cadSelection": "d2f0bbd",
-    "genuineDashboardcn": "168c2c9"
+    "genuineDashboardcn": "168c2c9",
+    "workerGroupIntegration": "293ee29a0a48c7fd811794d1bf0b8769d71eb2d8"
   },
   "entries": [
     {
@@ -63,6 +64,15 @@
       "version": 0,
       "fileId": "file_000000009b00823088aa3def7e162d57",
       "status": "succeeded"
+    },
+    {
+      "localFile": "deliverables/accord-demo-worker-groups-light.png",
+      "libraryFileId": "libfile_267eb33cd34881918049fdc0c47176d5",
+      "version": 0,
+      "status": "succeeded",
+      "captureReport": "worker-groups/2026-10-14T10-29-17-375Z/results.json",
+      "captureScope": "Passing precommit light render; final committed-build captures are separate in WORKER_GROUP_VERIFICATION.json",
+      "xattrsPersisted": true
     }
   ]
 }

@@ -11,8 +11,9 @@ All task-owned application source, regression tests, standalone checkpoint sourc
 | `docs/qa/dashboard-reference-pass/`, `docs/qa/home-reference-pass/` | Historical visual comparisons, genuine Home desktop/mobile captures and capture metadata |
 | `docs/qa/deliverables/` | Local copies for Library upload/versioning, selected before/after pictures and older superseded prototypes; persistent current identities are recorded |
 | `docs/qa/dashboard-local-fixture.png`, `docs/qa/synthetic-browser/results.json` | Generated representative snapshot and latest-run pointer; immutable run JSON is committed separately |
+| `docs/qa/worker-groups/`, `docs/qa/sequence-reorder/` | Passing and failed group/reorder runs, responsive captures and retained transport observations; selected immutable reports are committed |
 | `docs/qa/reference-inputs/` | User-provided private screenshots; ignored, preserved locally, never re-uploaded or committed |
 | ignored `node_modules`, build/type caches | Dependencies isolated under `/tmp`; original project's dependency tree preserved |
 | `/tmp/accord-web-quality-*` | Task-only static bundles, detached listener registries/logs, temporary tooling and check output; current preview remains available |
 
-The original React web and backend working trees are clean. The mobile reference keeps the user's nine intentional printer-related changes. No source or generated file was written into either reference project. No production access, push, merge or deployment occurred.
+At the2026-10-14 worker-group increment, original web main is clean at `46ed81c` and backend is clean at `fd59167`. The mobile reference keeps all 17 user-modified paths at `bc96f1c`. This increment wrote nothing into either reference project and performed no production access, push, merge or deployment. The earlier separately authorized public push is a historical action, not renewed authority.

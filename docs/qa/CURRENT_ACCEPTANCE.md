@@ -2,7 +2,7 @@
 
 This is the current implementation matrix for the isolated web worktree, supplementing the immutable `e214d49` baseline audit in [PARITY_ACCEPTANCE.md](../PARITY_ACCEPTANCE.md). Every baseline workflow ID is retained below. **Implemented** means reachable real web controls, not complete browser acceptance or production readiness. Synthetic acceptance proves the exercised subset only. The backend and mobile remain independent, read-only projects.
 
-Application source is committed through `168c2c9`; the combined application/QA source is `769c7165f41a4a69e748d78614b6722f2c0f7bf9`. Original CAD theme (`87a54c3`), worker nested details (`ab2f7d0`), direct CAD isolation (`d2f0bbd`) and genuine dashboardcn distribution (`168c2c9`) are committed and accepted. The current local preview serves `/tmp/accord-web-quality-static-committed-head-ZSys6X` (`index-Cxd9MgVL.js`) on 5184/5186. All verification uses fresh isolated Chromium with synthetic fixture 5199 or independent chart fixture 5198. Both fixtures keep synthetic data only in RAM. No test process remains active.
+Current application/QA source: `293ee29a0a48c7fd811794d1bf0b8769d71eb2d8`, branch `codex/web-worker-groups-20261014`, based on the user's clean `46ed81c` main. C09 worker groups are now mounted and accepted in the bounded scope described in [WORKER_GROUP_INTEGRATION.md](WORKER_GROUP_INTEGRATION.md). The local preview serves `/tmp/accord-web-quality-static-worker-groups-committed-YCT8ER` on 5184/5186. Verification uses isolated Chromium and synthetic local fixtures only. Earlier CAD/theme, nested worker detail, genuine dashboardcn and queue-reorder checkpoints remain retained below; their old bundle paths and counts describe those historical runs.
 
 | ID | Current reachable implementation | Remaining scope or acceptance limit |
 | --- | --- | --- |
@@ -42,7 +42,7 @@ Application source is committed through `168c2c9`; the combined application/QA s
 | C06 | Provider native details/phone/group replacement | Dedicated provider create breadth remains incomplete |
 | C07 | Unified bounded native user list/role filters | Strict supplier-read AND customer-read retained |
 | C08 | Native typed create receipts with retained uncertain draft/review | Full mobile create-hub breadth remains partial |
-| C09 | Worker maintenance/deactivation, native profile/history and nested record continuity | Worker-group checkpoint committed in `e5134de`, unmounted and not browser-accepted; [scope](WORKER_GROUP_CHECKPOINT.md) |
+| C09 | Worker maintenance/deactivation, native profile/history, nested detail and native group create/edit/rename/move/schedule/accounting/membership | Group browser acceptance 25/25 plus native profile checks; unkeyed/no-CAS writes, browser408 retransmission and RAM-only reload/identity-change recovery remain explicit in [integration](WORKER_GROUP_INTEGRATION.md) |
 | C10 | Native role/capability/assignment editors and scope validation | Not a blanket role-combination certificate |
 | C11 | Transient authorized party/worker/system code rotation | Werka rotation and broader code visibility remain partial; no storage/logging of issued secrets |
 | C12 | Inactive supplier list/restore | Scoped cases pass in the combined synthetic gate; complete native state space not certified |
@@ -61,7 +61,7 @@ Application source is committed through `168c2c9`; the combined application/QA s
 | S12 | No isolated training workspace UI | Native API exists; genuine frontend gap |
 | S13 | No emergency reset UI | Genuine frontend gap; production reset forbidden |
 
-## Focused evidence
+## Retained historical evidence
 
 - Worker nested Escape: `ab2f7d0`,29 focused tests and two real Chromium cases, including reduced motion; [checkpoint](NESTED_DIALOG_CHECKPOINT.md).
 - Original CAD theme: `87a54c3`,68 focused tests and31 real browser state comparisons; [checkpoint](CAD_THEME_CHECKPOINT.md).
@@ -73,5 +73,7 @@ Application source is committed through `168c2c9`; the combined application/QA s
 - The freshly rebuilt committed source passes the same 18 chart proofs and 31 CAD states on the currently served build: [chart report](dashboardcn/2026-10-13T23-55-28-269Z/capture-evidence.json), [CAD report](cad-selection/2026-10-13T23-55-28-666Z/capture-evidence.json). All 46 JavaScript chunks match the full-run build after normalizing generated asset filenames. The CSS differs only by one 33-byte, unused `!hidden` utility detected from the added fixture's JavaScript negation; public assets and application source are unchanged. This is documented rather than claimed as byte-identical output.
 
 ## Distinct API limits
+
+Current group acceptance and exact source/fixture/preview evidence are recorded in [WORKER_GROUP_VERIFICATION.json](WORKER_GROUP_VERIFICATION.json). The historical unmounted `e5134de` checkpoint below is superseded by the mounted `293ee29` group feature, not discarded.
 
 Bounded history feeds cannot become complete calendar reports. Unkeyed graph/material/order/queue writes cannot gain server idempotency or atomic CAS from a fresh client read. Ordinary warehouse assignment GET cannot reliably list apparatus links. Material-link managers use exact saved request IDs because the native endpoint has no general inbox; a worker's bounded list observation cannot prove an uncertain unkeyed create failed or succeeded. Progress QR lineage is not complete order-state history. No normalized OEE, equal-product comparison or trustworthy planned/actual join is supplied for a Radar chart; Radar remains deliberately deferred. These limits are separate from the frontend gaps above.

@@ -1,0 +1,499 @@
+{
+  "synthetic": true,
+  "productionVerified": false,
+  "sourceRevision": "293ee29a0a48c7fd811794d1bf0b8769d71eb2d8",
+  "branch": "codex/web-worker-groups-20261014",
+  "baseline": "46ed81c979adbb862140e65e25d412314b4ad0a1",
+  "route": "/app/workers",
+  "toolbar": "Ishchi guruhlari",
+  "preview": {
+    "origins": [
+      "http://127.0.0.1:5184",
+      "http://127.0.0.1:5186"
+    ],
+    "buildDirectory": "/tmp/accord-web-quality-static-worker-groups-committed-YCT8ER",
+    "entryAsset": "/assets/index-C0TMCB1G.js",
+    "fixtureOrigin": "http://127.0.0.1:5199",
+    "fixtureVersion": 10
+  },
+  "browser": {
+    "command": "PLAYWRIGHT_PACKAGE_PATH=/tmp/accord-web-quality-qa/node_modules/playwright/index.mjs PLAYWRIGHT_BROWSERS_PATH=/tmp/accord-web-quality-browsers QA_SOURCE_REV=293ee29a0a48c7fd811794d1bf0b8769d71eb2d8 QA_BUILD_DIR=/tmp/accord-web-quality-static-worker-groups-committed-YCT8ER node tests/browser/worker-groups.mjs",
+    "report": "worker-groups/2026-10-14T10-37-15-808Z/results.json",
+    "passed": 25,
+    "outsideRequests": 0,
+    "pageErrors": 0,
+    "transportLimitProbe": "native-408-transport-behavior-recorded",
+    "fetchBoundary408Probe": "uncertain-408-fetch-boundary-read-only-review"
+  },
+  "sourceTests": {
+    "command": "npm test -- --reporter=json --outputFile=/tmp/accord-web-worker-groups-unit-results.json",
+    "passed": 1189,
+    "files": 74,
+    "workerGroupSpecificTests": 96,
+    "fileResults": [
+      {
+        "file": "src/components/FactoryMapViewer.test.ts",
+        "tests": 5,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/admin-identity-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/apparatus-admin-controls.test.tsx",
+        "tests": 9,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/apparatus-planning-controls.test.tsx",
+        "tests": 5,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/calculator-management-controls.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/domain-metrics.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/factory-stage-strip.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/inventory-admin-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/manufacturing-recorded-analytics.test.tsx",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/manufacturing-time-timeline.test.tsx",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/manufacturing-time-views.test.tsx",
+        "tests": 10,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/material-catalog-controls.test.tsx",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/material-intake-controls.test.tsx",
+        "tests": 3,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/material-link-request-controls.test.tsx",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-assignment-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-completion-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-order-controls.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-sequence-queue.test.tsx",
+        "tests": 11,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/progress-passport-controls.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/raw-material-controls.test.tsx",
+        "tests": 11,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/raw-material-rule-controls.test.tsx",
+        "tests": 3,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/resource-create-controls.test.tsx",
+        "tests": 5,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/wip-admin-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/worker-group-controls.test.tsx",
+        "tests": 9,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/worker-group-overview.test.tsx",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/worker-profile-controls.test.tsx",
+        "tests": 9,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/admin-identity.test.ts",
+        "tests": 33,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/api.test.ts",
+        "tests": 58,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/apparatus-admin.test.ts",
+        "tests": 33,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/apparatus-planning.test.ts",
+        "tests": 26,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/calculator-management.test.ts",
+        "tests": 34,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/catalog-admin.test.ts",
+        "tests": 17,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/dashboard.test.ts",
+        "tests": 11,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/dashboardcn-analytics.test.ts",
+        "tests": 30,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/existing-map.test.ts",
+        "tests": 29,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-cad-isolation.test.ts",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-cad-theme.test.ts",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-map-selection.test.ts",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-map.test.ts",
+        "tests": 43,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-stage-navigation.test.ts",
+        "tests": 14,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/inventory-admin.test.ts",
+        "tests": 28,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/manufacturing-data.test.ts",
+        "tests": 13,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/manufacturing-time.test.ts",
+        "tests": 24,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/material-catalog.test.ts",
+        "tests": 29,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/material-intake.test.ts",
+        "tests": 24,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/material-link-requests.test.ts",
+        "tests": 26,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/mutation-scope.test.ts",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/navigation.test.ts",
+        "tests": 35,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/nested-dialog-escape.test.ts",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/order-draft.test.ts",
+        "tests": 14,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/permissions.test.ts",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-assignment.test.ts",
+        "tests": 26,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-completion.test.ts",
+        "tests": 27,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-controls.test.ts",
+        "tests": 22,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-map.test.ts",
+        "tests": 17,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-operation-ledger.test.ts",
+        "tests": 21,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-sequence.test.ts",
+        "tests": 35,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/progress-passport.test.ts",
+        "tests": 25,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/qa-safety.test.ts",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/raw-material-admin.test.ts",
+        "tests": 22,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/raw-material-rules.test.ts",
+        "tests": 20,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/reduced-motion.test.ts",
+        "tests": 3,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/resource-create.test.ts",
+        "tests": 28,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/resource-list.test.ts",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/session.test.ts",
+        "tests": 22,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/use-factory-map.test.ts",
+        "tests": 18,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/wip-admin.test.ts",
+        "tests": 39,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/worker-group-analytics.test.ts",
+        "tests": 20,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/worker-groups.test.ts",
+        "tests": 63,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/worker-profile.test.ts",
+        "tests": 18,
+        "status": "passed"
+      },
+      {
+        "file": "src/pages/DashboardPage.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/pages/SystemPages.test.ts",
+        "tests": 14,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/dashboardcn/composed-chart.test.tsx",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/dashboardcn/primitives.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      }
+    ]
+  },
+  "fixtureTests": {
+    "command": "npm run test:fixtures",
+    "passed": 143,
+    "workerGroupSpecificTests": 16
+  },
+  "typecheck": {
+    "command": "npm run typecheck",
+    "status": "passed"
+  },
+  "productionBuild": {
+    "command": "npm run build",
+    "status": "passed"
+  },
+  "qaBuild": {
+    "status": "passed",
+    "sourceRevision": "293ee29a0a48c7fd811794d1bf0b8769d71eb2d8"
+  },
+  "lint": {
+    "tool": "temporary Oxlint1.88",
+    "files": [
+      "src/lib/worker-groups.ts",
+      "src/lib/worker-group-analytics.ts",
+      "src/components/worker-group-controls.tsx",
+      "src/components/worker-group-overview.tsx",
+      "src/pages/ResourcePage.tsx"
+    ],
+    "errors": 0,
+    "warnings": 10
+  },
+  "review": {
+    "model": "gpt-6.1-sol",
+    "reasoningEffort": "max",
+    "finding": "Fallback recorded member ID could not find its group when native enrichment was absent. Fixed with focused regression test.",
+    "remainingActionableFindings": 0
+  },
+  "regression": {
+    "sequence": {
+      "report": "sequence-reorder/2026-10-14T10-30-46-849Z/results.json",
+      "passed": 12,
+      "sourceRevision": "46ed81c+worker-groups-uncommitted",
+      "buildDirectory": "/tmp/accord-web-quality-static-worker-groups-nYC2hR",
+      "scope": "Precommit build; final application change only repairs recorded member ID search."
+    },
+    "dashboardcn": {
+      "report": "dashboardcn/2026-10-14T10-30-47-134Z/capture-evidence.json",
+      "passed": 18,
+      "sourceRevision": "46ed81c+worker-groups-uncommitted",
+      "buildDirectory": "/tmp/accord-web-quality-static-worker-groups-nYC2hR",
+      "scope": "Precommit build; final application change only repairs recorded member ID search."
+    },
+    "cad": {
+      "report": "cad-selection/2026-10-14T10-32-35-084Z/capture-evidence.json",
+      "passed": 31,
+      "sourceRevision": "46ed81c+worker-groups-uncommitted",
+      "buildDirectory": "/tmp/accord-web-quality-static-worker-groups-nYC2hR",
+      "scope": "Precommit build; final application change only repairs recorded member ID search."
+    }
+  },
+  "screenshots": {
+    "committedBuild": [
+      "worker-groups/2026-10-14T10-37-15-808Z/directory-search-and-assigned-worker-guard-passed.png",
+      "worker-groups/2026-10-14T10-37-15-808Z/mobile-dark-reduced-motion-create-editor-top.png",
+      "worker-groups/2026-10-14T10-37-15-808Z/mobile-dark-reduced-motion-create-editor-members-save.png"
+    ],
+    "visuallyReviewed": true,
+    "library": {
+      "libraryFileId": "libfile_267eb33cd34881918049fdc0c47176d5",
+      "version": 0,
+      "localFile": "deliverables/accord-demo-worker-groups-light.png",
+      "report": "worker-groups/2026-10-14T10-29-17-375Z/results.json",
+      "scope": "Passing precommit light render; committed-build captures are separate.",
+      "xattrsPersisted": true
+    }
+  },
+  "preservation": {
+    "originalMain": "46ed81c979adbb862140e65e25d412314b4ad0a1",
+    "originalMainClean": true,
+    "backendHead": "fd59167ca005d522a8fb102e18ff4c80a380807e",
+    "backendClean": true,
+    "mobileHead": "bc96f1ce492c3e1708294aa9acb23e6a5e5e63ed",
+    "mobileModifiedPaths": 17,
+    "backendMobileWrites": 0,
+    "pushMergeDeployProductionAccess": false
+  },
+  "remainingLimits": [
+    "No native group DELETE/CAS/idempotency/receipt lookup.",
+    "Fresh preflight cannot prevent a later concurrent overwrite or atomically assert apparatus lifecycle/display.",
+    "Native enrichment occurs after commit.",
+    "Configured Chromium retransmitted native408 wirePUT; app does not retry.",
+    "RAM recovery is lost on full reload/process/identity change; beforeunload and explicit UI warning mitigate.",
+    "Pickers are bounded500; no full-workforce coverage statistic is inferred."
+  ],
+  "nextSupportedParityTask": "S02 apparatus collections: native GET/POST/PUT/DELETE; expected_revision on update/delete."
+}
