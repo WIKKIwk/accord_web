@@ -197,7 +197,7 @@ test('start-ready lock scenario has a real satisfied assignment, free candidates
 
 test('main fixture opt-in primary profile leaves default and second session identity intact and resets cleanly', async () => {
   const fixture = createFixture(), dispatch = (method, url, body, token = fixtureToken) => fixture.dispatch({ method, url, body, headers: { authorization: 'Bearer ' + token } });
-  assert.equal((await dispatch('GET', '/__qa/health')).body.fixtureVersion, 9);
+  assert.equal((await dispatch('GET', '/__qa/health')).body.fixtureVersion, 10);
   let login = await dispatch('POST', '/v1/mobile/auth/login', fixtureLogin); assert.equal(login.body.profile.role, 'admin'); assert.equal(login.body.profile.ref, 'qa-admin');
   assert.equal((await dispatch('POST', '/__qa/config', { profileOverride: worker, assignedApparatus: [apparatus] })).status, 200);
   login = await dispatch('POST', '/v1/mobile/auth/login', fixtureLogin); assert.deepEqual(login.body.profile, { ...worker, legal_name: 'QA Synthetic' }); assert.deepEqual(login.body.assigned_apparatus, [apparatus]);

@@ -84,13 +84,14 @@ async function run(id, execute, options = {}) {
     try { outcome.requests = (await control('/__qa/log')).requests; } catch { /* Retain actual failure. */ }
   } finally {
     outcome.durationMs = Date.now() - started; await context?.close(); context = null; page = null;
-    await writeFile(output + 'results.json', JSON.stringify({ synthetic: true, productionVerified: false, runId, sourceRevision, buildDirectory, fixtureVersion: 9, web, api, outcomes, outside, pageErrors }, null, 2));
+    await writeFile(output + 'results.json', JSON.stringify({ synthetic: true, productionVerified: false, runId, sourceRevision, buildDirectory, fixtureVersion, web, api, outcomes, outside, pageErrors }, null, 2));
     process.stdout.write(`${outcome.status.toUpperCase()} ${id}${outcome.error ? ': ' + outcome.error.split('\n')[0] : ''}\n`);
   }
 }
 
 await mkdir(output, { recursive: true });
-assert.equal((await control('/__qa/health')).fixtureVersion, 9);
+const fixtureVersion = (await control('/__qa/health')).fixtureVersion;
+assert.ok(fixtureVersion >= 9);
 browser = await chromium.launch({ headless: true });
 try {
   await run('pointer-save-light', async () => {

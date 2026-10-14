@@ -191,6 +191,11 @@ describe('worker group uncertain writes and RAM intent continuity', () => {
     expect(observation).not.toHaveProperty('recovered'); expect(observation).not.toHaveProperty('saved')
     expect(putCalls(fetch)).toHaveLength(0); expect(fetch.mock.calls).toHaveLength(1)
   })
+  it.each([408, 429, 503])('retains an uncertain dispatched HTTP %s without retry', async status => {
+    const operation = createWorkerGroupOperation(input), fetch = wire({ status, receipt: { error: `http_${status}` } })
+    await expect(api().execute(operation)).rejects.toMatchObject({ name: 'WorkerGroupUnknown', operation })
+    expect(putCalls(fetch)).toHaveLength(1)
+  })
   it('observes missing/changed/renamed identities as current state only', async () => {
     const operation = createWorkerGroupOperation({ ...input, group_code: 'RENAMED' }, group)
     wire({ groups: [group] })

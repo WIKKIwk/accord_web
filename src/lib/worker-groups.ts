@@ -187,7 +187,7 @@ export class WorkerGroupsApi {
       if (!sameWorkerGroup(saved, input) || membership(saved.workers.map(worker => worker.id)) !== membership(input.worker_ids)) return invalid()
       return saved
     } catch (error) {
-      if (!(error instanceof ApiError) || error.status === 0 || error.status >= 500 || error.code === 'invalid_response') throw new WorkerGroupUnknown(operation)
+      if (!(error instanceof ApiError) || error.status === 0 || [408, 429].includes(error.status) || error.status >= 500 || error.code === 'invalid_response') throw new WorkerGroupUnknown(operation)
       throw error
     }
   }

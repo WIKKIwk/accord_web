@@ -11,6 +11,7 @@ import {
 import type { GroupCatalog, GroupWorker, WorkerGroup, WorkerGroupInput, WorkerGroupIntent, WorkerGroupIntentLedger, WorkerGroupOperation, WorkerGroupObservation } from '@/lib/worker-groups'
 import { MutationScope } from '@/lib/mutation-scope'
 import { useSession } from '@/lib/session'
+import { WorkerGroupOverview } from './worker-group-overview'
 import { Alert, AlertDescription } from './ui/alert'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
@@ -28,6 +29,12 @@ function useGroupContext() {
     ? new WorkerGroupsApi(context.client, context.session) : null, [context.client, context.session, context.demo])
   const ledger = useMemo(() => workerGroupIntentLedger(context.scope), [context.scope])
   const intent = useSyncExternalStore(ledger.subscribe, ledger.snapshot, ledger.snapshot)
+  useEffect(() => {
+    if (!intent) return
+    const retain = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = '' }
+    window.addEventListener('beforeunload', retain)
+    return () => window.removeEventListener('beforeunload', retain)
+  }, [intent])
   return { ...context, api, ledger, intent }
 }
 function ErrorNotice({ error }: { error: unknown }) {
@@ -51,7 +58,7 @@ export function WorkerGroupSummary({ group }: { group: WorkerGroupInput }) {
 }
 export function WorkerGroupList({ groups, search, onEdit, disabled = false }: { groups: WorkerGroup[]; search: string; onEdit: (group: WorkerGroup) => void; disabled?: boolean }) {
   const q = search.trim().toLocaleLowerCase(), matching = groups.filter(group => [group.group_code, group.apparatus, group.apparatus_id,
-    ...group.workers.map(worker => `${worker.name} ${worker.id}`)].some(value => value.toLocaleLowerCase().includes(q)))
+    ...group.worker_ids, ...group.workers.map(worker => `${worker.name} ${worker.id}`)].some(value => value.toLocaleLowerCase().includes(q)))
   if (!groups.length) return <div className="rounded-lg border border-dashed p-6 text-center"><UsersRound className="mx-auto mb-3 size-7 text-muted-foreground" /><p className="font-medium">Ishchi guruhlari hali yo‘q.</p><p className="mt-1 text-sm text-muted-foreground">Faol apparatni tanlab, birinchi guruhni yarating.</p></div>
   if (!matching.length) return <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Qidiruvga mos guruh topilmadi. Qidiruvni o‘zgartiring.</p>
   return <div className="space-y-3">{matching.map(group => <article key={workerGroupIdentity(group)} className="space-y-4 rounded-lg border p-4">
@@ -65,9 +72,10 @@ export function WorkerGroupList({ groups, search, onEdit, disabled = false }: { 
 export function WorkerGroupToolbar({ onSaved }: { onSaved?: SavedCallback }) {
   const { session, demo, scope, intent } = useGroupContext()
   const [openScope, setOpenScope] = useState<string | null>(null)
+  const trigger = useRef<HTMLButtonElement>(null)
   if (!workerGroupsAllowed(session)) return null
-  return <><Button variant="outline" disabled={demo} title={demo ? 'Ko‘rish rejimida guruhlar o‘zgartirilmaydi.' : undefined} onClick={() => setOpenScope(scope)}><UsersRound />Ishchi guruhlari{intent && <Badge variant="secondary">{intent.status === 'pending' ? 'Saqlanmoqda' : 'Tekshirish kerak'}</Badge>}</Button>
-    {openScope === scope && <WorkerGroupManager key={scope} onSaved={onSaved} onClose={() => setOpenScope(null)} />}
+  return <><Button ref={trigger} variant="outline" disabled={demo} title={demo ? 'Ko‘rish rejimida guruhlar o‘zgartirilmaydi.' : undefined} onClick={() => setOpenScope(scope)}><UsersRound />Ishchi guruhlari{intent && <Badge variant="secondary">{intent.status === 'pending' ? 'Saqlanmoqda' : 'Tekshirish kerak'}</Badge>}</Button>
+    {openScope === scope && <WorkerGroupManager key={scope} onSaved={onSaved} onClose={() => setOpenScope(null)} onReturnFocus={() => trigger.current?.focus()} />}
   </>
 }
 function useGroupWrite(ledger: WorkerGroupIntentLedger, onSaved?: SavedCallback) {
@@ -110,7 +118,7 @@ function useGroupWrite(ledger: WorkerGroupIntentLedger, onSaved?: SavedCallback)
   }
   return { run, observe, error, setError, checking, online: connection === 'online' }
 }
-function WorkerGroupManager({ onSaved, onClose }: { onSaved?: SavedCallback; onClose: () => void }) {
+function WorkerGroupManager({ onSaved, onClose, onReturnFocus }: { onSaved?: SavedCallback; onClose: () => void; onReturnFocus: () => void }) {
   const { api, scope, ledger, intent } = useGroupContext(), write = useGroupWrite(ledger, onSaved)
   const queryClient = useQueryClient()
   const groups = useQuery({ queryKey: ['worker-groups', scope], queryFn: ({ signal }) => api!.groups(signal), enabled: !!api, retry: false, staleTime: 0, refetchOnWindowFocus: false })
@@ -118,7 +126,7 @@ function WorkerGroupManager({ onSaved, onClose }: { onSaved?: SavedCallback; onC
   const ready = groups.isFetchedAfterMount && !groups.isFetching && !groups.error && !!groups.data
   const editing = Boolean(editor) && intent?.status !== 'unknown'
   function done() { setEditor(null); write.setError(null) }
-  return <Dialog open onOpenChange={open => { if (!open) onClose() }}><DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-3xl" aria-busy={intent?.status === 'pending' || write.checking}>
+  return <Dialog open onOpenChange={open => { if (!open) onClose() }}><DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-3xl" aria-busy={intent?.status === 'pending' || write.checking} onCloseAutoFocus={event => { event.preventDefault(); onReturnFocus() }}>
     <DialogHeader><DialogTitle>{intent?.status === 'unknown' ? 'Saqlash natijasini tekshirish' : editing ? editor?.original ? 'Ishchi guruhini tahrirlash' : 'Yangi ishchi guruhi' : 'Ishchi guruhlari'}</DialogTitle><DialogDescription>{intent?.status === 'unknown' ? 'Avvalgi tanlov va serverdagi joriy holatni birga ko‘ring.' : 'Apparat, smena, haftalik jadval va guruh a’zolarini boshqaring.'}</DialogDescription></DialogHeader>
     {!api ? <ErrorNotice error={new Error('Bu sessiyada guruhlarni boshqarish mavjud emas.')} /> : intent?.status === 'unknown'
       ? <WorkerGroupRecoveryView intent={intent} error={write.error instanceof WorkerGroupUnknown ? null : write.error} checking={write.checking} online={write.online}
@@ -128,7 +136,7 @@ function WorkerGroupManager({ onSaved, onClose }: { onSaved?: SavedCallback; onC
         onSubmit={operation => void write.run(operation, done)} onLoadCurrent={currentGroups => { queryClient.setQueryData(['worker-groups', scope], currentGroups); done(); void groups.refetch() }} />
       : <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-2"><Input className="min-w-0 flex-1 sm:min-w-48" aria-label="Guruhlarni qidirish" placeholder="Guruh, apparat yoki ishchi qidirish…" value={search} onChange={event => setSearch(event.target.value)} /><Button variant="outline" size="icon" aria-label="Guruhlarni yangilash" disabled={groups.isFetching || !!intent} onClick={() => void groups.refetch()}><RefreshCw className={groups.isFetching ? 'animate-spin' : ''} /></Button><Button disabled={!ready || !!intent || !write.online} onClick={() => { write.setError(null); setEditor({}) }}><Plus />Guruh yaratish</Button></div>
-        {groups.error ? <div className="space-y-3"><ErrorNotice error={groups.error} />{canRetryRead(groups.error) && <Button variant="outline" onClick={() => void groups.refetch()}>Qayta yuklash</Button>}</div> : !ready ? <LoadingNotice /> : <WorkerGroupList groups={groups.data!} search={search} disabled={!!intent || !write.online} onEdit={original => { write.setError(null); setEditor({ original }) }} />}
+        {groups.error ? <div className="space-y-3"><ErrorNotice error={groups.error} />{canRetryRead(groups.error) && <Button variant="outline" onClick={() => void groups.refetch()}>Qayta yuklash</Button>}</div> : !ready ? <LoadingNotice /> : <><WorkerGroupOverview groups={groups.data!} /><WorkerGroupList groups={groups.data!} search={search} disabled={!!intent || !write.online} onEdit={original => { write.setError(null); setEditor({ original }) }} /></>}
         {intent?.status === 'pending' && <LoadingNotice label="Avvalgi saqlash yakuni kutilmoqda…" />}
         <p className="text-xs text-muted-foreground">Ishchi faqat bitta guruhga biriktiriladi. Guruh a’zoligi ishchining apparatga kirish ruxsatini o‘zgartirmaydi.</p>
         <p className="text-xs text-muted-foreground">Guruhni o‘chirish amali mavjud emas. A’zolarni olib tashlash va hisoblashni o‘chirish mumkin.</p>
@@ -202,6 +210,7 @@ export function WorkerGroupRecoveryView({ intent, error, checking, online, onChe
     <ErrorNotice error={new WorkerGroupUnknown(intent.operation)} />
     <section className="space-y-3 rounded-lg border p-4"><h3 className="font-semibold">Avval yuborilgan tanlov: {intent.operation.input.group_code}</h3><WorkerGroupSummary group={intent.operation.input} /><p className="break-words text-xs text-muted-foreground">Ishchi ID lari: {intent.operation.input.worker_ids.join(', ') || 'A’zo yo‘q'}</p>{intent.operation.baseline && <p className="break-all text-xs text-muted-foreground">Avvalgi guruh: {intent.operation.baseline.group_code} · {intent.operation.baseline.apparatus_id}</p>}</section>
     <p className="text-sm text-muted-foreground">Tekshirish faqat joriy ma’lumotni yuklaydi. Mos qiymatlar avvalgi so‘rov saqlanganini yoki uni kim saqlaganini tasdiqlamaydi.</p>
+    <p className="text-xs text-muted-foreground">Avvalgi tanlov shu sessiya xotirasida saqlanmoqda. Sahifani to‘liq yangilash yoki hisobdan chiqish bu tanlovni yo‘qotadi; avval joriy holatni ko‘rib chiqing.</p>
     <Button type="button" variant="outline" disabled={checking || !online} onClick={onCheck}>{checking ? <Loader2 className="animate-spin" /> : <RefreshCw />}{checking ? 'Tekshirilmoqda…' : 'Serverdagi joriy holatni tekshirish'}</Button>
     <ErrorNotice error={error} />
     {observation && <WorkerGroupObservationView observation={observation} />}

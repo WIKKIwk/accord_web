@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { refreshFixtureCanonical, fixtureCanonicalRevision } from './erp-canonical.mjs';
 import { fixtureManufacturingDemoCohort } from './erp-manufacturing-demo.mjs';
+import { workerGroupProfileGroups } from './erp-worker-groups.mjs';
 
 // Synthetic native DTOs only. This module has no listener, filesystem or network.
 const base = '/v1/mobile/admin', pm = `${base}/production-maps`;
@@ -35,7 +36,7 @@ export function workflowRoute({ method, path, query, body, headers, state, confi
     if (!worker) return error(404, 'worker_not_found');
     const activeSessions = worker.id === 'qa-worker-1' ? [{ session_id: 'qa-worker-session-1', apparatus: 'apparatus:qa:print-1', order_id: 'zakaz-qa-1002', status: 'active', worker_role: 'aparatchi', worker_ref: worker.id, worker_display_name: worker.name, started_at_unix: 1791892800, updated_at_unix: 1791892900, payload_json: { stage_node_id: 'print' } }] : [];
     const logs = worker.id === 'qa-worker-1' ? [{ event_id: 'qa-worker-log-1', apparatus: 'apparatus:qa:print-1', order_id: 'zakaz-qa-1002', action: 'start', from_state: 'pending', to_state: 'in_progress', actor_role: 'aparatchi', actor_ref: worker.id, actor_display_name: worker.name, created_at_unix: 1791892800, completed_with_issue: false }] : [];
-    return response({ worker: { ...clone(worker), avatar_url: '', code: 'QA-PROFILE-ONLY' }, assigned_apparatus: state.roleAssignments.filter(row => row.principal_ref === worker.id).flatMap(row => row.assigned_apparatus), assigned_groups: [], active_sessions: activeSessions, recent_batches: worker.id === 'qa-worker-1' ? clone(state.wip.slice(0, 50)) : [], recent_logs: logs });
+    return response({ worker: { ...clone(worker), avatar_url: '', code: 'QA-PROFILE-ONLY' }, assigned_apparatus: state.roleAssignments.filter(row => row.principal_ref === worker.id).flatMap(row => row.assigned_apparatus), assigned_groups: workerGroupProfileGroups(state, worker.id), active_sessions: activeSessions, recent_batches: worker.id === 'qa-worker-1' ? clone(state.wip.slice(0, 50)) : [], recent_logs: logs });
   }
   if (path === `${pm}/progress-qr/history` && method === 'GET' && query.worker_ref) {
     if (!read() || profile.role !== 'admin') return error(403, 'forbidden');

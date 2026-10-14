@@ -53,9 +53,14 @@ describe('worker group admin presentation', () => {
     expect(html).toContain('QA GURUH / QA Flexo 1 guruhiga biriktirilgan'); expect(html).toContain('disabled=""')
     expect(html).toContain('Ko‘pi bilan 500 ta natija'); expect(html).not.toContain('QA Administrator')
   })
+  it('finds a recorded member ID even when native worker enrichment is absent', () => {
+    const html = render(<WorkerGroupList groups={[{ ...group, workers: [] }]} search={worker.id.toUpperCase()} onEdit={vi.fn()} />)
+    expect(html).toContain('QA GURUH'); expect(html).toContain(worker.id); expect(html).toContain('ishchi tafsiloti mavjud emas')
+    expect(html).not.toContain('Qidiruvga mos guruh topilmadi')
+  })
   it('requires explicit review after a GET observation and never labels a match as a saved request', () => {
     const operation = createWorkerGroupOperation(group), html = render(<WorkerGroupRecoveryView intent={{ operation, status: 'unknown', observation: { groups: [group], target: group, state: 'matches' } }} error={null} checking={false} online onCheck={vi.fn()} onReviewed={vi.fn()} />)
-    for (const label of ['Avval yuborilgan tanlov: QA GURUH', 'qayta yuborilmaydi', 'Avvalgi so‘rov natijasi hali tasdiqlanmagan', 'Avvalgi tanlov va joriy holatni ko‘rdim', 'Tekshiruvni yakunlash', 'disabled=""']) expect(html).toContain(label)
+    for (const label of ['Avval yuborilgan tanlov: QA GURUH', 'qayta yuborilmaydi', 'Avvalgi so‘rov natijasi hali tasdiqlanmagan', 'Avvalgi tanlov va joriy holatni ko‘rdim', 'Tekshiruvni yakunlash', 'disabled=""', 'shu sessiya xotirasida', 'to‘liq yangilash yoki hisobdan chiqish']) expect(html).toContain(label)
     expect(html).not.toContain('Guruhni saqlash'); expect(html).not.toContain('Ishchi guruhi saqlandi')
   })
   it('keeps changed/missing identity observations candid, including a surviving old name', () => {

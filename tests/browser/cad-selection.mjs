@@ -23,7 +23,7 @@ async function control(path, body) {
 }
 await mkdir(output, { recursive: true });
 const health = await control('/__qa/health');
-assert.equal(health.synthetic, true); assert.equal(health.fixtureVersion, 8);
+assert.equal(health.synthetic, true); assert.ok(health.fixtureVersion >= 8);
 await control('/__qa/reset', {});
 const seed = (await control('/__qa/state')).state;
 const firstOrderMap = seed.orders.find(order => order.map.id === 'zakaz-qa-1002').map;

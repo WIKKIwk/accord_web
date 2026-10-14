@@ -12,6 +12,7 @@ import { materialIntakeFixtureRoute, materialIntakeSnapshotControl, seedMaterial
 import { completionFixtureRoute, completionSnapshotControl, seedCompletionScenario } from './erp-completion.mjs';
 import { materialLinkFixtureRoute, materialLinkSnapshotControl, seedMaterialLinkScenario, validMaterialLinkProfile } from './erp-material-link.mjs';
 import { seedSequenceScenario, sequenceCohortSnapshot, sequenceCohortMove } from './erp-sequence.mjs';
+import { workerGroupFixtureRoute, seedWorkerGroupScenario } from './erp-worker-groups.mjs';
 
 const base = '/v1/mobile/admin';
 const clone = value => structuredClone(value);
@@ -26,7 +27,7 @@ const error = (status, code, detail) => response({ error: code, ...(detail ? { d
 const capabilityLabels = Object.fromEntries(fixtureCapabilities.map(code => [code, `QA ${code}`]));
 const configDefaults = () => ({ capabilities: [...fixtureCapabilities], assignedWarehouses: [], assignedApparatus: [], profileOverride: null, rules: [], partialMoveCodes: [], orderEditLocked: false, workerDeleteBlocked: false, emptyProduction: false, unknownOrderStatuses: [], blockedDeleteCodes: [], emptyClosedHistory: false, manufacturingReportMode: 'partial', manufacturingDemoCohort: false, manufacturingDemoInvalidRecord: false });
 const queueVersion = ids => createHash('sha256').update(JSON.stringify(ids)).digest('hex');
-const fixtureVersion = 9;
+const fixtureVersion = 10;
 const phone = value => { let digits = string(value).replace(/\D/g, ''); if (digits.length === 9) digits = `998${digits}`; return digits ? `+${digits}` : ''; };
 const workerLevels = ['Brigader', 'Master', '1 - darajali', '2 - darajali', '3 - darajali'];
 const systemRoles = ['qolipchi', 'boyoqchi', 'tayyorlov_masteri', 'homashyo_rezkachi'];
@@ -169,7 +170,7 @@ export function createFixture() {
       if (['manufacturingDemoCohort', 'manufacturingDemoInvalidRecord'].some(key => body[key] !== undefined && typeof body[key] !== 'boolean')) return error(400, 'invalid_fixture_demo_cohort');
       if (body.rules && (!Array.isArray(body.rules) || body.rules.some(rule => !object(rule) || !string(rule.path).startsWith('/v1/') || !['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(rule.method)
         || rule.delayMs !== undefined && (!Number.isFinite(rule.delayMs) || rule.delayMs < 0 || rule.delayMs > 30_000)
-        || rule.status !== undefined && ![400, 401, 403, 404, 409, 429, 500, 502, 503].includes(rule.status)
+        || rule.status !== undefined && ![400, 401, 403, 404, 408, 409, 429, 500, 502, 503].includes(rule.status)
         || rule.responseBody !== undefined && !object(rule.responseBody)))) return error(400, 'invalid_fixture_rule');
       config = { ...config, ...clone(body) };
       return response({ ok: true, config: clone(config) });
@@ -207,6 +208,7 @@ export function createFixture() {
     if (path === '/__qa/material-intake' && method === 'POST') return seedMaterialIntakeScenario(state, body);
     if (path === '/__qa/material-link' && method === 'POST') return seedMaterialLinkScenario(state, body);
     if (path === '/__qa/sequence' && method === 'POST') return seedSequenceScenario(state);
+    if (path === '/__qa/worker-groups' && method === 'POST') return seedWorkerGroupScenario(state, body);
     if (path === '/__qa/opening-wip' && method === 'POST') {
       const record = state.openingWip.find(record => record.batches.some(batch => batch.batch_id === body?.batch_id)), batch = record?.batches.find(batch => batch.batch_id === body.batch_id);
       if (!batch) return error(404, 'opening_wip_not_found');
@@ -248,6 +250,7 @@ export function createFixture() {
     if (path === '/v1/mobile/me' && method === 'GET') return response(actorProfile);
     if (path === '/v1/mobile/auth/logout' && method === 'POST') { state.sessions.delete(token); return response({ ok: true }); }
     const extensionContext = { method, path, query, body, headers, state, config, requires, profile: actorProfile, bump, findOrder, compile, snapshot, equal };
+    const workerGroups = workerGroupFixtureRoute(extensionContext); if (workerGroups) return workerGroups;
     const materialLink = materialLinkFixtureRoute(extensionContext); if (materialLink) return materialLink;
     const rawRules = rawRulesFixtureRoute(extensionContext); if (rawRules) return rawRules;
     const passport = passportFixtureRoute(extensionContext); if (passport) return passport;
