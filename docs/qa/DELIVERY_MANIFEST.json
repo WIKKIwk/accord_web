@@ -1,0 +1,68 @@
+{
+  "synthetic": true,
+  "productionVerified": false,
+  "sourceCommits": {
+    "cadTheme": "87a54c3",
+    "nestedDialog": "ab2f7d0",
+    "cadSelection": "d2f0bbd",
+    "genuineDashboardcn": "168c2c9"
+  },
+  "entries": [
+    {
+      "localFile": "deliverables/accord-demo-production-time-date-chart.png",
+      "libraryFileId": "libfile_6ff8bc046a348191b6d1aa977d48970b",
+      "version": 1,
+      "fileId": "file_00000000334482309b34680ea5234ea2",
+      "status": "succeeded"
+    },
+    {
+      "localFile": "deliverables/accord-demo-apparatus-queue-distribution.png",
+      "libraryFileId": "libfile_fba6e338abc88191bbd1c91c350b8518",
+      "version": 1,
+      "fileId": "file_0000000065688230b702717b5bf55335",
+      "status": "succeeded"
+    },
+    {
+      "localFile": "deliverables/accord-demo-stock-metric-list.png",
+      "libraryFileId": "libfile_9417338d84a08191b3c0beebcbb117f3",
+      "version": 1,
+      "fileId": "file_000000002d2c82309e203b1b92efda3a",
+      "status": "succeeded"
+    },
+    {
+      "localFile": "deliverables/accord-demo-closed-order-timeline.png",
+      "libraryFileId": "libfile_3faffdfef830819181368db2359c468d",
+      "version": 1,
+      "fileId": "file_00000000badc8230b6678d0601806d6a",
+      "status": "succeeded"
+    },
+    {
+      "localFile": "deliverables/accord-demo-material-variant-matrix.png",
+      "libraryFileId": "libfile_9f459be3e3548191aace95ed17b40f9c",
+      "version": 1,
+      "fileId": "file_0000000099808230b7ed903b7ead6823",
+      "status": "succeeded"
+    },
+    {
+      "localFile": "deliverables/accord-demo-home-dashboard-mobile.png",
+      "libraryFileId": "libfile_726b5cb2364081919e71b77f11094056",
+      "version": 2,
+      "fileId": "file_00000000ea5c8230b5645dc921aaf14c",
+      "status": "succeeded"
+    },
+    {
+      "localFile": "deliverables/accord-demo-direct-apparatus-switch-light.png",
+      "libraryFileId": "libfile_006fd0150fe48191863f3a9f76533574",
+      "version": 0,
+      "fileId": "file_00000000aa708230b0c83f634931e763",
+      "status": "succeeded"
+    },
+    {
+      "localFile": "deliverables/accord-demo-direct-apparatus-switch-dark.png",
+      "libraryFileId": "libfile_40ab11072ac48191b1ecc410a79bc6ae",
+      "version": 0,
+      "fileId": "file_000000009b00823088aa3def7e162d57",
+      "status": "succeeded"
+    }
+  ]
+}

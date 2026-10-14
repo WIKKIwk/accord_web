@@ -1,0 +1,40 @@
+{
+  "applicationCommit": "168c2c9",
+  "combinedQaCommit": "769c716",
+  "unmountedWorkerGroupCommit": "e5134de",
+  "deliveredApplicationTests": 1044,
+  "unmountedCheckpointTests": 68,
+  "allSourceTests": 1112,
+  "deliveredFixtureTests": 122,
+  "unmountedFixtureTests": 12,
+  "allFixtureTests": 134,
+  "typecheck": "passed",
+  "build": "passed",
+  "lint": {
+    "errors": 0,
+    "warnings": 123,
+    "files": 193
+  },
+  "fullBrowser": {
+    "runId": "2026-10-13T23-34-21-340Z",
+    "passed": 117,
+    "total": 117,
+    "outsideRequests": 0,
+    "pageErrors": 0
+  },
+  "servedBuild": "/tmp/accord-web-quality-static-committed-head-ZSys6X",
+  "entry": "index-Cxd9MgVL.js",
+  "committedBuildChecks": {
+    "charts": {
+      "runId": "2026-10-13T23-55-28-269Z",
+      "proofs": 18,
+      "status": "passed"
+    },
+    "cad": {
+      "runId": "2026-10-13T23-55-28-666Z",
+      "states": 31,
+      "status": "passed"
+    }
+  },
+  "productionVerified": false
+}

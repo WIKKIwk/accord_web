@@ -1,0 +1,272 @@
+{
+  "synthetic": true,
+  "productionVerified": false,
+  "status": "passed",
+  "sourceRevision": "769c7165f41a4a69e748d78614b6722f2c0f7bf9",
+  "buildDirectory": "/tmp/accord-web-quality-static-committed-head-ZSys6X",
+  "webOrigin": "http://127.0.0.1:5184",
+  "fixtureOrigin": "http://127.0.0.1:5198",
+  "upstreamCommit": "b1ffacbca0f7a0be60135c8665b9e8c267205c48",
+  "proofs": [
+    {
+      "screenshot": "home-kpi-light.png",
+      "route": "http://127.0.0.1:5184/app/home",
+      "viewport": {
+        "width": 1656,
+        "height": 1100
+      },
+      "settling": {
+        "stable": true,
+        "remaining": 0
+      },
+      "theme": null,
+      "components": [
+        "kpi-card",
+        "metric-value"
+      ]
+    },
+    {
+      "screenshot": "home-kpi-dark.png",
+      "route": "http://127.0.0.1:5184/app/home",
+      "viewport": {
+        "width": 1656,
+        "height": 1100
+      },
+      "settling": {
+        "stable": true,
+        "remaining": 0
+      },
+      "theme": "dark",
+      "components": [
+        "kpi-card",
+        "metric-value"
+      ]
+    },
+    {
+      "route": "http://127.0.0.1:5184/app/production-time",
+      "operationalTimeZone": "Asia/Tashkent",
+      "dateChartFirst": true
+    },
+    {
+      "screenshot": "production-time-date-chart-dark.png",
+      "route": "http://127.0.0.1:5184/app/production-time",
+      "viewport": {
+        "width": 1656,
+        "height": 1100
+      },
+      "settling": {
+        "stable": true,
+        "remaining": 0
+      },
+      "theme": "dark",
+      "components": [
+        "period-tabs",
+        "composed-chart",
+        "kpi-card",
+        "metric-value"
+      ]
+    },
+    {
+      "screenshot": "production-time-page-dark.png",
+      "route": "http://127.0.0.1:5184/app/production-time",
+      "viewport": {
+        "width": 1656,
+        "height": 1100
+      },
+      "settling": {
+        "stable": true,
+        "remaining": 0
+      },
+      "theme": "dark",
+      "components": [
+        "period-tabs",
+        "composed-chart",
+        "kpi-card",
+        "metric-value"
+      ]
+    },
+    {
+      "screenshot": "production-time-date-chart-light.png",
+      "route": "http://127.0.0.1:5184/app/production-time",
+      "viewport": {
+        "width": 1656,
+        "height": 1100
+      },
+      "settling": {
+        "stable": true,
+        "remaining": 0
+      },
+      "theme": "",
+      "components": [
+        "period-tabs",
+        "composed-chart",
+        "kpi-card",
+        "metric-value"
+      ]
+    },
+    {
+      "screenshot": "closed-order-events-light.png",
+      "route": "http://127.0.0.1:5184/app/closed?selected=zakaz-4001",
+      "viewport": {
+        "width": 1656,
+        "height": 1100
+      },
+      "settling": {
+        "stable": true,
+        "remaining": 0
+      },
+      "theme": null,
+      "components": [
+        "timeline"
+      ]
+    },
+    {
+      "route": "http://127.0.0.1:5184/app/apparatus",
+      "oneDotPerApparatus": true,
+      "columnsAndLabelsAligned": true,
+      "queueRefreshVerified": true,
+      "bins": [
+        {
+          "label": "0 buyurtma\n2 apparat",
+          "nativeApparatusCount": 2,
+          "displayedDots": 2,
+          "centerGap": 0
+        },
+        {
+          "label": "1 buyurtma\n0 apparat",
+          "nativeApparatusCount": 0,
+          "displayedDots": 0,
+          "centerGap": 0
+        },
+        {
+          "label": "2 buyurtma\n1 apparat",
+          "nativeApparatusCount": 1,
+          "displayedDots": 1,
+          "centerGap": 0
+        },
+        {
+          "label": "3+ buyurtma\n2 apparat",
+          "nativeApparatusCount": 2,
+          "displayedDots": 2,
+          "centerGap": 0
+        }
+      ]
+    },
+    {
+      "screenshot": "apparatus-queue-distribution-light.png",
+      "route": "http://127.0.0.1:5184/app/apparatus",
+      "viewport": {
+        "width": 1656,
+        "height": 1100
+      },
+      "settling": {
+        "stable": true,
+        "remaining": 0
+      },
+      "theme": null,
+      "components": [
+        "kpi-card",
+        "metric-value",
+        "dot-plot",
+        "metric-list"
+      ]
+    },
+    {
+      "route": "http://127.0.0.1:5184/app/apparatus",
+      "domain": "apparatus",
+      "kpiCards": 3,
+      "metricRows": 5,
+      "qualification": "Yuklangan ro‘yxat bo‘yicha. + kamida, — noma’lum."
+    },
+    {
+      "screenshot": "material-variant-matrix-dark.png",
+      "route": "http://127.0.0.1:5184/app/materials",
+      "viewport": {
+        "width": 1656,
+        "height": 1100
+      },
+      "settling": {
+        "stable": true,
+        "remaining": 0
+      },
+      "theme": "dark",
+      "components": [
+        "kpi-card",
+        "metric-value",
+        "heatmap-chart"
+      ]
+    },
+    {
+      "route": "http://127.0.0.1:5184/app/materials",
+      "domain": "materials",
+      "kpiCards": 3,
+      "metricRows": 0,
+      "qualification": "Yuklangan ro‘yxat bo‘yicha. + kamida, — noma’lum."
+    },
+    {
+      "route": "http://127.0.0.1:5184/app/warehouses",
+      "domain": "warehouses",
+      "kpiCards": 3,
+      "metricRows": 3,
+      "qualification": "Yuklangan ro‘yxat bo‘yicha. + kamida, — noma’lum."
+    },
+    {
+      "screenshot": "stock-exact-unit-metrics-dark.png",
+      "route": "http://127.0.0.1:5184/app/stock?warehouse=QA%20Xomashyo",
+      "viewport": {
+        "width": 1656,
+        "height": 1100
+      },
+      "settling": {
+        "stable": true,
+        "remaining": 0
+      },
+      "theme": "dark",
+      "components": [
+        "kpi-card",
+        "metric-value",
+        "metric-list"
+      ]
+    },
+    {
+      "route": "http://127.0.0.1:5184/app/stock?warehouse=QA%20Xomashyo",
+      "domain": "stock",
+      "kpiCards": 3,
+      "metricRows": 2,
+      "qualification": "Yuklangan ro‘yxat bo‘yicha. Ombor: QA Xomashyo. + kamida, — noma’lum."
+    },
+    {
+      "route": "http://127.0.0.1:5184/app/closed",
+      "domain": "closed",
+      "kpiCards": 3,
+      "metricRows": 8,
+      "qualification": "Yuklangan ro‘yxat bo‘yicha. + kamida, — noma’lum."
+    },
+    {
+      "screenshot": "production-time-date-chart-mobile.png",
+      "route": "http://127.0.0.1:5184/app/production-time",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "settling": {
+        "stable": true,
+        "remaining": 0
+      },
+      "theme": "dark",
+      "components": [
+        "period-tabs",
+        "composed-chart",
+        "kpi-card",
+        "metric-value"
+      ]
+    },
+    {
+      "route": "http://127.0.0.1:5184/app/production-time",
+      "emptyHistory": true,
+      "fabricatedCharts": false
+    }
+  ],
+  "outsideRequests": [],
+  "pageErrors": []
+}

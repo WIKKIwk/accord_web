@@ -1,0 +1,17 @@
+# Historical Home composition review
+
+This note records the earlier `1266ff6` presentation checkpoint. The composition remains useful historical evidence, while current genuine dashboardcn KPI source and final browser acceptance are committed in `168c2c9`; see [DASHBOARDCN_CHECKPOINT.md](DASHBOARDCN_CHECKPOINT.md). Supplied user image files remain private local inputs, excluded from commits and re-uploads.
+
+Home visual review accepted after directly viewing the supplied Home screenshot `reference-inputs/home-dashboard/image(20261013-194951).png`, all six supplied dashboard references (184813, 184814, 184815, 184817, 184818 and 184820), and the first and refined local Home captures. Review performed by the independent capacity_admin worker; Home source remained owned by identity_admin.
+
+Final evidence: [dark desktop](home-reference-pass/refined/home-dark-1656x960.png), [light desktop](home-reference-pass/refined/home-light-1656x960.png), [dark mobile](home-reference-pass/refined/home-dark-mobile-390x844.png), and [capture metadata](home-reference-pass/refined/capture-evidence.json). The recorded source is `1266ff6 + 17-test compact Home checkpoint`, served from the immutable `accord-web-quality-static-visible-sV1U5I` bundle.
+
+At 1656×960, the joined KPI surface, wide order distribution and observed queue bars, and narrow attention/completion column follow the supplied reference's hierarchy. The entire overview is visible with the read-only guard banner and collapsed sidebar. The overview ends near y=908 and the preserved orders table begins near y=929. Existing neutral theme tokens, borders and typography carry the hierarchy; no decorative gradient or additional accent palette was introduced.
+
+The first 390×844 capture exposed a real mobile hierarchy problem: three tall two-column KPI rows filled the first viewport and hid the overview. The refined capture resolves it with a compact three-column, two-row band, readable labels/digits, full-cell link targets, one row of header actions, and a visible native coverage disclosure. The complete status strip appears around y=782–829, inside the first viewport even with the approximately 100px mobile guard banner. Queue and attention details continue below it.
+
+Source review confirms one exclusive normalized primary status per loaded order, with unknown status separate. Running/queued/attention flags may overlap and are explicitly distinguished from the distribution. The total is labelled as loaded orders. Capped or incomplete completion/WIP/warehouse counts retain their lower-bound or unknown indicators; mobile coverage copy remains available through the disclosure. Queue bars compare observed order counts and explain that they do not measure capacity or wait time. Existing scoped drilldown links, order filtering/search, eight-row pagination, refresh, role gates and loading/empty/error/stale states remain present.
+
+Independent focused verification passed all 17 dashboard helper and view tests. Root's capture evidence records exclusive segment sum 3 for three synthetic orders, an attention-to-table drilldown, no mobile page overflow, no outside requests and no page errors. These are local fixture observations, not production or full-catalog validation. No blocking Home visual finding remains in the reviewed captures.
+
+This review used source reads and local image inspection only. No browser control, native edits, external requests or commits were performed by the reviewer. Home source and this acceptance note are frozen for root's scoped integration.
