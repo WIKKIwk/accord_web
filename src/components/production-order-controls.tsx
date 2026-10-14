@@ -142,7 +142,7 @@ function ProductionOrderControlsPanel({ row, orderId }: { row: Row; orderId: str
       else if (confirm!.kind === 'order') plan = productionOrderCommand(confirm!.snapshot, orderId, session, confirm!.action as ProductionOrderAction, comment)
       else if (confirm!.kind === 'reorder') plan = productionReorderCommand(confirm!.snapshot, orderId, session, confirm!.apparatusId, confirm!.action as 'move_up' | 'move_down')
       else plan = productionQueueCommand(confirm!.snapshot, orderId, session, confirm!.apparatusRows, confirm!.apparatusId, confirm!.action as 'pause' | 'resume', { quantity, uom, description: comment, frames, qr, batchId, materialBarcodes: lines(materials), qolipCodes: lines(qolips) })
-      attemptLease = productionOperationLedger.begin(scope, { channel: 'legacy-control', orderId, plan, proof: recovery ? uncertain!.proof : { actor } }, Boolean(recovery))
+      attemptLease = productionOperationLedger.begin(scope, { channel: 'legacy-control', orderId, apparatusId: plan.kind === 'reorder' ? plan.apparatusId : undefined, plan, proof: recovery ? uncertain!.proof : { actor } }, Boolean(recovery))
     } catch (failure) { setError(message(failure)); return }
     activeAttempt.current = attemptLease
     const lease = mutationScope.begin()
@@ -201,6 +201,7 @@ function ProductionOrderControlsPanel({ row, orderId }: { row: Row; orderId: str
       {queues.length > 0 && <><Separator /><div className="space-y-3">{queues.map(queue => <div key={queue.apparatusId} className="space-y-3 rounded-md bg-muted/30 p-3">
         <div className="flex flex-wrap items-start justify-between gap-2"><div><p className="text-sm font-medium">{queue.name}</p><p className="mt-1 text-xs text-muted-foreground">{queue.statusLabel}{queue.position >= 0 ? ` · navbatda ${queue.position + 1} / ${queue.orderIds.length}` : ''}</p></div><Button size="icon-xs" variant="ghost" asChild><Link to={`/app/apparatus?selected=${encodeURIComponent(queue.apparatusId)}`} aria-label={`${queue.name} tafsilotlarini ochish`}><CircleHelp /></Link></Button></div>
         <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" asChild><Link to={`/app/orders?view=queue&apparatus=${encodeURIComponent(queue.apparatusId)}`}><ArrowUp />Apparat navbati</Link></Button>
           {queue.pause && <Button size="sm" variant="outline" disabled={!canChange || apparatus.isError || apparatus.isLoading} onClick={() => open('queue', 'pause', queue)}><Pause />To‘xtatish va hisobot</Button>}
           {queue.resume && <Button size="sm" variant="secondary" disabled={!canChange} onClick={() => open('queue', 'resume', queue)}><Play />Davom ettirish</Button>}
           {(queue.moveUp || queue.moveDown) && <><Button size="sm" variant="outline" disabled={!canChange || !queue.moveUp} onClick={() => open('reorder', 'move_up', queue)}><ArrowUp />Oldinga</Button><Button size="sm" variant="outline" disabled={!canChange || !queue.moveDown} onClick={() => open('reorder', 'move_down', queue)}><ArrowDown />Orqaga</Button></>}

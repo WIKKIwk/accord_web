@@ -105,6 +105,7 @@ const ProductionCompletionControls = lazy(() => import('@/components/production-
 const MaterialIntakeControls = lazy(() => import('@/components/material-intake-controls').then(module => ({ default: module.MaterialIntakeControls })));
 const MaterialLinkRequestControls = lazy(() => import('@/components/material-link-request-controls').then(module => ({ default: module.MaterialLinkRequestControls })));
 const ClosedOrderEventHistory = lazy(() => import('@/components/closed-order-event-history').then(module => ({ default: module.ClosedOrderEventHistory })));
+const ProductionSequenceQueue = lazy(() => import('@/components/production-sequence-queue').then(module => ({ default: module.ProductionSequenceQueue })));
 
 function DeferredResourceControls({ children }: { children: ReactNode }) {
   return <Suspense fallback={<p role="status" className="py-2 text-xs text-muted-foreground">Boshqaruv yuklanmoqda…</p>}>{children}</Suspense>;
@@ -115,6 +116,8 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
   const { client, demo, scope, session, connection } = useSession();
   const queryClient = useQueryClient();
   const [params, setParams] = useSearchParams();
+  const [localTab, setLocalTab] = useState('list');
+  const tab = kind === 'orders' ? ['overview', 'queue'].includes(params.get('view') ?? '') ? params.get('view')! : 'list' : localTab;
   const [search, setSearch] = useState("");
   const q = useDeferredValue(search.trim());
   const [status, setStatus] = useState(kind === "wip" && ['waiting', 'in_use', 'processed', 'all'].includes(params.get('status') ?? '') ? params.get('status')! : kind === "wip" ? "waiting" : "all"),
@@ -306,11 +309,13 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
           </CardContent>
         </Card>
       )}
-      {!listAllowed ? <Alert><AlertDescription>Inventar joylari ro‘yxatini ko‘rish uchun ruxsat berilmagan. Zavod joylarini yuqoridagi boshqarish tugmasi orqali oching.</AlertDescription></Alert> : <Tabs defaultValue="list">
+      {!listAllowed ? <Alert><AlertDescription>Inventar joylari ro‘yxatini ko‘rish uchun ruxsat berilmagan. Zavod joylarini yuqoridagi boshqarish tugmasi orqali oching.</AlertDescription></Alert> : <Tabs value={tab} onValueChange={value => { if (kind !== 'orders') { setLocalTab(value); return; } const next = new URLSearchParams(params); if (value === 'list') next.delete('view'); else next.set('view', value); setParams(next); }}>
         <TabsList>
           <TabsTrigger value="list">Ro‘yxat</TabsTrigger>
           <TabsTrigger value="overview">Umumiy ko‘rinish</TabsTrigger>
+          {kind === 'orders' && <TabsTrigger value="queue">Apparat navbati</TabsTrigger>}
         </TabsList>
+        {kind === 'orders' && <TabsContent value="queue" className="pt-2"><DeferredResourceControls><ProductionSequenceQueue apparatusId={params.get('apparatus') || ''} onApparatusChange={id => { const next = new URLSearchParams(params); next.set('view', 'queue'); next.set('apparatus', id); setParams(next); }} /></DeferredResourceControls></TabsContent>}
         <TabsContent value="list" className="space-y-4 pt-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">

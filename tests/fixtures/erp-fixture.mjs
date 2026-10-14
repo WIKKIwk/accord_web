@@ -11,6 +11,7 @@ import { passportFixtureRoute, seedPassportScenario } from './erp-passport.mjs';
 import { materialIntakeFixtureRoute, materialIntakeSnapshotControl, seedMaterialIntakeScenario } from './erp-material-intake.mjs';
 import { completionFixtureRoute, completionSnapshotControl, seedCompletionScenario } from './erp-completion.mjs';
 import { materialLinkFixtureRoute, materialLinkSnapshotControl, seedMaterialLinkScenario, validMaterialLinkProfile } from './erp-material-link.mjs';
+import { seedSequenceScenario, sequenceCohortSnapshot, sequenceCohortMove } from './erp-sequence.mjs';
 
 const base = '/v1/mobile/admin';
 const clone = value => structuredClone(value);
@@ -25,7 +26,7 @@ const error = (status, code, detail) => response({ error: code, ...(detail ? { d
 const capabilityLabels = Object.fromEntries(fixtureCapabilities.map(code => [code, `QA ${code}`]));
 const configDefaults = () => ({ capabilities: [...fixtureCapabilities], assignedWarehouses: [], assignedApparatus: [], profileOverride: null, rules: [], partialMoveCodes: [], orderEditLocked: false, workerDeleteBlocked: false, emptyProduction: false, unknownOrderStatuses: [], blockedDeleteCodes: [], emptyClosedHistory: false, manufacturingReportMode: 'partial', manufacturingDemoCohort: false, manufacturingDemoInvalidRecord: false });
 const queueVersion = ids => createHash('sha256').update(JSON.stringify(ids)).digest('hex');
-const fixtureVersion = 8;
+const fixtureVersion = 9;
 const phone = value => { let digits = string(value).replace(/\D/g, ''); if (digits.length === 9) digits = `998${digits}`; return digits ? `+${digits}` : ''; };
 const workerLevels = ['Brigader', 'Master', '1 - darajali', '2 - darajali', '3 - darajali'];
 const systemRoles = ['qolipchi', 'boyoqchi', 'tayyorlov_masteri', 'homashyo_rezkachi'];
@@ -123,10 +124,10 @@ function snapshot(state) {
     const status = order.control === 'frozen' ? 'frozen' : hold ? 'print_preflight' : order.operational || (stages.includes('in_progress') ? 'in_progress' : stages.includes('paused') ? 'paused' : stages.length && stages.every(value => value === 'completed') ? 'completed' : 'not_started');
     return [order.map.id, { lifecycle_status: stages.every(stage => stage === 'pending') ? 'released' : 'in_progress', order_status: status, work_status: status, flow_status: status === 'not_started' ? 'waiting' : status, completed_with_issue_count: 0 }];
   }));
-  return { ok: true, rev: state.rev, epoch: state.epoch, scope: '', maps, stage_states, queue_states, sequences, visible_order_ids,
+  return sequenceCohortSnapshot(state, { ok: true, rev: state.rev, epoch: state.epoch, scope: '', maps, stage_states, queue_states, sequences, visible_order_ids,
     sequence_versions: Object.fromEntries(Object.entries(sequences).map(([id, ids]) => [id, queueVersion(ids)])),
     sequence_revisions: Object.fromEntries(Object.keys(sequences).map(id => [id, state.rev])),
-    queue_action_controls, order_controls, order_statuses, order_customers: Object.fromEntries(state.orders.map(order => [order.map.id, order.map.customer_name])), frozen_orders_by_apparatus: {} };
+    queue_action_controls, order_controls, order_statuses, order_customers: Object.fromEntries(state.orders.map(order => [order.map.id, order.map.customer_name])), frozen_orders_by_apparatus: {} });
 }
 
 export function createFixture() {
@@ -205,6 +206,7 @@ export function createFixture() {
     if (path === '/__qa/completion' && method === 'POST') return seedCompletionScenario(state, body);
     if (path === '/__qa/material-intake' && method === 'POST') return seedMaterialIntakeScenario(state, body);
     if (path === '/__qa/material-link' && method === 'POST') return seedMaterialLinkScenario(state, body);
+    if (path === '/__qa/sequence' && method === 'POST') return seedSequenceScenario(state);
     if (path === '/__qa/opening-wip' && method === 'POST') {
       const record = state.openingWip.find(record => record.batches.some(batch => batch.batch_id === body?.batch_id)), batch = record?.batches.find(batch => batch.batch_id === body.batch_id);
       if (!batch) return error(404, 'opening_wip_not_found');
@@ -268,6 +270,7 @@ export function createFixture() {
     }
     if (path === `${base}/production-maps/sequence` && method === 'POST') {
       if (!requires('admin.access', 'production.map.manage')) return error(403, 'forbidden');
+      if (state.sequenceCohort) return sequenceCohortMove(state, snapshot(state), body, config.profileOverride || profile, idempotency, bump);
       const current = snapshot(state), ids = current.sequences[body?.apparatus];
       if (!ids || !ids.includes(body.order_id) || !string(body.idempotency_key)) return error(400, 'queue_reorder_invalid');
       const receiptKey = `sequence:${body.idempotency_key}`, payload = stableJson(body), prior = idempotency.get(receiptKey);

@@ -3,13 +3,24 @@ import { ProductionOperationLedger } from './production-operation-ledger'
 import type { ProductionOperationChannel } from './production-operation-ledger'
 
 const scope = 'fixture-auth-scope', orderId = 'zakaz-ledger-1'
-const channels = ['assignment', 'legacy-control', 'completion', 'material-intake', 'material-link'] as const
+const channels = ['assignment', 'legacy-control', 'completion', 'material-intake', 'material-link', 'sequence-reorder'] as const
 function operation(channel: ProductionOperationChannel, id = orderId) {
   return { channel, orderId: id, plan: { orderId: id, kind: 'reorder', body: { order_id: id, idempotency_key: 'original-command', before_order_id: 'original-anchor' } }, proof: { actor: { role: 'admin', ref: 'fixture-user' } } }
 }
 function ledger() { const value = new ProductionOperationLedger(); value.activate(scope); return value }
 
 describe('shared order production operation ownership', () => {
+  it('serializes sequence writers per apparatus across owners, retaining locks even for hidden moved rows', () => {
+    const value = ledger(), first = { ...operation('sequence-reorder'), apparatusId: 'apparatus:qa:one' }
+    const lease = value.begin(scope, first); value.dispatched(lease); value.interrupt(lease)
+    expect(() => value.begin(scope, { ...operation('legacy-control', 'other-order'), apparatusId: first.apparatusId })).toThrow('Shu apparat')
+    value.begin(scope, { ...operation('sequence-reorder', 'unrelated-order'), apparatusId: 'apparatus:qa:two' })
+    const read = value.list(scope, 'sequence-reorder')
+    expect(read).toHaveLength(2); read[0].orderId = 'mutated'
+    expect(value.list(scope)[0].orderId).toBe(orderId); expect(value.list('other-scope')).toEqual([])
+    const recovery = value.begin(scope, first, true); value.finish(recovery, { confirmed: true })
+    expect(() => value.begin(scope, { ...operation('legacy-control', 'other-order'), apparatusId: first.apparatusId })).not.toThrow()
+  })
   it.each(channels)('reserves %s before async preflight and excludes every other channel in both directions', async owner => {
     const value = ledger(), lease = value.begin(scope, operation(owner))
     let finishPreflight!: () => void

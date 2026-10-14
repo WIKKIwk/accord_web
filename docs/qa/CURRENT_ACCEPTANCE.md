@@ -14,7 +14,7 @@ Application source is committed through `168c2c9`; the combined application/QA s
 | O06 | Native opened-order calculation editing with original revision precondition | Only eligible native states; tested subsets do not certify all combinations |
 | O07 | Pending source/image and reserved-identity release | Compatible route needed; no invented auto-open replacement |
 | O08 | Template reuse, update/delete and retained uncertain outcome | Native template writes lack atomic revision/CAS |
-| O09 | Versioned queue reorder, pending moves, paused transfer and scoped assignments | Full drag/multi-order batch breadth not implemented |
+| O09 | Versioned apparatus queue drag/touch/keyboard/button reorder; pending moves, paused transfer and scoped assignments | Focused reorder acceptance in SEQUENCE_REORDER_CHECKPOINT.md; multi-order batch breadth remains incomplete |
 | O10 | Material/tooling checks, start, pause/resume, mounted-input handoff, native print/laminate/cut completion | Physical printing/scanning and all operator combinations unverified |
 | O11 | Server-permitted freeze/cancel/unfreeze/early close | Order deletion remains a separate missing frontend subset |
 | O12 | Existing completion review | Live notification/decision-history breadth remains partial |

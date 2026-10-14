@@ -1,8 +1,10 @@
-export type ProductionOperationChannel = 'assignment' | 'legacy-control' | 'completion' | 'material-intake' | 'material-link'
+export type ProductionOperationChannel = 'assignment' | 'legacy-control' | 'completion' | 'material-intake' | 'material-link' | 'sequence-reorder'
 
 export interface ProductionOperation<Plan = unknown, Proof = unknown> {
   channel: ProductionOperationChannel
   orderId: string
+  /** Sequence writers also reserve their apparatus, including across panels. */
+  apparatusId?: string
   plan: Plan
   proof: Proof
   phase: 'pending' | 'uncertain'
@@ -57,12 +59,18 @@ export class ProductionOperationLedger {
     const entry = scope === this.scope ? this.entries.get(orderId) : undefined
     return entry && (!channel || entry.channel === channel) ? structuredClone(entry) as ProductionOperation<Plan, Proof> : null
   }
-  begin<Plan, Proof>(scope: string, operation: Pick<ProductionOperation<Plan, Proof>, 'channel' | 'orderId' | 'plan' | 'proof'>, recovery = false): ProductionOperationLease {
+  list<Plan = unknown, Proof = unknown>(scope: string, channel?: ProductionOperationChannel): ProductionOperation<Plan, Proof>[] {
+    return scope === this.scope ? [...this.entries.values()].filter(entry => !channel || entry.channel === channel).map(entry => structuredClone(entry) as ProductionOperation<Plan, Proof>) : []
+  }
+  begin<Plan, Proof>(scope: string, operation: Pick<ProductionOperation<Plan, Proof>, 'channel' | 'orderId' | 'apparatusId' | 'plan' | 'proof'>, recovery = false): ProductionOperationLease {
     if (scope !== this.scope) return blocked('Sessiya o‘zgargan. Amal oynasini qayta oching.')
     if (!operation.orderId.trim()) return blocked('Amalning haqiqiy buyurtma identifikatori kerak.')
     credentialFree(operation.plan); credentialFree(operation.proof)
+    if (operation.apparatusId && [...this.entries.values()].some(entry => entry.apparatusId === operation.apparatusId && entry.orderId !== operation.orderId)) {
+      return blocked('Shu apparat navbatining avvalgi buyrug‘i natijasi kutilmoqda. Yangi navbat buyrug‘i yuborilmaydi.')
+    }
     const prior = this.entries.get(operation.orderId)
-    if (prior && (!recovery || prior.phase === 'pending' || prior.channel !== operation.channel || stable([prior.plan, prior.proof]) !== stable([operation.plan, operation.proof]))) {
+    if (prior && (!recovery || prior.phase === 'pending' || prior.channel !== operation.channel || prior.apparatusId !== operation.apparatusId || stable([prior.plan, prior.proof]) !== stable([operation.plan, operation.proof]))) {
       return blocked('Avvalgi amal natijasi aniqlanmagan. Shu buyurtma uchun yangi buyruq yuborilmaydi.')
     }
     if (recovery && !prior) return blocked('Tiklanadigan avvalgi buyruq saqlanmagan.')
