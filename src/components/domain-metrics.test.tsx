@@ -90,3 +90,48 @@ describe('exact apparatus dots through the upstream count configuration', () => 
     expect(html).toContain('ro‘yxat hali to‘liq emas')
   })
 })
+
+describe('observable dashboard read states', () => {
+  it('shows loading placeholders without publishing provisional zero metrics or an empty result', () => {
+    const html = renderToStaticMarkup(<DomainMetrics kind="warehouses" available={false} items={[]} observation={{ loading: true, fetching: true, connection: 'online', refresh: () => {} }} />)
+    expect((html.match(/data-slot="skeleton"/g) ?? []).length).toBe(3)
+    expect(html).toContain('data-observation-state="loading"')
+    expect(html).toContain('Kuzatuv yuklanmoqda…'); expect(html).not.toContain('>0</span>')
+    expect(html).not.toContain('Bu kuzatuv uchun qayd etilgan yozuv yo‘q.')
+    expect(html).toContain('aria-label="Kuzatuvni yangilash" disabled=""')
+  })
+  it('distinguishes a failed read from an empty catalog and keeps recovery inside the overview', () => {
+    const html = renderToStaticMarkup(<DomainMetrics kind="warehouses" available={false} items={[]} observation={{ loading: false, fetching: false, connection: 'online', error: 'Fixture read failed', refresh: () => {} }} />)
+    expect(html).toContain('data-observation-state="error"'); expect(html).toContain('role="alert"')
+    expect(html).toContain('Kuzatuv yuklanmadi'); expect(html).toContain('Fixture read failed')
+    expect((html.match(/>—<\/span>/g) ?? []).length).toBe(3)
+    expect(html).not.toContain('data-slot="skeleton"'); expect(html).not.toContain('Bu kuzatuv uchun qayd etilgan yozuv yo‘q.')
+    expect(html).toContain('aria-label="Kuzatuvni yangilash"'); expect(html).toContain('Qayta urinish')
+  })
+  it('retains exact mixed-unit observations through failure without presenting them as new or recomputing totals', () => {
+    const html = renderToStaticMarkup(<DomainMetrics kind="stock" available items={[{ code: 'PET', uom: 'kg', on_hand_qty: 123.45, package_count: 2 }, { code: 'PE', uom: 'metr', on_hand_qty: 500, package_count: 1 }]} observation={{ loading: false, fetching: false, connection: 'online', error: 'Unavailable', asOfUnix: 1791892800 }} />)
+    expect(html).toContain('123,45 kg'); expect(html).toContain('500 metr'); expect(html).toContain('data-observation-state="retained"')
+    expect(html).toContain('Oxirgi yuklangan ma’lumotlar saqlangan'); expect(html).toContain('Kuzatuv:')
+    expect(html).not.toContain('data-slot="skeleton"'); expect(html).not.toContain('623')
+  })
+  it('qualifies retained observations while connection checks are incomplete', () => {
+    const html = renderToStaticMarkup(<DomainMetrics kind="warehouses" available items={[{ warehouse: 'QA', is_group: false, product_count: 3 }]} observation={{ loading: false, fetching: false, connection: 'checking' }} />)
+    expect(html).toContain('data-observation-state="retained"'); expect(html).toContain('Aloqa tekshirilmoqda · oxirgi yuklangan holat.')
+    expect(html).toContain('3 yozuv'); expect(html).not.toContain('Olingan holat.')
+  })
+  it('keeps catalog facts known when the independent queue read failed, without a fake zero queue chart', () => {
+    const html = renderToStaticMarkup(<DomainMetrics kind="apparatus" available items={[{ apparatus_id: 'apparatus:default:a', display: { display_name: 'QA' }, lifecycle: { state: 'active' } }]} snapshotStatus={{ loading: false, error: 'Queue unavailable' }} />)
+    expect(html).toContain('Navbat kuzatuvi yuklanmadi'); expect(html).toContain('Queue unavailable')
+    expect(html).toContain('>1</span>'); expect(html).toContain('1 apparat navbati noma’lum'); expect(html).not.toContain('data-slot="dot-plot"')
+  })
+  it('preserves a native empty queue observation as retained after a failed refresh', () => {
+    const html = renderToStaticMarkup(<DomainMetrics kind="apparatus" available items={[{ apparatus_id: 'apparatus:default:a', display: { display_name: 'QA' }, lifecycle: { state: 'active' } }]} snapshot={queueSnapshot({ 'apparatus:default:a': [] })} snapshotFresh={false} snapshotStatus={{ loading: false, error: 'Queue unavailable' }} />)
+    expect(html).toContain('Oxirgi yuklangan navbatlar saqlangan'); expect(html).toContain('Oxirgi yuklangan holat')
+    expect(html).toContain('data-slot="dot-plot"'); expect(html).toContain('0 buyurtma')
+  })
+  it('shows the required warehouse choice rather than an indefinite loader for a disabled stock query', () => {
+    const html = renderToStaticMarkup(<DomainMetrics kind="stock" available={false} items={[]} observation={{ loading: false, fetching: false, connection: 'online', emptyPrompt: 'Qoldiqlarni ko‘rish uchun omborni tanlang.', refresh: () => {}, refreshDisabled: true }} />)
+    expect(html).toContain('Qoldiqlarni ko‘rish uchun omborni tanlang.'); expect(html).not.toContain('data-slot="skeleton"')
+    expect(html).not.toContain('>0</span>'); expect(html).toContain('aria-label="Kuzatuvni yangilash" disabled=""')
+  })
+})

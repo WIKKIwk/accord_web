@@ -554,7 +554,9 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
             hasMore={Boolean(data.hasNextPage)}
             filtered={Boolean(q || status !== 'all')}
             warehouse={warehouse}
+            observation={{ loading: data.isLoading, fetching: data.isFetching || kind === 'apparatus' && apparatusQueues.isFetching, error: data.error?.message, connection: demo ? 'online' : connection, asOfUnix: data.dataUpdatedAt > 0 ? Math.floor(data.dataUpdatedAt / 1000) : null, refresh: refreshList, refreshDisabled: !listAllowed || kind === 'stock' && !warehouse, emptyPrompt: kind === 'stock' && !warehouse ? 'Qoldiqlarni ko‘rish uchun omborni tanlang.' : undefined }}
             snapshot={kind === 'apparatus' ? apparatusQueues.data : undefined}
+            snapshotStatus={kind === 'apparatus' ? { loading: apparatusQueues.isLoading, error: apparatusQueues.error instanceof Error ? apparatusQueues.error.message : undefined } : undefined}
             snapshotFresh={connection === 'online' && !apparatusQueues.isError}
             snapshotAsOfUnix={apparatusQueues.dataUpdatedAt > 0 ? Math.floor(apparatusQueues.dataUpdatedAt / 1000) : null}
             className="sm:col-span-2 lg:col-span-3"

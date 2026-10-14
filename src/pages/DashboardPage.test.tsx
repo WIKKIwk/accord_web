@@ -17,10 +17,10 @@ function snapshot(): ProductionSnapshot {
   })), order_statuses: { running: { lifecycle_status: 'in_progress', order_status: 'in_progress' }, paused: { lifecycle_status: 'in_progress', order_status: 'paused' }, waiting: { lifecycle_status: 'in_progress', order_status: 'ready' } },
   order_controls: { running: { state: 'freeze_requested' } }, order_customers: {}, sequences: { [apparatus]: ['running', 'paused', 'waiting'] }, visible_order_ids: { [apparatus]: ['running', 'paused', 'waiting', 'unknown'] }, queue_states: { [apparatus]: { running: 'in_progress', paused: 'paused', waiting: 'pending' } }, stage_states: {}, queue_action_controls: {} }
 }
-function setup(capabilities = ['admin.access'], offline = false, noClient = false) {
+function setup(capabilities = ['admin.access'], offline = false, noClient = false, connectionOverride?: 'checking') {
   const scope = `home-view-${++sequence}`, session: Session = { token: 'fixture-token', profile: { role: 'admin', ref: 'fixture-admin', display_name: 'Operator' }, capabilities, assigned_apparatus: [], assigned_apparatus_labels: [], assigned_item_groups: [], assigned_warehouses: [] }
   const fetch = vi.fn(); vi.stubGlobal('fetch', fetch)
-  vi.mocked(useSession).mockReturnValue({ scope, session, client: noClient ? null : new ApiClient({ endpoint: 'https://erp.example.test', token: session.token }), endpoint: 'https://erp.example.test', demo: false, restoring: false, connection: offline ? 'offline' : 'online', login: vi.fn(), logout: vi.fn(), enterDemo: vi.fn(), reconnect: vi.fn() })
+  vi.mocked(useSession).mockReturnValue({ scope, session, client: noClient ? null : new ApiClient({ endpoint: 'https://erp.example.test', token: session.token }), endpoint: 'https://erp.example.test', demo: false, restoring: false, connection: connectionOverride ?? (offline ? 'offline' : 'online'), login: vi.fn(), logout: vi.fn(), enterDemo: vi.fn(), reconnect: vi.fn() })
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, retryOnMount: false, gcTime: Infinity } } })
   return { scope, queryClient, fetch }
 }
@@ -139,5 +139,24 @@ describe('Home executive manufacturing view', () => {
     expect(unknown).not.toContain('data-status-segment=')
     expect(unknown).not.toContain('ko‘rinadigan buyurtma"')
     expect(missing.fetch).not.toHaveBeenCalled()
+  })
+})
+
+
+describe('Home observation freshness', () => {
+  it('does not label cached production facts current during a connection check', () => {
+    const { scope, queryClient } = setup(['admin.access'], false, false, 'checking'); seed(queryClient, scope)
+    const html = render(queryClient)
+    expect(html).toContain('Server bilan aloqa tekshirilmoqda')
+    expect(html).toContain('Oxirgi kuzatuv'); expect(html).toContain('Oxirgi yuklangan holat')
+    expect(html).not.toContain('Joriy kuzatuv'); expect(html).toContain('aloqa tiklangach yangilanadi')
+    expect(html).toContain('QA-running'); expect(html).toContain('>2+</span>')
+  })
+  it('does not claim a current observation or an earlier loaded record before any production data exists', () => {
+    const { queryClient } = setup(['admin.access'], true, true)
+    const html = render(queryClient)
+    expect(html).not.toContain('Joriy kuzatuv'); expect(html).toContain('Kuzatuv kutilmoqda')
+    const disclosure = html.match(/<details[\s\S]*?<\/details>/)?.[0] ?? ''
+    expect(disclosure).not.toContain('Oxirgi yuklangan holat')
   })
 })
