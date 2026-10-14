@@ -42,6 +42,8 @@ import { ResourceCreateNotice, useResourceCreate } from "@/components/resource-c
 import { ProductionAssignmentControls } from "@/components/production-assignment-controls";
 import { RawMaterialRuleToolbar } from "@/components/raw-material-rule-controls";
 import { resourceCreateItemCodePolicy } from "@/lib/resource-create";
+import { isHandoffCutApparatus } from "@/lib/paddon-handoff";
+import { PaddonHandoffToolbar } from "@/components/paddon-handoff-controls";
 import type { CatalogKind } from "@/lib/catalog-admin";
 import type { MutationLease } from "@/lib/mutation-scope";
 import type { ResourceKind, Row } from "@/lib/api-types";
@@ -972,6 +974,7 @@ function DetailSheet({
               {row && !detail.isPending && !detail.error && (kind === 'wip' || kind === 'opening-wip') && <DeferredResourceControls><ProgressPassportControls kind={kind} row={value} onSaved={refreshMaterialDetail} /></DeferredResourceControls>}
               {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderWipAdminControls row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && kind === 'apparatus' && <ApparatusPlanningControls row={value} onSaved={refreshMaterialDetail} />}
+              {row && !detail.isPending && !detail.error && kind === 'apparatus' && isHandoffCutApparatus(value) && <PaddonHandoffToolbar apparatusId={text(isRecord(value.runtime_projection) ? value.runtime_projection.apparatus_id : value.apparatus_id, '')} />}
               {row && !detail.isPending && !detail.error && kind === 'apparatus' && <DeferredResourceControls><ApparatusAdminControls row={value} onSaved={refreshMaterialDetail} onRetired={onClose} /></DeferredResourceControls>}
               {row && !detail.isPending && !detail.error && kind === 'orders' && <OrderSchedulingControls row={value} onSaved={refreshMaterialDetail} />}
               {row && !detail.isPending && !detail.error && (kind === 'assets' || kind === 'locations') && <InventoryAdminControls kind={kind} row={value} onSaved={refreshMaterialDetail} />}

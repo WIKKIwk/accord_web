@@ -26,6 +26,8 @@ import { productionCanManageOrders } from '@/lib/production-controls'
 import { productionOperationLedger, type ProductionOperationLease } from '@/lib/production-operation-ledger'
 import { executeProductionSequenceMove, productionSequenceMove, productionSequenceQueue, SequenceMoveError, type SequenceMovePlan, type SequenceQueueRow } from '@/lib/production-sequence'
 import { useSession } from '@/lib/session'
+import { isHandoffCutApparatus } from '@/lib/paddon-handoff'
+import { PaddonHandoffToolbar } from './paddon-handoff-controls'
 
 const errorMessage = (value: unknown) => value instanceof Error ? value.message : 'Navbat amali bajarilmadi.'
 const isAbort = (value: unknown) => value instanceof DOMException && value.name === 'AbortError'
@@ -179,6 +181,7 @@ function SequenceQueuePanel({ apparatusId, onApparatusChange }: QueueProps) {
         <Select value={selectedId || undefined} onValueChange={id => { closeConfirmation(); setDragSnapshot(null); setSearch(''); setError(''); onApparatusChange(id) }} disabled={saving}><SelectTrigger className="w-full sm:w-72" aria-label="Navbat apparati"><SelectValue placeholder="Apparatni tanlang" /></SelectTrigger><SelectContent>{options.map(option => <SelectItem key={option.id} value={option.id}>{option.name}</SelectItem>)}</SelectContent></Select>
         <div className="relative w-full sm:w-64"><Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" /><Input aria-label="Navbatdan qidirish" className="pl-9" value={search} onChange={event => setSearch(event.target.value)} placeholder="Buyurtma yoki mijoz…" disabled={saving || Boolean(confirm)} /></div>
         <span className="text-xs text-muted-foreground">{queue.rows.length} ta buyurtma</span>{demo && <Badge variant="outline">DEMO · faqat ko‘rish</Badge>}
+        {apparatus.data?.items.some(row => factoryMapApparatus(row).id === selectedId && isHandoffCutApparatus(row)) && <PaddonHandoffToolbar apparatusId={selectedId} />}
       </div>
     </CardHeader>
     <CardContent className="space-y-4">
