@@ -12,6 +12,7 @@ All task-owned application source, regression tests, standalone checkpoint sourc
 | `docs/qa/deliverables/` | Local copies for Library upload/versioning, selected before/after pictures and older superseded prototypes; persistent current identities are recorded |
 | `docs/qa/dashboard-local-fixture.png`, `docs/qa/synthetic-browser/results.json` | Generated representative snapshot and latest-run pointer; immutable run JSON is committed separately |
 | `docs/qa/worker-groups/`, `docs/qa/sequence-reorder/` | Passing and failed group/reorder runs, responsive captures and retained transport observations; selected immutable reports are committed |
+| `docs/qa/apparatus-collections/` | Failed fixture-loss attempts, accepted committed-source runs, responsive screenshots and transport observations; selected final evidence committed |
 | `docs/qa/reference-inputs/` | User-provided private screenshots; ignored, preserved locally, never re-uploaded or committed |
 | ignored `node_modules`, build/type caches | Dependencies isolated under `/tmp`; original project's dependency tree preserved |
 | `/tmp/accord-web-quality-*` | Task-only static bundles, detached listener registries/logs, temporary tooling and check output; current preview remains available |

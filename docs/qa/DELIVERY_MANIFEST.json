@@ -6,7 +6,8 @@
     "nestedDialog": "ab2f7d0",
     "cadSelection": "d2f0bbd",
     "genuineDashboardcn": "168c2c9",
-    "workerGroupIntegration": "293ee29a0a48c7fd811794d1bf0b8769d71eb2d8"
+    "workerGroupIntegration": "293ee29a0a48c7fd811794d1bf0b8769d71eb2d8",
+    "apparatusCollections": "bc94a341927b0c85a0d33d35845179f30ec192db"
   },
   "entries": [
     {
@@ -73,6 +74,16 @@
       "captureReport": "worker-groups/2026-10-14T10-29-17-375Z/results.json",
       "captureScope": "Passing precommit light render; final committed-build captures are separate in WORKER_GROUP_VERIFICATION.json",
       "xattrsPersisted": true
+    },
+    {
+      "localFile": "deliverables/accord-demo-apparatus-collections-light.png",
+      "libraryFileId": "libfile_0ccc1139326481918bd05ac774ffcc5e",
+      "fileId": "file_00000000c2ac81fa8d1a828848a37f99",
+      "version": 0,
+      "status": "succeeded",
+      "captureReport": "apparatus-collections/2026-10-14T11-22-20-976Z/results.json",
+      "sourceRevision": "bc94a341927b0c85a0d33d35845179f30ec192db",
+      "localVersionAttributeWritten": true
     }
   ]
 }

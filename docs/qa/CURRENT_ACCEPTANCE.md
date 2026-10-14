@@ -2,7 +2,7 @@
 
 This is the current implementation matrix for the isolated web worktree, supplementing the immutable `e214d49` baseline audit in [PARITY_ACCEPTANCE.md](../PARITY_ACCEPTANCE.md). Every baseline workflow ID is retained below. **Implemented** means reachable real web controls, not complete browser acceptance or production readiness. Synthetic acceptance proves the exercised subset only. The backend and mobile remain independent, read-only projects.
 
-Current application/QA source: `293ee29a0a48c7fd811794d1bf0b8769d71eb2d8`, branch `codex/web-worker-groups-20261014`, based on the user's clean `46ed81c` main. C09 worker groups are now mounted and accepted in the bounded scope described in [WORKER_GROUP_INTEGRATION.md](WORKER_GROUP_INTEGRATION.md). The local preview serves `/tmp/accord-web-quality-static-worker-groups-committed-YCT8ER` on 5184/5186. Verification uses isolated Chromium and synthetic local fixtures only. Earlier CAD/theme, nested worker detail, genuine dashboardcn and queue-reorder checkpoints remain retained below; their old bundle paths and counts describe those historical runs.
+Current application/QA source: `bc94a341927b0c85a0d33d35845179f30ec192db`, branch `codex/web-apparatus-collections-20261014`, based on the accepted worker-group checkpoint `dff37ce`. Original main is preserved at `46ed81c`. S02 apparatus collections and C09 worker groups are now reachable and accepted in their bounded scopes. Preview 5184/5186 serves `/tmp/accord-web-quality-static-collections-committed-btbwUB`. All acceptance uses isolated Chromium and synthetic local fixtures. [Current collections evidence](COLLECTION_VERIFICATION.json) · [Worker-group checkpoint](WORKER_GROUP_INTEGRATION.md).
 
 | ID | Current reachable implementation | Remaining scope or acceptance limit |
 | --- | --- | --- |
@@ -48,7 +48,7 @@ Current application/QA source: `293ee29a0a48c7fd811794d1bf0b8769d71eb2d8`, branc
 | C12 | Inactive supplier list/restore | Scoped cases pass in the combined synthetic gate; complete native state space not certified |
 | C13 | Existing bounded dispatch activity view | Detailed mobile history breadth remains partial |
 | S01 | Canonical apparatus create/edit/retire with exact revision/key proof | Referenced apparatus native guards retained |
-| S02 | No apparatus collection CRUD UI | Native API exists; genuine frontend gap |
+| S02 | Native collection list/create/edit/member replacement/delete, exact statuses and update/delete revision CAS | Browser 25/25, readonly/409/unknown/interrupted flows accepted; native collation, nontransactional full GET, lifecycle race, transport retry and RAM recovery limits in [checkpoint](COLLECTION_CHECKPOINT.md) |
 | S03 | Native apparatus queue policy editor | Exact canonical receipt checks retained |
 | S04 | Capacity/downtime/schedule/cancel controls | Native API lacks complete reservation/downtime history GET |
 | S05 | Original CAD contours/framing and per-renderer theme; direct switching fixed and accepted | All13 GLBs guarded, limited representative shapes visually reviewed |

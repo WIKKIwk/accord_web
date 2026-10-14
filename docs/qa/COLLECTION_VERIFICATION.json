@@ -1,0 +1,503 @@
+{
+  "synthetic": true,
+  "productionVerified": false,
+  "sourceRevision": "bc94a341927b0c85a0d33d35845179f30ec192db",
+  "branch": "codex/web-apparatus-collections-20261014",
+  "baseRevision": "dff37ce2d714aa0728d836643c6e7eb2407ae750",
+  "originalMain": "46ed81c979adbb862140e65e25d412314b4ad0a1",
+  "route": "/app/apparatus",
+  "toolbar": "Apparat guruhlari",
+  "preview": {
+    "buildDirectory": "/tmp/accord-web-quality-static-collections-committed-btbwUB",
+    "ports": [
+      5184,
+      5186
+    ],
+    "fixtureOrigin": "http://127.0.0.1:5199",
+    "fixtureVersion": 11
+  },
+  "sourceTests": {
+    "command": "npm test -- --reporter=json --outputFile=/tmp/accord-web-collections-unit-results.json",
+    "passed": 1288,
+    "files": 76,
+    "collectionSpecific": 97,
+    "transportRegressionsAdded": 2,
+    "fileResults": [
+      {
+        "file": "src/components/FactoryMapViewer.test.ts",
+        "tests": 5,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/admin-identity-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/apparatus-admin-controls.test.tsx",
+        "tests": 9,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/apparatus-collection-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/apparatus-planning-controls.test.tsx",
+        "tests": 5,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/calculator-management-controls.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/domain-metrics.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/factory-stage-strip.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/inventory-admin-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/manufacturing-recorded-analytics.test.tsx",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/manufacturing-time-timeline.test.tsx",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/manufacturing-time-views.test.tsx",
+        "tests": 10,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/material-catalog-controls.test.tsx",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/material-intake-controls.test.tsx",
+        "tests": 3,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/material-link-request-controls.test.tsx",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-assignment-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-completion-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-order-controls.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-sequence-queue.test.tsx",
+        "tests": 11,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/progress-passport-controls.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/raw-material-controls.test.tsx",
+        "tests": 11,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/raw-material-rule-controls.test.tsx",
+        "tests": 3,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/resource-create-controls.test.tsx",
+        "tests": 5,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/wip-admin-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/worker-group-controls.test.tsx",
+        "tests": 9,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/worker-group-overview.test.tsx",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/worker-profile-controls.test.tsx",
+        "tests": 9,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/admin-identity.test.ts",
+        "tests": 33,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/api.test.ts",
+        "tests": 60,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/apparatus-admin.test.ts",
+        "tests": 33,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/apparatus-collections.test.ts",
+        "tests": 89,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/apparatus-planning.test.ts",
+        "tests": 26,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/calculator-management.test.ts",
+        "tests": 34,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/catalog-admin.test.ts",
+        "tests": 17,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/dashboard.test.ts",
+        "tests": 11,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/dashboardcn-analytics.test.ts",
+        "tests": 30,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/existing-map.test.ts",
+        "tests": 29,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-cad-isolation.test.ts",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-cad-theme.test.ts",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-map-selection.test.ts",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-map.test.ts",
+        "tests": 43,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-stage-navigation.test.ts",
+        "tests": 14,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/inventory-admin.test.ts",
+        "tests": 28,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/manufacturing-data.test.ts",
+        "tests": 13,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/manufacturing-time.test.ts",
+        "tests": 24,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/material-catalog.test.ts",
+        "tests": 29,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/material-intake.test.ts",
+        "tests": 24,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/material-link-requests.test.ts",
+        "tests": 26,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/mutation-scope.test.ts",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/navigation.test.ts",
+        "tests": 35,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/nested-dialog-escape.test.ts",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/order-draft.test.ts",
+        "tests": 14,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/permissions.test.ts",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-assignment.test.ts",
+        "tests": 26,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-completion.test.ts",
+        "tests": 27,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-controls.test.ts",
+        "tests": 22,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-map.test.ts",
+        "tests": 17,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-operation-ledger.test.ts",
+        "tests": 21,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-sequence.test.ts",
+        "tests": 35,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/progress-passport.test.ts",
+        "tests": 25,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/qa-safety.test.ts",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/raw-material-admin.test.ts",
+        "tests": 22,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/raw-material-rules.test.ts",
+        "tests": 20,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/reduced-motion.test.ts",
+        "tests": 3,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/resource-create.test.ts",
+        "tests": 28,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/resource-list.test.ts",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/session.test.ts",
+        "tests": 22,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/use-factory-map.test.ts",
+        "tests": 18,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/wip-admin.test.ts",
+        "tests": 39,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/worker-group-analytics.test.ts",
+        "tests": 20,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/worker-groups.test.ts",
+        "tests": 63,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/worker-profile.test.ts",
+        "tests": 18,
+        "status": "passed"
+      },
+      {
+        "file": "src/pages/DashboardPage.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/pages/SystemPages.test.ts",
+        "tests": 14,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/dashboardcn/composed-chart.test.tsx",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/dashboardcn/primitives.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      }
+    ]
+  },
+  "fixtureTests": {
+    "command": "npm run test:fixtures",
+    "passed": 167,
+    "collectionSpecific": 24
+  },
+  "typecheck": {
+    "command": "npm run typecheck",
+    "status": "passed"
+  },
+  "productionBuild": {
+    "command": "npm run build",
+    "status": "passed"
+  },
+  "lint": {
+    "tool": "temporary Oxlint1.88",
+    "errors": 0,
+    "warnings": 8,
+    "files": [
+      "src/lib/api.ts",
+      "src/lib/apparatus-collections.ts",
+      "src/components/apparatus-collection-controls.tsx",
+      "src/pages/ResourcePage.tsx"
+    ]
+  },
+  "browser": {
+    "collections": {
+      "report": "apparatus-collections/2026-10-14T11-22-20-976Z/results.json",
+      "passed": 25,
+      "sourceRevision": "bc94a341927b0c85a0d33d35845179f30ec192db"
+    },
+    "workerGroups": {
+      "report": "worker-groups/2026-10-14T11-23-09-336Z/results.json",
+      "passed": 25,
+      "sourceRevision": "bc94a341927b0c85a0d33d35845179f30ec192db"
+    },
+    "queue": {
+      "report": "sequence-reorder/2026-10-14T11-24-00-929Z/results.json",
+      "passed": 12,
+      "sourceRevision": "bc94a341927b0c85a0d33d35845179f30ec192db"
+    },
+    "dashboardcn": {
+      "report": "dashboardcn/2026-10-14T11-22-25-726Z/capture-evidence.json",
+      "passed": 18,
+      "sourceRevision": "bc94a341927b0c85a0d33d35845179f30ec192db"
+    }
+  },
+  "review": {
+    "model": "gpt-6.1-sol",
+    "effort": "max",
+    "correctedFinding": "Removed client name-fold uniqueness rejection, fixed contextual Greek sigma helper/fixture semantics and retained native409 authority.",
+    "remainingActionableFindings": 0
+  },
+  "correctedFixtureFailure": "Native204 has no body; loss now destroys connection before headers rather than trying Buffer.byteLength(undefined). Earlier23/24 failure was invalid_fixture_request400, not the later verified real transport retry.",
+  "transportEvidence": {
+    "case": "native-delete-loss-transport-retry-recorded",
+    "wireStatuses": [
+      "lost",
+      404
+    ],
+    "effect": "One deletion; native missing-ID/revision constraints prevent repeated mutation. Application has no automatic replay.",
+    "appBoundaryLossCase": "uncertain-delete-loss-read-review delivers real fixture response loss through route.fetch(maxRetries:0) + route.abort to distinguish app behavior from transport."
+  },
+  "screenshots": {
+    "visuallyReviewed": true,
+    "files": [
+      "apparatus-collections/2026-10-14T11-22-20-976Z/cancel-and-search-no-writes-passed.png",
+      "apparatus-collections/2026-10-14T11-22-20-976Z/mobile-dark-reduced-motion-editor.png",
+      "apparatus-collections/2026-10-14T11-22-20-976Z/delete-native204-keeps-apparatus-confirmation.png",
+      "apparatus-collections/2026-10-14T11-22-20-976Z/uncertain-delete-loss-read-review-read-only-observation.png"
+    ],
+    "libraryFileId": "libfile_0ccc1139326481918bd05ac774ffcc5e",
+    "libraryVersion": 0,
+    "libraryLocalFile": "deliverables/accord-demo-apparatus-collections-light.png"
+  },
+  "preservation": {
+    "mainCleanAt": "46ed81c979adbb862140e65e25d412314b4ad0a1",
+    "backendCleanAt": "fd59167ca005d522a8fb102e18ff4c80a380807e",
+    "mobileHead": "bc96f1ce492c3e1708294aa9acb23e6a5e5e63ed",
+    "mobileModifiedPaths": 17,
+    "backendMobileWrites": 0,
+    "pushMergeDeployProductionAccess": false,
+    "workerGroupCommitsPreserved": [
+      "293ee29",
+      "dff37ce"
+    ]
+  },
+  "limits": [
+    "Create has no idempotency key or receipt lookup; native names409 are authoritative.",
+    "PostgreSQL name uniqueness depends database lower(name) collation; frontend does not impose name-fold uniqueness on full GET.",
+    "List metadata/members are separate SQL reads and may be a mixed concurrent snapshot.",
+    "Active-member validation precedes persistence; identity FK is not atomic lifecycle CAS.",
+    "Update/delete revision CAS is atomic; repeated wireDELETE may be observed after loss.",
+    "Recovery is RAM-only across full reload/process/identity change; warning and beforeunload guard apply.",
+    "Active catalog is bounded500; selected exact IDs survive searches and are individually revalidated."
+  ]
+}

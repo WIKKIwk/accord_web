@@ -1,5 +1,16 @@
 # Current verified milestones
 
+**Apparatus collections are implemented in `bc94a34`.** Open `/app/apparatus` → **Apparat guruhlari** for native create/edit/member replacement/delete. Read-only access, revision conflicts, duplicate-name correction, interrupted/unknown saves and retained bounded selections are accepted. [Checkpoint](COLLECTION_CHECKPOINT.md) · [Verification](COLLECTION_VERIFICATION.json).
+
+Committed-source browser gates pass collections 25/25, worker groups 25/25, queue 12/12 and dashboardcn 18/18. Full source tests pass 1,288/76 files; fixtures 167/167; typecheck and production/QA builds pass. Focused lint has zero errors and eight warnings. The current preview serves `/tmp/accord-web-quality-static-collections-committed-btbwUB` on 5184/5186, source `bc94a34`. Desktop/mobile rendering was visually reviewed. Library screenshot: `libfile_0ccc1139326481918bd05ac774ffcc5e`, version0.
+
+The 204 loss fixture and incorrect Unicode name-fold assumption are corrected. Native revision CAS remains final authority; create has no idempotency/receipt lookup. GET snapshot/lifecycle races, browser DELETE retransmission and RAM-only recovery remain explicit. Original main `46ed81c` and backend `fd59167` are clean; all 17 mobile changes at `bc96f1c` remain preserved. No push, merge, deployment, production access or backend/mobile write occurred.
+
+Earlier worker-group milestone remains preserved in `293ee29`/`dff37ce`; all 54 workflow IDs retain current scope in [CURRENT_ACCEPTANCE.md](CURRENT_ACCEPTANCE.md). Complete parity/product readiness is not claimed.
+
+## Retained worker-group checkpoint
+
+
 **Worker-group administration is implemented in `293ee29`.** On `/app/workers`, open **Ishchi guruhlari** for native create/edit, rename and apparatus move, shift/schedule/accounting and membership. The real group overview remains secondary to the form/list. Native profile checks prove membership changes without granting apparatus access. [Checkpoint](WORKER_GROUP_INTEGRATION.md) · [Verification](WORKER_GROUP_VERIFICATION.json).
 
 Full source tests pass **1,189/74 files**; group-specific tests **96**; fixture tests **143**. Typecheck and production/QA builds pass; focused lint has zero errors and ten warnings. Worker-group browser acceptance passes **25/25 on committed `293ee29`**; the exact report is linked in the verification record. Current local preview serves committed `293ee29` from `/tmp/accord-web-quality-static-worker-groups-committed-YCT8ER` on 5184/5186. Responsive light/dark captures are retained and visually reviewed. Desktop Library screenshot: `libfile_267eb33cd34881918049fdc0c47176d5`, version0, from the passing precommit render.
