@@ -1,0 +1,707 @@
+{
+  "synthetic": true,
+  "productionVerified": false,
+  "sourceRevision": "94cfa58247427ae2bbb3a5eb77733a6363a8a8af",
+  "implementationRevision": "26fbde577eb812800a279641148bca53fea20fb6",
+  "branch": "codex/web-apparatus-collections-20261014",
+  "baseRevision": "8d69e61123e28183c44f95acbe27e9f466687e32",
+  "recordedAtUtc": "2026-10-14T14:48:53.180290+00:00",
+  "routes": [
+    "/app/paddons"
+  ],
+  "nativeEndpoints": {
+    "report": "GET /v1/mobile/admin/production-maps/paddons/qr/report",
+    "preparation": "POST /v1/mobile/admin/production-maps/paddons/qr/print with print_transport=offline",
+    "settings": "GET/PUT /v1/mobile/admin/production-maps/paddons/management-settings; PUT body only free_movement_enabled"
+  },
+  "preview": {
+    "buildDirectory": "/tmp/accord-web-quality-static-paddon-label-accepted-8cmsu0",
+    "ports": [
+      5184,
+      5186
+    ],
+    "fixtureOrigin": "http://127.0.0.1:5199",
+    "fixtureVersion": 14
+  },
+  "sourceTests": {
+    "sourceRevision": "94cfa58247427ae2bbb3a5eb77733a6363a8a8af",
+    "command": "node node_modules/vitest/vitest.mjs run --reporter=json --outputFile=/tmp/accord-web-quality-paddon-label-final-unit.json",
+    "passed": 1595,
+    "failed": 0,
+    "files": 85,
+    "reportSha256": "532d1b6e082f7f72f7fbad3d7ed5e7611a412f7c0fc137d687a2197ca05a4cbc",
+    "labelApi": 59,
+    "settingsApi": 79,
+    "qrDecoder": 9,
+    "labelUi": 4,
+    "settingsUi": 23,
+    "fileResults": [
+      {
+        "file": "src/components/FactoryMapViewer.test.ts",
+        "tests": 5,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/admin-identity-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/apparatus-admin-controls.test.tsx",
+        "tests": 9,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/apparatus-collection-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/apparatus-planning-controls.test.tsx",
+        "tests": 5,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/calculator-management-controls.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/domain-metrics.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/factory-stage-strip.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/inventory-admin-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/manufacturing-recorded-analytics.test.tsx",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/manufacturing-time-timeline.test.tsx",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/manufacturing-time-views.test.tsx",
+        "tests": 10,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/material-catalog-controls.test.tsx",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/material-intake-controls.test.tsx",
+        "tests": 3,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/material-link-request-controls.test.tsx",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/paddon-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/paddon-handoff-controls.test.tsx",
+        "tests": 5,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/paddon-label-controls.test.tsx",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/paddon-management-controls.test.tsx",
+        "tests": 23,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-assignment-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-completion-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-order-controls.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-sequence-queue.test.tsx",
+        "tests": 11,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/progress-passport-controls.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/raw-material-controls.test.tsx",
+        "tests": 11,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/raw-material-rule-controls.test.tsx",
+        "tests": 3,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/resource-create-controls.test.tsx",
+        "tests": 5,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/wip-admin-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/worker-group-controls.test.tsx",
+        "tests": 9,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/worker-group-overview.test.tsx",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/worker-profile-controls.test.tsx",
+        "tests": 9,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/admin-identity.test.ts",
+        "tests": 33,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/api.test.ts",
+        "tests": 60,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/apparatus-admin.test.ts",
+        "tests": 33,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/apparatus-collections.test.ts",
+        "tests": 89,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/apparatus-planning.test.ts",
+        "tests": 26,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/calculator-management.test.ts",
+        "tests": 34,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/catalog-admin.test.ts",
+        "tests": 17,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/dashboard.test.ts",
+        "tests": 11,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/dashboardcn-analytics.test.ts",
+        "tests": 30,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/existing-map.test.ts",
+        "tests": 29,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-cad-isolation.test.ts",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-cad-theme.test.ts",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-map-selection.test.ts",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-map.test.ts",
+        "tests": 43,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-stage-navigation.test.ts",
+        "tests": 14,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/inventory-admin.test.ts",
+        "tests": 28,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/manufacturing-data.test.ts",
+        "tests": 13,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/manufacturing-time.test.ts",
+        "tests": 24,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/material-catalog.test.ts",
+        "tests": 29,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/material-intake.test.ts",
+        "tests": 24,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/material-link-requests.test.ts",
+        "tests": 26,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/mutation-scope.test.ts",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/navigation.test.ts",
+        "tests": 35,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/nested-dialog-escape.test.ts",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/order-draft.test.ts",
+        "tests": 14,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/paddon-handoff.test.ts",
+        "tests": 50,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/paddon-label.test.ts",
+        "tests": 59,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/paddon-management.test.ts",
+        "tests": 79,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/paddon-qr.test.ts",
+        "tests": 9,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/paddons.test.ts",
+        "tests": 69,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/permissions.test.ts",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-assignment.test.ts",
+        "tests": 26,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-completion.test.ts",
+        "tests": 27,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-controls.test.ts",
+        "tests": 22,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-map.test.ts",
+        "tests": 17,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-operation-ledger.test.ts",
+        "tests": 21,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-sequence.test.ts",
+        "tests": 35,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/progress-passport.test.ts",
+        "tests": 25,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/qa-safety.test.ts",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/raw-material-admin.test.ts",
+        "tests": 22,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/raw-material-rules.test.ts",
+        "tests": 20,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/reduced-motion.test.ts",
+        "tests": 3,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/resource-create.test.ts",
+        "tests": 28,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/resource-list.test.ts",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/session.test.ts",
+        "tests": 22,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/use-factory-map.test.ts",
+        "tests": 18,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/wip-admin.test.ts",
+        "tests": 39,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/worker-group-analytics.test.ts",
+        "tests": 20,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/worker-groups.test.ts",
+        "tests": 63,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/worker-profile.test.ts",
+        "tests": 18,
+        "status": "passed"
+      },
+      {
+        "file": "src/pages/DashboardPage.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/pages/SystemPages.test.ts",
+        "tests": 14,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/dashboardcn/composed-chart.test.tsx",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/dashboardcn/primitives.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      }
+    ]
+  },
+  "fixtures": {
+    "command": "node --test tests/fixtures/*.test.mjs",
+    "passed": 255,
+    "failed": 0,
+    "labelPure": 13,
+    "settingsPure": 11,
+    "mountedLabelSettings": 6,
+    "logSha256": "3984a9b327f912d36a6f78c18fb2d36a74d383b3e9527d48bf1042b0c4d75fb6",
+    "verifiedRevisionScope": "All fixture files unchanged between tested precommit source and final94cfa58."
+  },
+  "typecheck": {
+    "command": "node node_modules/typescript/bin/tsc -b",
+    "exitCode": 0
+  },
+  "builds": {
+    "qa": {
+      "directory": "/tmp/accord-web-quality-static-paddon-label-accepted-8cmsu0",
+      "status": 0
+    },
+    "production": {
+      "directory": "/tmp/accord-web-quality-production-paddon-label-accepted-mL4L31",
+      "status": 0
+    },
+    "qaCommand": "VITE_QA_API_ORIGIN=http://127.0.0.1:5199 node node_modules/vite/bin/vite.js build --outDir <private local directory>",
+    "productionCommand": "node node_modules/vite/bin/vite.js build --outDir <private local directory>",
+    "qaOriginAbsentProduction": true
+  },
+  "lint": {
+    "tool": "/tmp/accord-web-quality-npm/_npx/35625a6d79362d8c/node_modules/oxlint/bin/oxlint",
+    "scope": "Twelve changed/new application source and test files",
+    "errors": 0,
+    "warnings": 4,
+    "remaining": "Deferred operation predicate plus settings draft/review and initial handoff catalog synchronization effects. Render-time context publication was corrected and tested.",
+    "logSha256": "fc7a83994e9b8d292d0beb352ca740e0352cb56ed39fcce7efd03f532dcd7952"
+  },
+  "browser": {
+    "command": "PLAYWRIGHT_PACKAGE_PATH=/tmp/accord-web-quality-qa/node_modules/playwright/index.mjs PLAYWRIGHT_BROWSERS_PATH=/tmp/accord-web-quality-browsers QA_BUILD_DIR=/tmp/accord-web-quality-static-paddon-label-accepted-8cmsu0 QA_SOURCE_REV=94cfa58247427ae2bbb3a5eb77733a6363a8a8af node tests/browser/paddon-label.mjs",
+    "reports": [
+      {
+        "name": "label-settings-final",
+        "report": "paddon-label/2026-10-14T14-46-16-315Z/results.json",
+        "sourceRevision": "94cfa58247427ae2bbb3a5eb77733a6363a8a8af",
+        "passed": 42,
+        "failed": 0,
+        "sha256": "da2cd4ca667af7705e873f119c86831cce0aca7f355a4997d938c3705ea58543",
+        "outsideRequests": 0,
+        "pageErrors": 0
+      },
+      {
+        "name": "label-settings-before-context-fix",
+        "report": "paddon-label/2026-10-14T14-36-57-706Z/results.json",
+        "sourceRevision": "26fbde577eb812800a279641148bca53fea20fb6",
+        "passed": 42,
+        "failed": 0,
+        "sha256": "80733c32db2c12d1b3deb360f6982b21188effe45ab84a7cb263adf2d27d4447",
+        "outsideRequests": 0,
+        "pageErrors": 0
+      },
+      {
+        "name": "handoff-regression",
+        "report": "paddon-handoff/2026-10-14T14-32-25-337Z/results.json",
+        "sourceRevision": "8d69e61123e28183c44f95acbe27e9f466687e32+owned-label-settings",
+        "passed": 37,
+        "failed": 0,
+        "sha256": "2f45f771e2829368ed4b668dcb7dd6fdf71d7a65e78b30555f0d1ddab142d8af",
+        "outsideRequests": 0,
+        "pageErrors": 0
+      },
+      {
+        "name": "directory-regression",
+        "report": "paddons/2026-10-14T14-34-13-670Z/results.json",
+        "sourceRevision": "8d69e61123e28183c44f95acbe27e9f466687e32+owned-label-settings",
+        "passed": 35,
+        "failed": 0,
+        "sha256": "23ddd4b70527057fbc78e78b2384c7a6dae953997374f4637c46d18b922c6294",
+        "outsideRequests": 0,
+        "pageErrors": 0
+      }
+    ],
+    "dashboardRegression": {
+      "report": "dashboardcn/2026-10-14T14-38-21-525Z/capture-evidence.json",
+      "proofs": 18,
+      "status": "passed",
+      "testedApplicationSource": "26fbde577eb812800a279641148bca53fea20fb6",
+      "sha256": "442facb09ff01653079b7cc1525b4853b5125dfcb8ff5423e414b50bc719858a"
+    },
+    "printSafety": "window.print stubbed in every browser page before page load; no physical jobs. Explicit click/afterprint tested; zero qr/confirm requests and no paddon-state mutation.",
+    "renderedQrCodes": [
+      "00001",
+      "00001",
+      "00003"
+    ],
+    "viewports": [
+      {
+        "width": 1440,
+        "height": 1000
+      },
+      {
+        "width": 1280,
+        "height": 720
+      },
+      {
+        "width": 390,
+        "height": 640
+      }
+    ],
+    "regressionSourceNote": "Handoff37/directory35/dashboard18 retain actual tested source/build. The26fbde5 committed QA build was byte-identical across all87 files to their precommit build. The final fix changes only settings context publication, not these workflows."
+  },
+  "review": {
+    "model": "gpt-6.1-sol",
+    "effort": "max",
+    "openP1P2": 0,
+    "worker": "worker_group_dashboard",
+    "result": "Read-only review of API/QR/label/fixtures/compact handoff and ordinary settings, unlock-impact correction, and final layout-effect publication/test."
+  },
+  "dependencies": {
+    "addedRuntime": "qrcode-generator@2.0.4",
+    "addedDev": "jsqr@1.4.0",
+    "unchangedExistingLockEntries": 549,
+    "installScriptsExecuted": false,
+    "runtimeLicense": "public/licenses/qrcode-generator.txt"
+  },
+  "artifacts": [
+    {
+      "localFile": "deliverables/accord-demo-paddon-qr-label-light.png",
+      "absolutePath": "/Users/wikki/Desktop/Accord_project/sandbox/accord_web_quality/docs/qa/deliverables/accord-demo-paddon-qr-label-light.png",
+      "sourceCapture": "docs/qa/paddon-label/2026-10-14T14-46-16-315Z/qr-real-render-leading-zeroes-and-native-weights-preview.png",
+      "sourceRevision": "94cfa58247427ae2bbb3a5eb77733a6363a8a8af",
+      "captureReport": "docs/qa/paddon-label/2026-10-14T14-46-16-315Z/results.json",
+      "synthetic": true,
+      "sha256": "3c3a7bacea504ea6ddb3eb12ade2bb4660af349d9fc551d7fb7b3259c18c6986",
+      "libraryFileId": "libfile_c53344d59bbc81919714903636563cac",
+      "fileId": "file_000000001808820e9667c207cce805f3",
+      "version": 0,
+      "xattrsPersisted": true,
+      "status": "succeeded",
+      "downloadUrl": "https://chatgpt.com/api/library/files/libfile_c53344d59bbc81919714903636563cac/download"
+    },
+    {
+      "localFile": "deliverables/accord-demo-paddon-qr-label-mobile-dark.png",
+      "absolutePath": "/Users/wikki/Desktop/Accord_project/sandbox/accord_web_quality/docs/qa/deliverables/accord-demo-paddon-qr-label-mobile-dark.png",
+      "sourceCapture": "docs/qa/paddon-label/2026-10-14T14-46-16-315Z/label-mobile-short-footer-scroll-and-focus-label-top.png",
+      "sourceRevision": "94cfa58247427ae2bbb3a5eb77733a6363a8a8af",
+      "captureReport": "docs/qa/paddon-label/2026-10-14T14-46-16-315Z/results.json",
+      "synthetic": true,
+      "sha256": "6b81de03bb5a60ad8e7bd8ffef411e654669ec553972d3b3eacff9d6ce8416d7",
+      "libraryFileId": "libfile_df6476f5b03c8191b0034450137356b3",
+      "fileId": "file_00000000f0b481f59e3c4919b7b64bee",
+      "version": 0,
+      "xattrsPersisted": true,
+      "status": "succeeded",
+      "downloadUrl": "https://chatgpt.com/api/library/files/libfile_df6476f5b03c8191b0034450137356b3/download"
+    },
+    {
+      "localFile": "deliverables/accord-demo-active-paddon-compact-light.png",
+      "absolutePath": "/Users/wikki/Desktop/Accord_project/sandbox/accord_web_quality/docs/qa/deliverables/accord-demo-active-paddon-compact-light.png",
+      "sourceCapture": "docs/qa/paddon-label/2026-10-14T14-46-16-315Z/handoff-desktop-fixed-footer-and-keyboard-scroll-handoff-status.png",
+      "sourceRevision": "94cfa58247427ae2bbb3a5eb77733a6363a8a8af",
+      "captureReport": "docs/qa/paddon-label/2026-10-14T14-46-16-315Z/results.json",
+      "synthetic": true,
+      "sha256": "de3024c93d97b9598266c14eacc834ed50d55ca3f384f7df56d30b223be95cb2",
+      "libraryFileId": "libfile_30746a1ca8b081918e4c6d229fac2488",
+      "fileId": "file_000000004d6481faaf35e3a1733e94d8",
+      "version": 0,
+      "xattrsPersisted": true,
+      "status": "succeeded",
+      "downloadUrl": "https://chatgpt.com/api/library/files/libfile_30746a1ca8b081918e4c6d229fac2488/download"
+    },
+    {
+      "localFile": "deliverables/accord-demo-paddon-free-movement-mobile-dark.png",
+      "absolutePath": "/Users/wikki/Desktop/Accord_project/sandbox/accord_web_quality/docs/qa/deliverables/accord-demo-paddon-free-movement-mobile-dark.png",
+      "sourceCapture": "docs/qa/paddon-label/2026-10-14T14-46-16-315Z/settings-mobile-short-fixed-footer-focus-settings-mobile.png",
+      "sourceRevision": "94cfa58247427ae2bbb3a5eb77733a6363a8a8af",
+      "captureReport": "docs/qa/paddon-label/2026-10-14T14-46-16-315Z/results.json",
+      "synthetic": true,
+      "sha256": "2a6a825e116bcfbc97d4f67dcf6ffceb33b17923c17fa2b4344e3417fdeafb7c",
+      "libraryFileId": "libfile_2a461531294c81918cb60ef8f631a7a4",
+      "fileId": "file_00000000e84081f591ac20857d20633c",
+      "version": 0,
+      "xattrsPersisted": true,
+      "status": "succeeded",
+      "downloadUrl": "https://chatgpt.com/api/library/files/libfile_2a461531294c81918cb60ef8f631a7a4/download"
+    }
+  ],
+  "preservation": {
+    "originalWeb": {
+      "path": "/Users/wikki/Desktop/Accord_project/accord_web_v2",
+      "head": "46ed81c979adbb862140e65e25d412314b4ad0a1",
+      "trackedStatus": []
+    },
+    "backend": {
+      "path": "/Users/wikki/Desktop/Accord_project/mini_rs_erp",
+      "head": "fd59167ca005d522a8fb102e18ff4c80a380807e",
+      "trackedStatus": []
+    },
+    "mobile": {
+      "path": "/Users/wikki/Desktop/Accord_project/accord_mobile_v2",
+      "head": "bc96f1ce492c3e1708294aa9acb23e6a5e5e63ed",
+      "trackedStatus": [
+        " M android/app/src/main/kotlin/com/example/accord_mobile_v2/BluetoothPrinterChannel.kt",
+        " M ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved",
+        " M ios/Runner.xcworkspace/xcshareddata/swiftpm/Package.resolved",
+        " M ios/Runner/XPrinterBluetoothChannel.swift",
+        " M lib/src/core/native_bluetooth_printer.dart",
+        " M lib/src/features/admin/presentation/admin_production_map_orders_layer_remainders.dart",
+        " M lib/src/features/admin/presentation/admin_production_map_orders_live_state.dart",
+        " M lib/src/features/admin/presentation/admin_production_map_orders_screen_state.dart",
+        " M lib/src/features/admin/presentation/admin_production_map_orders_screen_widgets.dart",
+        " M pubspec.yaml",
+        " M test/admin_production_map_test_screen_test.dart",
+        " M test/admin_production_map_test_screen_test_cases_resplit_part_06.dart",
+        " M test/admin_production_map_worker_recovery_test_part.dart",
+        " M test/material_data_matrix_test.dart",
+        " M test/native_bluetooth_printer_test.dart",
+        " M test/paddon_bluetooth_label_test.dart",
+        " M test/paddon_print_workflow_test.dart"
+      ]
+    }
+  },
+  "remainingLimits": [
+    "No physical USB/Bluetooth/network print acceptance or native print confirmation; browser print-dialog events cannot prove paper output.",
+    "Scanner/camera integration remains an unimplemented W12 frontend/runtime subset.",
+    "Worker-visibility editing, credentials and persistent access/security changes are outside this authorized slice.",
+    "Native free-movement setter has no CAS or command receipt; two-flag preflight is best effort.",
+    "Current report/settings GET is observation, not proof of a lost original command.",
+    "Recovery is session-scoped RAM; full reload/logout/identity change loses intent.",
+    "Existing bounded feeds, transport retransmission and successor-delete FK limits remain.",
+    "The full54-row acceptance matrix retains broader frontend/native/hardware gaps; complete parity and production readiness are not certified."
+  ],
+  "prohibitedActionsPerformed": {
+    "productionErpAccess": false,
+    "productionDbWrites": false,
+    "physicalPrinterJobs": false,
+    "nativeMobileEdits": false,
+    "authAccessSecurityEdits": false,
+    "push": false,
+    "merge": false,
+    "deployment": false
+  },
+  "libraryResult": "PADDON_LABEL_SETTINGS_LIBRARY_RESULT.json",
+  "nextAuthorizedSlice": "Order-list lazy thumbnails and click-to-enlarge; inspect native/mobile image contracts read-only, no backend changes."
+}

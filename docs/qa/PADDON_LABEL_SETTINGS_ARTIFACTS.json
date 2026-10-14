@@ -1,0 +1,62 @@
+[
+  {
+    "localFile": "deliverables/accord-demo-paddon-qr-label-light.png",
+    "absolutePath": "/Users/wikki/Desktop/Accord_project/sandbox/accord_web_quality/docs/qa/deliverables/accord-demo-paddon-qr-label-light.png",
+    "sourceCapture": "docs/qa/paddon-label/2026-10-14T14-46-16-315Z/qr-real-render-leading-zeroes-and-native-weights-preview.png",
+    "sourceRevision": "94cfa58247427ae2bbb3a5eb77733a6363a8a8af",
+    "captureReport": "docs/qa/paddon-label/2026-10-14T14-46-16-315Z/results.json",
+    "synthetic": true,
+    "sha256": "3c3a7bacea504ea6ddb3eb12ade2bb4660af349d9fc551d7fb7b3259c18c6986",
+    "libraryFileId": "libfile_c53344d59bbc81919714903636563cac",
+    "fileId": "file_000000001808820e9667c207cce805f3",
+    "version": 0,
+    "xattrsPersisted": true,
+    "status": "succeeded",
+    "downloadUrl": "https://chatgpt.com/api/library/files/libfile_c53344d59bbc81919714903636563cac/download"
+  },
+  {
+    "localFile": "deliverables/accord-demo-paddon-qr-label-mobile-dark.png",
+    "absolutePath": "/Users/wikki/Desktop/Accord_project/sandbox/accord_web_quality/docs/qa/deliverables/accord-demo-paddon-qr-label-mobile-dark.png",
+    "sourceCapture": "docs/qa/paddon-label/2026-10-14T14-46-16-315Z/label-mobile-short-footer-scroll-and-focus-label-top.png",
+    "sourceRevision": "94cfa58247427ae2bbb3a5eb77733a6363a8a8af",
+    "captureReport": "docs/qa/paddon-label/2026-10-14T14-46-16-315Z/results.json",
+    "synthetic": true,
+    "sha256": "6b81de03bb5a60ad8e7bd8ffef411e654669ec553972d3b3eacff9d6ce8416d7",
+    "libraryFileId": "libfile_df6476f5b03c8191b0034450137356b3",
+    "fileId": "file_00000000f0b481f59e3c4919b7b64bee",
+    "version": 0,
+    "xattrsPersisted": true,
+    "status": "succeeded",
+    "downloadUrl": "https://chatgpt.com/api/library/files/libfile_df6476f5b03c8191b0034450137356b3/download"
+  },
+  {
+    "localFile": "deliverables/accord-demo-active-paddon-compact-light.png",
+    "absolutePath": "/Users/wikki/Desktop/Accord_project/sandbox/accord_web_quality/docs/qa/deliverables/accord-demo-active-paddon-compact-light.png",
+    "sourceCapture": "docs/qa/paddon-label/2026-10-14T14-46-16-315Z/handoff-desktop-fixed-footer-and-keyboard-scroll-handoff-status.png",
+    "sourceRevision": "94cfa58247427ae2bbb3a5eb77733a6363a8a8af",
+    "captureReport": "docs/qa/paddon-label/2026-10-14T14-46-16-315Z/results.json",
+    "synthetic": true,
+    "sha256": "de3024c93d97b9598266c14eacc834ed50d55ca3f384f7df56d30b223be95cb2",
+    "libraryFileId": "libfile_30746a1ca8b081918e4c6d229fac2488",
+    "fileId": "file_000000004d6481faaf35e3a1733e94d8",
+    "version": 0,
+    "xattrsPersisted": true,
+    "status": "succeeded",
+    "downloadUrl": "https://chatgpt.com/api/library/files/libfile_30746a1ca8b081918e4c6d229fac2488/download"
+  },
+  {
+    "localFile": "deliverables/accord-demo-paddon-free-movement-mobile-dark.png",
+    "absolutePath": "/Users/wikki/Desktop/Accord_project/sandbox/accord_web_quality/docs/qa/deliverables/accord-demo-paddon-free-movement-mobile-dark.png",
+    "sourceCapture": "docs/qa/paddon-label/2026-10-14T14-46-16-315Z/settings-mobile-short-fixed-footer-focus-settings-mobile.png",
+    "sourceRevision": "94cfa58247427ae2bbb3a5eb77733a6363a8a8af",
+    "captureReport": "docs/qa/paddon-label/2026-10-14T14-46-16-315Z/results.json",
+    "synthetic": true,
+    "sha256": "2a6a825e116bcfbc97d4f67dcf6ffceb33b17923c17fa2b4344e3417fdeafb7c",
+    "libraryFileId": "libfile_2a461531294c81918cb60ef8f631a7a4",
+    "fileId": "file_00000000e84081f591ac20857d20633c",
+    "version": 0,
+    "xattrsPersisted": true,
+    "status": "succeeded",
+    "downloadUrl": "https://chatgpt.com/api/library/files/libfile_2a461531294c81918cb60ef8f631a7a4/download"
+  }
+]

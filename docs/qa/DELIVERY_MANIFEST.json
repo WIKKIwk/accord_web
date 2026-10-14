@@ -10,7 +10,10 @@
     "apparatusCollections": "bc94a341927b0c85a0d33d35845179f30ec192db",
     "paddonAdministration": "110650c58b2ad8a2832e690e4ff99aec430ff8ca",
     "paddonActiveHandoff": "332f3c915d1511709b0cc80148854f459941d436",
-    "paddonHandoffUnknownWording": "48e1a6ba98692416878769183f278d7c24274954"
+    "paddonHandoffUnknownWording": "48e1a6ba98692416878769183f278d7c24274954",
+    "paddonQrLabels": "26fbde577eb812800a279641148bca53fea20fb6",
+    "paddonFreeMovementSettings": "94cfa58247427ae2bbb3a5eb77733a6363a8a8af",
+    "paddonCompactHandoff": "26fbde577eb812800a279641148bca53fea20fb6"
   },
   "entries": [
     {
@@ -110,6 +113,58 @@
       "sourceRevision": "48e1a6ba98692416878769183f278d7c24274954",
       "synthetic": true,
       "captureReport": "paddon-handoff/2026-10-14T13-23-25-207Z/results.json"
+    },
+    {
+      "localFile": "deliverables/accord-demo-paddon-qr-label-light.png",
+      "libraryFileId": "libfile_c53344d59bbc81919714903636563cac",
+      "fileId": "file_000000001808820e9667c207cce805f3",
+      "version": 0,
+      "xattrsPersisted": true,
+      "status": "succeeded",
+      "sourceRevision": "94cfa58247427ae2bbb3a5eb77733a6363a8a8af",
+      "synthetic": true,
+      "sha256": "3c3a7bacea504ea6ddb3eb12ade2bb4660af349d9fc551d7fb7b3259c18c6986",
+      "captureReport": "paddon-label/2026-10-14T14-46-16-315Z/results.json",
+      "metadataReport": "PADDON_LABEL_SETTINGS_LIBRARY_RESULT.json"
+    },
+    {
+      "localFile": "deliverables/accord-demo-paddon-qr-label-mobile-dark.png",
+      "libraryFileId": "libfile_df6476f5b03c8191b0034450137356b3",
+      "fileId": "file_00000000f0b481f59e3c4919b7b64bee",
+      "version": 0,
+      "xattrsPersisted": true,
+      "status": "succeeded",
+      "sourceRevision": "94cfa58247427ae2bbb3a5eb77733a6363a8a8af",
+      "synthetic": true,
+      "sha256": "6b81de03bb5a60ad8e7bd8ffef411e654669ec553972d3b3eacff9d6ce8416d7",
+      "captureReport": "paddon-label/2026-10-14T14-46-16-315Z/results.json",
+      "metadataReport": "PADDON_LABEL_SETTINGS_LIBRARY_RESULT.json"
+    },
+    {
+      "localFile": "deliverables/accord-demo-active-paddon-compact-light.png",
+      "libraryFileId": "libfile_30746a1ca8b081918e4c6d229fac2488",
+      "fileId": "file_000000004d6481faaf35e3a1733e94d8",
+      "version": 0,
+      "xattrsPersisted": true,
+      "status": "succeeded",
+      "sourceRevision": "94cfa58247427ae2bbb3a5eb77733a6363a8a8af",
+      "synthetic": true,
+      "sha256": "de3024c93d97b9598266c14eacc834ed50d55ca3f384f7df56d30b223be95cb2",
+      "captureReport": "paddon-label/2026-10-14T14-46-16-315Z/results.json",
+      "metadataReport": "PADDON_LABEL_SETTINGS_LIBRARY_RESULT.json"
+    },
+    {
+      "localFile": "deliverables/accord-demo-paddon-free-movement-mobile-dark.png",
+      "libraryFileId": "libfile_2a461531294c81918cb60ef8f631a7a4",
+      "fileId": "file_00000000e84081f591ac20857d20633c",
+      "version": 0,
+      "xattrsPersisted": true,
+      "status": "succeeded",
+      "sourceRevision": "94cfa58247427ae2bbb3a5eb77733a6363a8a8af",
+      "synthetic": true,
+      "sha256": "2a6a825e116bcfbc97d4f67dcf6ffceb33b17923c17fa2b4344e3417fdeafb7c",
+      "captureReport": "paddon-label/2026-10-14T14-46-16-315Z/results.json",
+      "metadataReport": "PADDON_LABEL_SETTINGS_LIBRARY_RESULT.json"
     }
   ]
 }
