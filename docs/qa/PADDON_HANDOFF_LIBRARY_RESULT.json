@@ -1,0 +1,32 @@
+{
+  "synthetic": true,
+  "productionVerified": false,
+  "localFile": "deliverables/accord-demo-active-paddon-light.png",
+  "result": {
+    "operation": "create_library_file",
+    "status": "succeeded",
+    "path": "/accord-demo-active-paddon-light.png",
+    "file_id": "file_000000004d9882109633e05a76fcaf7c",
+    "library_file_id": "libfile_3f08749dc5188191a4eaec3d802f4a29",
+    "file_name": "accord-demo-active-paddon-light.png",
+    "current_version_number": 0,
+    "restored_from_version_number": null,
+    "xattrs": [
+      {
+        "name": "user.library-file-version",
+        "value": "0"
+      }
+    ],
+    "directory_id": "libdir_095f362455848191b4a1e8aba0afd354",
+    "mime_type": "image/png",
+    "library_artifact_type": "image",
+    "file_size_bytes": 199267,
+    "external_connectors_accessed": false
+  },
+  "xattrsPersisted": true,
+  "appliedAttributeNames": [
+    "user.library-file-version",
+    "user.library-file-id"
+  ],
+  "metadataMethod": "Current Library create tool contract; Darwin xattr direct application. Skill package unavailable after tool refresh; no prior helper reused."
+}

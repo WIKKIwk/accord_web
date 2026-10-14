@@ -1,0 +1,615 @@
+{
+  "synthetic": true,
+  "productionVerified": false,
+  "sourceRevision": "48e1a6ba98692416878769183f278d7c24274954",
+  "implementationRevision": "332f3c915d1511709b0cc80148854f459941d436",
+  "branch": "codex/web-apparatus-collections-20261014",
+  "baseRevision": "bbccba57ba8fb2f5a3b7b47499efc64ac431ecd8",
+  "originalMain": "46ed81c979adbb862140e65e25d412314b4ad0a1",
+  "routes": [
+    "/app/paddons",
+    "/app/apparatus?selected=<canonical Cut ID>",
+    "/app/orders?view=queue&apparatus=<canonical Cut ID>"
+  ],
+  "preview": {
+    "buildDirectory": "/tmp/accord-web-quality-static-paddon-handoff-final-ncuoPG",
+    "ports": [
+      5184,
+      5186
+    ],
+    "fixtureOrigin": "http://127.0.0.1:5199",
+    "fixtureVersion": 13
+  },
+  "sourceTests": {
+    "sourceRevision": "48e1a6ba98692416878769183f278d7c24274954",
+    "command": "node node_modules/vitest/vitest.mjs run --reporter=json --outputFile=/tmp/accord-web-handoff-final48-unit-results.json",
+    "passed": 1421,
+    "failed": 0,
+    "files": 80,
+    "handoffApi": 50,
+    "handoffUi": 5,
+    "rawReportSha256": "3f7b45b84af71960b9ec3af12b6c97dade05f902f248ae1a95aade0953315f64",
+    "fileResults": [
+      {
+        "file": "src/components/FactoryMapViewer.test.ts",
+        "tests": 5,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/admin-identity-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/apparatus-admin-controls.test.tsx",
+        "tests": 9,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/apparatus-collection-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/apparatus-planning-controls.test.tsx",
+        "tests": 5,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/calculator-management-controls.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/domain-metrics.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/factory-stage-strip.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/inventory-admin-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/manufacturing-recorded-analytics.test.tsx",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/manufacturing-time-timeline.test.tsx",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/manufacturing-time-views.test.tsx",
+        "tests": 10,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/material-catalog-controls.test.tsx",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/material-intake-controls.test.tsx",
+        "tests": 3,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/material-link-request-controls.test.tsx",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/paddon-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/paddon-handoff-controls.test.tsx",
+        "tests": 5,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-assignment-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-completion-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-order-controls.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-sequence-queue.test.tsx",
+        "tests": 11,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/progress-passport-controls.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/raw-material-controls.test.tsx",
+        "tests": 11,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/raw-material-rule-controls.test.tsx",
+        "tests": 3,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/resource-create-controls.test.tsx",
+        "tests": 5,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/wip-admin-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/worker-group-controls.test.tsx",
+        "tests": 9,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/worker-group-overview.test.tsx",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/worker-profile-controls.test.tsx",
+        "tests": 9,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/admin-identity.test.ts",
+        "tests": 33,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/api.test.ts",
+        "tests": 60,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/apparatus-admin.test.ts",
+        "tests": 33,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/apparatus-collections.test.ts",
+        "tests": 89,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/apparatus-planning.test.ts",
+        "tests": 26,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/calculator-management.test.ts",
+        "tests": 34,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/catalog-admin.test.ts",
+        "tests": 17,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/dashboard.test.ts",
+        "tests": 11,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/dashboardcn-analytics.test.ts",
+        "tests": 30,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/existing-map.test.ts",
+        "tests": 29,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-cad-isolation.test.ts",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-cad-theme.test.ts",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-map-selection.test.ts",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-map.test.ts",
+        "tests": 43,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-stage-navigation.test.ts",
+        "tests": 14,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/inventory-admin.test.ts",
+        "tests": 28,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/manufacturing-data.test.ts",
+        "tests": 13,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/manufacturing-time.test.ts",
+        "tests": 24,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/material-catalog.test.ts",
+        "tests": 29,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/material-intake.test.ts",
+        "tests": 24,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/material-link-requests.test.ts",
+        "tests": 26,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/mutation-scope.test.ts",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/navigation.test.ts",
+        "tests": 35,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/nested-dialog-escape.test.ts",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/order-draft.test.ts",
+        "tests": 14,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/paddon-handoff.test.ts",
+        "tests": 50,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/paddons.test.ts",
+        "tests": 69,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/permissions.test.ts",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-assignment.test.ts",
+        "tests": 26,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-completion.test.ts",
+        "tests": 27,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-controls.test.ts",
+        "tests": 22,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-map.test.ts",
+        "tests": 17,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-operation-ledger.test.ts",
+        "tests": 21,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-sequence.test.ts",
+        "tests": 35,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/progress-passport.test.ts",
+        "tests": 25,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/qa-safety.test.ts",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/raw-material-admin.test.ts",
+        "tests": 22,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/raw-material-rules.test.ts",
+        "tests": 20,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/reduced-motion.test.ts",
+        "tests": 3,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/resource-create.test.ts",
+        "tests": 28,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/resource-list.test.ts",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/session.test.ts",
+        "tests": 22,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/use-factory-map.test.ts",
+        "tests": 18,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/wip-admin.test.ts",
+        "tests": 39,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/worker-group-analytics.test.ts",
+        "tests": 20,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/worker-groups.test.ts",
+        "tests": 63,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/worker-profile.test.ts",
+        "tests": 18,
+        "status": "passed"
+      },
+      {
+        "file": "src/pages/DashboardPage.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/pages/SystemPages.test.ts",
+        "tests": 14,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/dashboardcn/composed-chart.test.tsx",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/dashboardcn/primitives.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      }
+    ]
+  },
+  "fixtureTests": {
+    "command": "node --test tests/fixtures/*.test.mjs",
+    "passed": 225,
+    "failed": 0,
+    "newPureHandoff": 23,
+    "newMountedIntegration": 9,
+    "rawReportSha256": "fafe4ef90ae2fb145db349d15a767dc3fdeaa2c1cc7a25edd16a8b7b46e46889"
+  },
+  "typecheck": {
+    "command": "node node_modules/typescript/bin/tsc -b --pretty false",
+    "status": "passed"
+  },
+  "focusedLint": {
+    "command": "/tmp/accord-web-quality-npm/_npx/35625a6d79362d8c/node_modules/oxlint/bin/oxlint src/lib/paddon-handoff.ts src/lib/paddon-handoff.test.ts src/components/paddon-handoff-controls.tsx src/components/paddon-handoff-controls.test.tsx src/pages/PaddonsPage.tsx tests/fixtures/erp-paddon-handoff.mjs tests/fixtures/erp-paddon-handoff.test.mjs tests/fixtures/erp-paddon-handoff.integration.test.mjs tests/browser/paddon-handoff.mjs",
+    "errors": 0,
+    "warnings": 1,
+    "warning": "react(set-state-in-effect): initial machine selection synchronizes the asynchronous server catalog once and remains pinned while search results change",
+    "rawReportSha256": "9d9a5c73f99697a2a94fa45b58ed7d30d2f74ce97cd41bcd9f4b459f59691753"
+  },
+  "productionBuild": {
+    "command": "node node_modules/vite/bin/vite.js build --outDir /tmp/accord-web-quality-production-paddon-handoff-final-XKyTeh",
+    "status": "passed",
+    "qaApiOverride": false,
+    "sourceRevision": "48e1a6ba98692416878769183f278d7c24274954",
+    "logSha256": "11fe68bb518df4457882a830c665713fdcc04bc8bd64177d461cf024b2b1d7ee"
+  },
+  "qaBuild": {
+    "command": "VITE_QA_API_ORIGIN=http://127.0.0.1:5199 node node_modules/vite/bin/vite.js build --outDir /tmp/accord-web-quality-static-paddon-handoff-final-ncuoPG",
+    "status": "passed",
+    "sourceRevision": "48e1a6ba98692416878769183f278d7c24274954",
+    "logSha256": "e953487c4f5c52f6babd0e213f26165b7b94dc190c5630e99d76bdc6645d2f25"
+  },
+  "browser": [
+    {
+      "feature": "paddonHandoff",
+      "passed": 37,
+      "failed": 0,
+      "sourceRevision": "332f3c915d1511709b0cc80148854f459941d436",
+      "buildDirectory": "/tmp/accord-web-quality-static-paddon-handoff-committed-4bNiHh",
+      "report": "paddon-handoff/2026-10-14T13-16-37-866Z/results.json",
+      "sha256": "78275ca1490fba97e46b56536cdca97dadde9b700214977abd60f7ae77778628"
+    },
+    {
+      "feature": "paddonHandoffFinalViewport",
+      "passed": 4,
+      "failed": 0,
+      "sourceRevision": "48e1a6ba98692416878769183f278d7c24274954",
+      "buildDirectory": "/tmp/accord-web-quality-static-paddon-handoff-final-ncuoPG",
+      "report": "paddon-handoff/2026-10-14T13-23-25-207Z/results.json",
+      "sha256": "72081a61eb17775b6ac136031c7002943faa9bb8645fde572d9ca3ed38236b88"
+    },
+    {
+      "feature": "paddonDirectory",
+      "passed": 35,
+      "failed": 0,
+      "sourceRevision": "332f3c915d1511709b0cc80148854f459941d436",
+      "buildDirectory": "/tmp/accord-web-quality-static-paddon-handoff-committed-4bNiHh",
+      "report": "paddons/2026-10-14T13-18-55-409Z/results.json",
+      "sha256": "aecdbf6f3e7bd784e220170b34663f64e1fb52f1ffcd6e75e5bb59ef63f10c7a"
+    },
+    {
+      "feature": "apparatusCollections",
+      "passed": 25,
+      "failed": 0,
+      "sourceRevision": "332f3c915d1511709b0cc80148854f459941d436",
+      "buildDirectory": "/tmp/accord-web-quality-static-paddon-handoff-committed-4bNiHh",
+      "report": "apparatus-collections/2026-10-14T13-20-39-799Z/results.json",
+      "sha256": "ab4fe8c54be6774fcb7c7828dcc5a03e320096fb8dc8f2f6cf197ab42772e613"
+    },
+    {
+      "feature": "workerGroups",
+      "passed": 25,
+      "failed": 0,
+      "sourceRevision": "48e1a6ba98692416878769183f278d7c24274954",
+      "buildDirectory": "/tmp/accord-web-quality-static-paddon-handoff-final-ncuoPG",
+      "report": "worker-groups/2026-10-14T13-24-39-401Z/results.json",
+      "sha256": "01e1a321a631cc2080aa6a20bc4f6c67df99410304d0c20f861dbddf22514d01"
+    },
+    {
+      "feature": "queueReorder",
+      "passed": 12,
+      "failed": 0,
+      "sourceRevision": "48e1a6ba98692416878769183f278d7c24274954",
+      "buildDirectory": "/tmp/accord-web-quality-static-paddon-handoff-final-ncuoPG",
+      "report": "sequence-reorder/2026-10-14T13-26-35-731Z/results.json",
+      "sha256": "3f37ab1a053abb54bc56ce3d21fb425f48d69a905ea38ab95ef87860a046b1ce"
+    },
+    {
+      "feature": "dashboardcn",
+      "passed": 18,
+      "failed": 0,
+      "sourceRevision": "332f3c915d1511709b0cc80148854f459941d436",
+      "buildDirectory": "/tmp/accord-web-quality-static-paddon-handoff-committed-4bNiHh",
+      "report": "dashboardcn/2026-10-14T13-18-29-147Z/capture-evidence.json",
+      "sha256": "53e964d68884aaa24cbe0a567f7d547cb9f6264885b7ba36269cf17f2ad91146"
+    }
+  ],
+  "browserCommands": [
+    "PLAYWRIGHT_PACKAGE_PATH=/tmp/accord-web-quality-qa/node_modules/playwright/index.mjs PLAYWRIGHT_BROWSERS_PATH=/tmp/accord-web-quality-browsers QA_SOURCE_REV=332f3c915d1511709b0cc80148854f459941d436 QA_BUILD_DIR=/tmp/accord-web-quality-static-paddon-handoff-committed-4bNiHh node tests/browser/paddon-handoff.mjs",
+    "PLAYWRIGHT_PACKAGE_PATH=/tmp/accord-web-quality-qa/node_modules/playwright/index.mjs PLAYWRIGHT_BROWSERS_PATH=/tmp/accord-web-quality-browsers QA_SOURCE_REV=48e1a6ba98692416878769183f278d7c24274954 QA_BUILD_DIR=/tmp/accord-web-quality-static-paddon-handoff-final-ncuoPG node tests/browser/paddon-handoff.mjs --only=admin-select-clear-native-fields,operator-next-confirmation-and-reuse,unknown-next-observes-concurrent-choice-no-proof,mobile-dark-reduced-motion-active-selection --viewport-capture",
+    "PLAYWRIGHT_PACKAGE_PATH=/tmp/accord-web-quality-qa/node_modules/playwright/index.mjs PLAYWRIGHT_BROWSERS_PATH=/tmp/accord-web-quality-browsers QA_SOURCE_REV=332f3c915d1511709b0cc80148854f459941d436 QA_BUILD_DIR=/tmp/accord-web-quality-static-paddon-handoff-committed-4bNiHh node tests/browser/paddons.mjs",
+    "PLAYWRIGHT_PACKAGE_PATH=/tmp/accord-web-quality-qa/node_modules/playwright/index.mjs PLAYWRIGHT_BROWSERS_PATH=/tmp/accord-web-quality-browsers QA_SOURCE_REV=332f3c915d1511709b0cc80148854f459941d436 QA_BUILD_DIR=/tmp/accord-web-quality-static-paddon-handoff-committed-4bNiHh node tests/browser/apparatus-collections.mjs",
+    "PLAYWRIGHT_PACKAGE_PATH=/tmp/accord-web-quality-qa/node_modules/playwright/index.mjs PLAYWRIGHT_BROWSERS_PATH=/tmp/accord-web-quality-browsers QA_SOURCE_REV=48e1a6ba98692416878769183f278d7c24274954 QA_BUILD_DIR=/tmp/accord-web-quality-static-paddon-handoff-final-ncuoPG node tests/browser/worker-groups.mjs",
+    "PLAYWRIGHT_PACKAGE_PATH=/tmp/accord-web-quality-qa/node_modules/playwright/index.mjs PLAYWRIGHT_BROWSERS_PATH=/tmp/accord-web-quality-browsers QA_SOURCE_REV=48e1a6ba98692416878769183f278d7c24274954 QA_BUILD_DIR=/tmp/accord-web-quality-static-paddon-handoff-final-ncuoPG node tests/browser/sequence-reorder.mjs",
+    "PLAYWRIGHT_PACKAGE_PATH=/tmp/accord-web-quality-qa/node_modules/playwright/index.mjs PLAYWRIGHT_BROWSERS_PATH=/tmp/accord-web-quality-browsers QA_SOURCE_REV=332f3c915d1511709b0cc80148854f459941d436 QA_BUILD_DIR=/tmp/accord-web-quality-static-paddon-handoff-committed-4bNiHh node tests/browser/dashboardcn.mjs"
+  ],
+  "sourceEvidenceNote": "Full37-case handoff and directory/collection/dashboard regressions ran on332f3c9. Final48e1a6b changes only the unknown-error wording and its assertion; final1421/80 unit gate,55 focused tests, typecheck/lint/builds,4 true-viewport handoff cases and group/queue regressions pass. Immutable reports retain their actual source revisions.",
+  "reviewedVisuals": [
+    "paddon-handoff/2026-10-14T13-23-25-207Z/admin-select-clear-native-fields-selected.png",
+    "paddon-handoff/2026-10-14T13-23-25-207Z/mobile-dark-reduced-motion-active-selection-selection.png",
+    "paddon-handoff/2026-10-14T13-23-25-207Z/unknown-next-observes-concurrent-choice-no-proof-observation.png"
+  ],
+  "library": {
+    "localFile": "deliverables/accord-demo-active-paddon-light.png",
+    "libraryFileId": "libfile_3f08749dc5188191a4eaec3d802f4a29",
+    "fileId": "file_000000004d9882109633e05a76fcaf7c",
+    "version": 0,
+    "xattrsPersisted": true,
+    "sha256": "eee7b913f7ca806e7dd5281812888551bd6b9c7dbd61fa2c75c94429a6e4e747",
+    "metadataReport": "PADDON_HANDOFF_LIBRARY_RESULT.json"
+  },
+  "localMobileScreenshot": {
+    "file": "deliverables/accord-demo-active-paddon-mobile-dark.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "fullPage": false,
+    "synthetic": true,
+    "sourceRevision": "48e1a6ba98692416878769183f278d7c24274954",
+    "sha256": "acf777cf03ce4edce1b688cadb8a4d86e27f4b95e0577973504801d1b2193895"
+  },
+  "independentReview": {
+    "model": "gpt-6.1-sol",
+    "effort": "max",
+    "result": "No open P1/P2 after pinned machine selection, source lock-cycle preflight and mapped-successor deletion FK fixes; final retry/integration/harness deltas reviewed. The wording-only visual-review correction was subsequently verified by root with55 focused tests and4 final viewport cases.",
+    "nativeTestsExecuted": false
+  },
+  "nativeLimits": [
+    "No native active-selection CAS, lock-cycle CAS, idempotency key or command-receipt lookup.",
+    "Fresh preflight is best effort; native state can change before dispatch and summary enrichment can fail after a committed write.",
+    "Repeated next reuses but unconditionally reselects a successor, so it can replace another device's newer selection.",
+    "Active GET is a current observation; matching values do not prove ownership or outcome of a lost write.",
+    "Active GET filters locked/received/invisible selections to null without erasing the stored preference.",
+    "Canonical apparatus GET uses a separate guard; queue.manage alone is insufficient. Existing admin workspace entry is retained.",
+    "Next requires actual aparatchi role plus assigned active Cut; every assigned apparatus is resolved, so an invalid unrelated assignment can also fail.",
+    "Visible locked source need not be current, unreceived, empty, or locked by this actor. Reused open successor may contain batches.",
+    "Unused mapped successor deletion currently fails500/store_failed through native FK NO ACTION until source unlock removes the mapping.",
+    "Catalog500 and selectable200 are bounded feeds with no whole-system total/pagination guarantee.",
+    "Recovery intent is actor/session RAM only; reload/logout/identity changes lose accessible recovery.",
+    "Application no-replay does not prohibit browser/transport retransmission; the408 boundary case records its synthetic interception explicitly."
+  ],
+  "remaining": [
+    "Paddon printing and QR reporting/scanning",
+    "Native print confirmation and physical printer acceptance",
+    "S08 paddon settings",
+    "Broader native/mobile runtime and production acceptance"
+  ],
+  "preservation": {
+    "originalWebClean": true,
+    "backendClean": true,
+    "mobileModifiedPathsPreserved": 17,
+    "backendRevision": "fd59167ca005d522a8fb102e18ff4c80a380807e",
+    "mobileRevision": "bc96f1ce492c3e1708294aa9acb23e6a5e5e63ed",
+    "dependenciesChanged": false,
+    "authenticationOrAccessSettingsChanged": false,
+    "pushed": false,
+    "merged": false,
+    "deployed": false,
+    "productionAccess": false,
+    "actualPrinterOutput": false
+  },
+  "diagnostics": {
+    "acceptedFullHandoffReport": "paddon-handoff/2026-10-14T13-16-37-866Z/results.json",
+    "excluded": [
+      "paddon-handoff/2026-10-14T13-06-59-041Z/results.json",
+      "paddon-handoff/2026-10-14T13-08-20-042Z/results.json"
+    ],
+    "reason": "Initial harness compared redacted code values and attempted to save the already-selected code. Fixed before accepted37-case run. No failed report is current acceptance."
+  }
+}
