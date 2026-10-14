@@ -16,6 +16,8 @@ import { workerGroupFixtureRoute, seedWorkerGroupScenario } from './erp-worker-g
 import { apparatusCollectionFixtureRoute, seedApparatusCollectionScenario } from './erp-apparatus-collections.mjs';
 import { createPaddonFixtureExtension } from './erp-paddons.mjs';
 import { paddonHandoffFixtureRoute, seedPaddonHandoffScenario, attachPaddonHandoffOutputs } from './erp-paddon-handoff.mjs';
+import { paddonLabelFixtureRoute, seedPaddonLabelScenario } from './erp-paddon-label.mjs';
+import { paddonManagementFixtureRoute, seedPaddonManagementScenario } from './erp-paddon-management.mjs';
 
 const base = '/v1/mobile/admin';
 const clone = value => structuredClone(value);
@@ -30,7 +32,7 @@ const error = (status, code, detail) => response({ error: code, ...(detail ? { d
 const capabilityLabels = Object.fromEntries(fixtureCapabilities.map(code => [code, `QA ${code}`]));
 const configDefaults = () => ({ capabilities: [...fixtureCapabilities], assignedWarehouses: [], assignedApparatus: [], profileOverride: null, rules: [], partialMoveCodes: [], orderEditLocked: false, workerDeleteBlocked: false, emptyProduction: false, unknownOrderStatuses: [], blockedDeleteCodes: [], emptyClosedHistory: false, manufacturingReportMode: 'partial', manufacturingDemoCohort: false, manufacturingDemoInvalidRecord: false });
 const queueVersion = ids => createHash('sha256').update(JSON.stringify(ids)).digest('hex');
-const fixtureVersion = 13;
+const fixtureVersion = 14;
 const phone = value => { let digits = string(value).replace(/\D/g, ''); if (digits.length === 9) digits = `998${digits}`; return digits ? `+${digits}` : ''; };
 const workerLevels = ['Brigader', 'Master', '1 - darajali', '2 - darajali', '3 - darajali'];
 const systemRoles = ['qolipchi', 'boyoqchi', 'tayyorlov_masteri', 'homashyo_rezkachi'];
@@ -217,6 +219,8 @@ export function createFixture() {
     if (path === '/__qa/apparatus-collections' && method === 'POST') return seedApparatusCollectionScenario(state, body);
     if (path === '/__qa/paddons' && method === 'POST') return paddons.seed(body);
     if (path === '/__qa/paddon-handoff' && method === 'POST') return seedPaddonHandoffScenario(state, body);
+    if (path === '/__qa/paddon-label' && method === 'POST') return seedPaddonLabelScenario(state, body);
+    if (path === '/__qa/paddon-management' && method === 'POST') return seedPaddonManagementScenario(state, body);
     if (path === '/__qa/opening-wip' && method === 'POST') {
       const record = state.openingWip.find(record => record.batches.some(batch => batch.batch_id === body?.batch_id)), batch = record?.batches.find(batch => batch.batch_id === body.batch_id);
       if (!batch) return error(404, 'opening_wip_not_found');
@@ -258,6 +262,8 @@ export function createFixture() {
     if (path === '/v1/mobile/me' && method === 'GET') return response(actorProfile);
     if (path === '/v1/mobile/auth/logout' && method === 'POST') { state.sessions.delete(token); return response({ ok: true }); }
     const extensionContext = { method, path, query, body, headers, state, config, requires, profile: actorProfile, bump, findOrder, compile, snapshot, equal };
+    const paddonLabel = paddonLabelFixtureRoute(extensionContext); if (paddonLabel) return paddonLabel;
+    const paddonManagement = paddonManagementFixtureRoute(extensionContext); if (paddonManagement) return paddonManagement;
     const paddonHandoff = paddonHandoffFixtureRoute(extensionContext); if (paddonHandoff) return paddonHandoff;
     const paddonResult = paddons.route(extensionContext); if (paddonResult) return paddonResult;
     const apparatusCollections = apparatusCollectionFixtureRoute(extensionContext); if (apparatusCollections) return apparatusCollections;
