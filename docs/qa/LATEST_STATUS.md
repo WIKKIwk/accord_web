@@ -1,5 +1,7 @@
 # Current verified milestones
 
+**Apparatus queue reordering is committed and verified in `477cbea`.** Orders → Apparat navbati has mouse/touch/keyboard handles and arrow alternatives with native version checks, frozen/running/paused/preflight locks and exact-key recovery. Focused browser suite **12/12**, full web tests **1,161/72 suites**, fixture checks **139/139**, typecheck/build and lint with zero errors pass. [Checkpoint](SEQUENCE_REORDER_CHECKPOINT.md) · [verification](SEQUENCE_REORDER_VERIFICATION.json). Library light screenshot: `libfile_92afcf13aa74819196b352b9e8c0bee5`. This completes the focused reorder table; the remaining parity matrix and RAM-only hard-reload limitation remain explicit.
+
 **CAD switching is fixed, committed and served on 5184.** `d2f0bbd` separates direct apparatus isolation from the retained first-order route. Before the fix, selecting B left its selection highlighted but cleared the viewed stage and reverted to factory overview. Direct A→B→C→A→B now remains isolated in both themes; explicit Overview exits.81 focused tests and31 real browser states passed, with nine captures. Original geometry/contours/canvas and native order/status facts remain intact.
 
 CAD screenshots: light `libfile_006fd0150fe48191863f3a9f76533574`, dark `libfile_40ab11072ac48191b1ecc410a79bc6ae`, both version0. [Light](https://chatgpt.com/api/library/files/libfile_006fd0150fe48191863f3a9f76533574/download) · [Dark](https://chatgpt.com/api/library/files/libfile_40ab11072ac48191b1ecc410a79bc6ae/download).

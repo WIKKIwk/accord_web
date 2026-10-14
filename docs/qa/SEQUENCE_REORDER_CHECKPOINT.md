@@ -45,9 +45,9 @@ epoch change; merely reading a matching queue does not resolve an unknown write.
   conflict, loss + identical automatic retry, uncertain tab remount/read/recovery,
   interrupted save + exact-key recovery, HTTP403 no commit, mobile reduced-motion
   arrows, and real touch sensor drag.
-- Report: `sequence-reorder/2026-10-14T00-48-52-111Z/results.json`.
-- Served build: `/tmp/accord-web-quality-static-sequence-focus-9SvPQF`, entry
-  `index-CAioaJDC.js`, from this focused source increment atop `621cdb6`.
+- Report: `sequence-reorder/2026-10-14T00-52-25-010Z/results.json`.
+- Served build: `/tmp/accord-web-quality-static-sequence-committed-VqItXl`, entry
+  `index-CAioaJDC.js`, from application commit `477cbea7841fb9f353991fa9d83521c6e9e917b7` atop `621cdb6`.
 - Local previews on ports 5184/5186, synthetic API on 5199; only verified
   task-owned processes were restarted. No production ERP/API/DB was accessed.
 
@@ -65,3 +65,6 @@ reads, not full browser reload or logout; there is no fabricated persistent
 receipt store. Native constraints and data are verified locally with synthetic
 fixtures, not against production. Third-party provenance/licenses are in
 `../third-party/sequence-reorder.md`.
+
+Synthetic light queue screenshot: Library `libfile_92afcf13aa74819196b352b9e8c0bee5`.
+Full final metrics are in `SEQUENCE_REORDER_VERIFICATION.json`.

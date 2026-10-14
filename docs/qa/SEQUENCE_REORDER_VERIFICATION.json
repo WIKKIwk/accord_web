@@ -1,0 +1,49 @@
+{
+  "application_commit": "477cbea7841fb9f353991fa9d83521c6e9e917b7",
+  "prior_commit": "621cdb6de943da1845e2c678ac29741d1d2ee60e",
+  "production_verified": false,
+  "backend_mobile_write_count": 0,
+  "web_tests": {
+    "passed": 1161,
+    "suites": 72,
+    "preserved_unmounted_worker_group_tests": 68
+  },
+  "fixture_tests": {
+    "passed": 139,
+    "version": 9,
+    "preserved_unmounted_worker_group_tests": 12
+  },
+  "focused_tests": {
+    "passed": 96,
+    "suites": 5
+  },
+  "typecheck": "passed",
+  "build": {
+    "status": "passed",
+    "directory": "/tmp/accord-web-quality-static-sequence-committed-VqItXl",
+    "entry": "/assets/index-CAioaJDC.js",
+    "entry_sha256": "7dd991c932d58b67ce4546f2f11e08ebde46bc66b4183c2f8c62f661ff3d0c6c"
+  },
+  "lint": {
+    "errors": 0,
+    "warnings": 12,
+    "scope": "changed application files"
+  },
+  "browser": {
+    "report": "docs/qa/sequence-reorder/2026-10-14T00-52-25-010Z/results.json",
+    "passed": 12,
+    "outside_requests": 0,
+    "uncaught_page_errors": 0
+  },
+  "screenshots": {
+    "light": "docs/qa/sequence-reorder/2026-10-14T00-52-25-010Z/pointer-save-light-passed.png",
+    "dark": "docs/qa/sequence-reorder/2026-10-14T00-52-25-010Z/keyboard-save-dark-passed.png",
+    "mobile_touch": "docs/qa/sequence-reorder/2026-10-14T00-52-25-010Z/mobile-touch-drag-passed.png",
+    "library_light_id": "libfile_92afcf13aa74819196b352b9e8c0bee5"
+  },
+  "remaining_limits": [
+    "Full ERP parity has existing gaps; this checkpoint covers the focused apparatus sequence table.",
+    "Unknown commands remain in RAM across same-session component remounts/read refresh, not full browser reload/logout.",
+    "No production data or runtime acceptance was performed."
+  ]
+}

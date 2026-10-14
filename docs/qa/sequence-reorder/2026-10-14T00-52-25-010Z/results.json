@@ -1,0 +1,2423 @@
+{
+  "synthetic": true,
+  "productionVerified": false,
+  "runId": "2026-10-14T00-52-25-010Z",
+  "sourceRevision": "477cbea7841fb9f353991fa9d83521c6e9e917b7",
+  "buildDirectory": "/tmp/accord-web-quality-static-sequence-committed-VqItXl",
+  "fixtureVersion": 9,
+  "web": "http://127.0.0.1:5186",
+  "api": "http://127.0.0.1:5199",
+  "outcomes": [
+    {
+      "id": "pointer-save-light",
+      "status": "passed",
+      "screenshots": [
+        {
+          "file": "pointer-save-light-before.png",
+          "route": "http://127.0.0.1:5186/app/orders?view=queue&apparatus=apparatus%3Aqa%3Aprint-1",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "theme": null,
+          "settling": {
+            "settled": true,
+            "remaining": 0
+          }
+        },
+        {
+          "file": "pointer-save-light-review.png",
+          "route": "http://127.0.0.1:5186/app/orders?view=queue&apparatus=apparatus%3Aqa%3Aprint-1",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "theme": null,
+          "settling": {
+            "settled": true,
+            "remaining": 0
+          }
+        },
+        {
+          "file": "pointer-save-light-passed.png",
+          "route": "http://127.0.0.1:5186/app/orders?view=queue&apparatus=apparatus%3Aqa%3Aprint-1",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "theme": null,
+          "settling": {
+            "settled": true,
+            "remaining": 0
+          }
+        }
+      ],
+      "requests": [
+        {
+          "sequence": 1,
+          "method": "POST",
+          "path": "/v1/mobile/auth/login",
+          "query": {},
+          "body": {
+            "phone": "[redacted]",
+            "code": "[redacted]"
+          },
+          "authorized": false,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 2,
+          "method": "GET",
+          "path": "/v1/mobile/me",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 3,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 4,
+          "method": "GET",
+          "path": "/v1/mobile/admin/apparatus",
+          "query": {
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 5,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 6,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 7,
+          "method": "POST",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": {
+            "apparatus": "apparatus:qa:print-1",
+            "order_id": "zakaz-qa-4105",
+            "expected_version": "8791574e4e7da63da6d86d5727759ba184facf1acb9358b37ca27493bf572b07",
+            "idempotency_key": "0257b909-3c77-4540-8848-1e714b4ed762",
+            "before_order_id": "zakaz-qa-4103"
+          },
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 8,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 9,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 10,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        }
+      ],
+      "durationMs": 2351
+    },
+    {
+      "id": "keyboard-save-dark",
+      "status": "passed",
+      "screenshots": [
+        {
+          "file": "keyboard-save-dark-passed.png",
+          "route": "http://127.0.0.1:5186/app/orders?view=queue&apparatus=apparatus%3Aqa%3Aprint-1",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "theme": "dark",
+          "settling": {
+            "settled": true,
+            "remaining": 0
+          }
+        }
+      ],
+      "keyboardTrace": [
+        {
+          "label": "picked",
+          "rows": [
+            {
+              "id": "zakaz-qa-4101",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 0px, 0px) scaleX(1) scaleY(1);",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4102",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 0px, 0px) scaleX(1) scaleY(1);",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4103",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 0px, 0px) scaleX(1) scaleY(1);",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4104",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 0px, 0px) scaleX(1) scaleY(1);",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4105",
+              "dragging": "true",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 0px, 0px) scaleX(1) scaleY(1);",
+              "pressed": "true"
+            },
+            {
+              "id": "zakaz-qa-4107",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 0px, 0px) scaleX(1) scaleY(1);",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4106",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 0px, 0px) scaleX(1) scaleY(1);",
+              "pressed": null
+            }
+          ],
+          "live": [
+            "",
+            "qa-4105: qa-4105 o‘rniga surilmoqda.",
+            ""
+          ]
+        },
+        {
+          "label": "up-one",
+          "rows": [
+            {
+              "id": "zakaz-qa-4101",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 0px, 0px) scaleX(1) scaleY(1);",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4102",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 0px, 0px) scaleX(1) scaleY(1);",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4103",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 0px, 0px) scaleX(1) scaleY(1);",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4104",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 55px, 0px) scaleX(1) scaleY(1);",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4105",
+              "dragging": "true",
+              "style": "transition: transform 200ms; transform: translate3d(0px, -55px, 0px) scaleX(1) scaleY(1);",
+              "pressed": "true"
+            },
+            {
+              "id": "zakaz-qa-4107",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 0px, 0px) scaleX(1) scaleY(1);",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4106",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 0px, 0px) scaleX(1) scaleY(1);",
+              "pressed": null
+            }
+          ],
+          "live": [
+            "",
+            "qa-4105: qa-4104 o‘rniga surilmoqda.",
+            ""
+          ]
+        },
+        {
+          "label": "up-two",
+          "rows": [
+            {
+              "id": "zakaz-qa-4101",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 0px, 0px) scaleX(1) scaleY(1);",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4102",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 0px, 0px) scaleX(1) scaleY(1);",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4103",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 55px, 0px) scaleX(1) scaleY(1);",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4104",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 55px, 0px) scaleX(1) scaleY(1);",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4105",
+              "dragging": "true",
+              "style": "transition: transform 200ms; transform: translate3d(0px, -110px, 0px) scaleX(1) scaleY(1);",
+              "pressed": "true"
+            },
+            {
+              "id": "zakaz-qa-4107",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 0px, 0px) scaleX(1) scaleY(1);",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4106",
+              "style": "transition: transform 200ms; transform: translate3d(0px, 0px, 0px) scaleX(1) scaleY(1);",
+              "pressed": null
+            }
+          ],
+          "live": [
+            "",
+            "qa-4105: qa-4103 o‘rniga surilmoqda.",
+            ""
+          ]
+        },
+        {
+          "label": "dropped",
+          "rows": [
+            {
+              "id": "zakaz-qa-4101",
+              "style": "",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4102",
+              "style": "",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4105",
+              "style": "",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4103",
+              "style": "",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4104",
+              "style": "",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4107",
+              "style": "",
+              "pressed": null
+            },
+            {
+              "id": "zakaz-qa-4106",
+              "style": "",
+              "pressed": null
+            }
+          ],
+          "live": [
+            "qa-4105: 5-o‘rindan 3-o‘ringa. Saqlashni tasdiqlang.",
+            "qa-4105 qo‘yildi. Yangi o‘rinni saqlashni tasdiqlang.",
+            ""
+          ]
+        }
+      ],
+      "requests": [
+        {
+          "sequence": 1,
+          "method": "POST",
+          "path": "/v1/mobile/auth/login",
+          "query": {},
+          "body": {
+            "phone": "[redacted]",
+            "code": "[redacted]"
+          },
+          "authorized": false,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 2,
+          "method": "GET",
+          "path": "/v1/mobile/me",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 3,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 4,
+          "method": "GET",
+          "path": "/v1/mobile/admin/apparatus",
+          "query": {
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 5,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 6,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 7,
+          "method": "POST",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": {
+            "apparatus": "apparatus:qa:print-1",
+            "order_id": "zakaz-qa-4105",
+            "expected_version": "8791574e4e7da63da6d86d5727759ba184facf1acb9358b37ca27493bf572b07",
+            "idempotency_key": "fecef8d3-576f-4974-94ab-a66865657a89",
+            "before_order_id": "zakaz-qa-4103"
+          },
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 8,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 9,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 10,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        }
+      ],
+      "durationMs": 1823
+    },
+    {
+      "id": "arrow-save-repeated",
+      "status": "passed",
+      "screenshots": [
+        {
+          "file": "arrow-save-repeated-passed.png",
+          "route": "http://127.0.0.1:5186/app/orders?view=queue&apparatus=apparatus%3Aqa%3Aprint-1",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "theme": null,
+          "settling": {
+            "settled": true,
+            "remaining": 0
+          }
+        }
+      ],
+      "requests": [
+        {
+          "sequence": 1,
+          "method": "POST",
+          "path": "/v1/mobile/auth/login",
+          "query": {},
+          "body": {
+            "phone": "[redacted]",
+            "code": "[redacted]"
+          },
+          "authorized": false,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 2,
+          "method": "GET",
+          "path": "/v1/mobile/me",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 3,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 4,
+          "method": "GET",
+          "path": "/v1/mobile/admin/apparatus",
+          "query": {
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 5,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 6,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 7,
+          "method": "POST",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": {
+            "apparatus": "apparatus:qa:print-1",
+            "order_id": "zakaz-qa-4104",
+            "expected_version": "8791574e4e7da63da6d86d5727759ba184facf1acb9358b37ca27493bf572b07",
+            "idempotency_key": "f63c32a0-c878-4d54-9d59-01f499bff7c8",
+            "before_order_id": "zakaz-qa-4103"
+          },
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 8,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 9,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 10,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 11,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 12,
+          "method": "POST",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": {
+            "apparatus": "apparatus:qa:print-1",
+            "order_id": "zakaz-qa-4104",
+            "expected_version": "451b856d64d38ab466e614c63650f80824f0048b2eb34babd54e0aeac411e792",
+            "idempotency_key": "90ca668a-0fc9-4300-8f1c-95e1db799992",
+            "before_order_id": "zakaz-qa-4105"
+          },
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 13,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 14,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 15,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        }
+      ],
+      "durationMs": 2059
+    },
+    {
+      "id": "locked-barrier-clamp",
+      "status": "passed",
+      "screenshots": [
+        {
+          "file": "locked-barrier-clamp-passed.png",
+          "route": "http://127.0.0.1:5186/app/orders?view=queue&apparatus=apparatus%3Aqa%3Aprint-1",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "theme": null,
+          "settling": {
+            "settled": true,
+            "remaining": 0
+          }
+        }
+      ],
+      "requests": [
+        {
+          "sequence": 1,
+          "method": "POST",
+          "path": "/v1/mobile/auth/login",
+          "query": {},
+          "body": {
+            "phone": "[redacted]",
+            "code": "[redacted]"
+          },
+          "authorized": false,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 2,
+          "method": "GET",
+          "path": "/v1/mobile/me",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 3,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 4,
+          "method": "GET",
+          "path": "/v1/mobile/admin/apparatus",
+          "query": {
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 5,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 6,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 7,
+          "method": "POST",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": {
+            "apparatus": "apparatus:qa:print-1",
+            "order_id": "zakaz-qa-4105",
+            "expected_version": "8791574e4e7da63da6d86d5727759ba184facf1acb9358b37ca27493bf572b07",
+            "idempotency_key": "0ce85d95-8e47-42c3-9d7d-15d1b3ac68c4",
+            "before_order_id": "zakaz-qa-4103"
+          },
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 8,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 9,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 10,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        }
+      ],
+      "durationMs": 2025
+    },
+    {
+      "id": "search-and-cancel-no-writes",
+      "status": "passed",
+      "screenshots": [
+        {
+          "file": "search-and-cancel-no-writes-passed.png",
+          "route": "http://127.0.0.1:5186/app/orders?view=queue&apparatus=apparatus%3Aqa%3Aprint-1",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "theme": null,
+          "settling": {
+            "settled": true,
+            "remaining": 0
+          }
+        }
+      ],
+      "requests": [
+        {
+          "sequence": 1,
+          "method": "POST",
+          "path": "/v1/mobile/auth/login",
+          "query": {},
+          "body": {
+            "phone": "[redacted]",
+            "code": "[redacted]"
+          },
+          "authorized": false,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 2,
+          "method": "GET",
+          "path": "/v1/mobile/me",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 3,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 4,
+          "method": "GET",
+          "path": "/v1/mobile/admin/apparatus",
+          "query": {
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 5,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        }
+      ],
+      "durationMs": 2170
+    },
+    {
+      "id": "fresh-version-conflict-before-write",
+      "status": "passed",
+      "screenshots": [
+        {
+          "file": "fresh-version-conflict-before-write-passed.png",
+          "route": "http://127.0.0.1:5186/app/orders?view=queue&apparatus=apparatus%3Aqa%3Aprint-1",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "theme": null,
+          "settling": {
+            "settled": true,
+            "remaining": 0
+          }
+        }
+      ],
+      "requests": [
+        {
+          "sequence": 1,
+          "method": "POST",
+          "path": "/v1/mobile/auth/login",
+          "query": {},
+          "body": {
+            "phone": "[redacted]",
+            "code": "[redacted]"
+          },
+          "authorized": false,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 2,
+          "method": "GET",
+          "path": "/v1/mobile/me",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 3,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 4,
+          "method": "GET",
+          "path": "/v1/mobile/admin/apparatus",
+          "query": {
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 5,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 6,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 7,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 8,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 9,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 10,
+          "method": "POST",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": {
+            "apparatus": "apparatus:qa:print-1",
+            "order_id": "zakaz-qa-4105",
+            "expected_version": "f14dc35c853b70c75de3677bb6211e2905371b123c5f0c831e30defd8dd67d8f",
+            "idempotency_key": "bd59fe2b-f743-495f-89a5-fd43928ba70f",
+            "before_order_id": "zakaz-qa-4104"
+          },
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 11,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 12,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 13,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        }
+      ],
+      "durationMs": 2267
+    },
+    {
+      "id": "single-loss-exact-auto-retry",
+      "status": "passed",
+      "screenshots": [
+        {
+          "file": "single-loss-exact-auto-retry-passed.png",
+          "route": "http://127.0.0.1:5186/app/orders?view=queue&apparatus=apparatus%3Aqa%3Aprint-1",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "theme": null,
+          "settling": {
+            "settled": true,
+            "remaining": 0
+          }
+        }
+      ],
+      "requests": [
+        {
+          "sequence": 1,
+          "method": "POST",
+          "path": "/v1/mobile/auth/login",
+          "query": {},
+          "body": {
+            "phone": "[redacted]",
+            "code": "[redacted]"
+          },
+          "authorized": false,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 2,
+          "method": "GET",
+          "path": "/v1/mobile/me",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 3,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 4,
+          "method": "GET",
+          "path": "/v1/mobile/admin/apparatus",
+          "query": {
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 5,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 6,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 7,
+          "method": "POST",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": {
+            "apparatus": "apparatus:qa:print-1",
+            "order_id": "zakaz-qa-4105",
+            "expected_version": "8791574e4e7da63da6d86d5727759ba184facf1acb9358b37ca27493bf572b07",
+            "idempotency_key": "27020402-cfb5-4b6d-a9f8-7ca2717b1c69",
+            "before_order_id": "zakaz-qa-4103"
+          },
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": "lost",
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 8,
+          "method": "POST",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": {
+            "apparatus": "apparatus:qa:print-1",
+            "order_id": "zakaz-qa-4105",
+            "expected_version": "8791574e4e7da63da6d86d5727759ba184facf1acb9358b37ca27493bf572b07",
+            "idempotency_key": "27020402-cfb5-4b6d-a9f8-7ca2717b1c69",
+            "before_order_id": "zakaz-qa-4103"
+          },
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 9,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 10,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 11,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        }
+      ],
+      "durationMs": 2040
+    },
+    {
+      "id": "unknown-remount-read-recovery",
+      "status": "passed",
+      "screenshots": [
+        {
+          "file": "unknown-remount-read-recovery-passed.png",
+          "route": "http://127.0.0.1:5186/app/orders?apparatus=apparatus%3Aqa%3Aprint-1&view=queue",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "theme": null,
+          "settling": {
+            "settled": true,
+            "remaining": 0
+          }
+        }
+      ],
+      "requests": [
+        {
+          "sequence": 1,
+          "method": "POST",
+          "path": "/v1/mobile/auth/login",
+          "query": {},
+          "body": {
+            "phone": "[redacted]",
+            "code": "[redacted]"
+          },
+          "authorized": false,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 2,
+          "method": "GET",
+          "path": "/v1/mobile/me",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 3,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 4,
+          "method": "GET",
+          "path": "/v1/mobile/admin/apparatus",
+          "query": {
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 5,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 6,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 7,
+          "method": "POST",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": {
+            "apparatus": "apparatus:qa:print-1",
+            "order_id": "zakaz-qa-4105",
+            "expected_version": "8791574e4e7da63da6d86d5727759ba184facf1acb9358b37ca27493bf572b07",
+            "idempotency_key": "5322500e-417d-4428-af4a-b3d1aaaa23f8",
+            "before_order_id": "zakaz-qa-4103"
+          },
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": "lost",
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 8,
+          "method": "POST",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": {
+            "apparatus": "apparatus:qa:print-1",
+            "order_id": "zakaz-qa-4105",
+            "expected_version": "8791574e4e7da63da6d86d5727759ba184facf1acb9358b37ca27493bf572b07",
+            "idempotency_key": "5322500e-417d-4428-af4a-b3d1aaaa23f8",
+            "before_order_id": "zakaz-qa-4103"
+          },
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": "lost",
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 9,
+          "method": "GET",
+          "path": "/v1/mobile/me",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 10,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 11,
+          "method": "POST",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": {
+            "apparatus": "apparatus:qa:print-1",
+            "order_id": "zakaz-qa-4105",
+            "expected_version": "8791574e4e7da63da6d86d5727759ba184facf1acb9358b37ca27493bf572b07",
+            "idempotency_key": "5322500e-417d-4428-af4a-b3d1aaaa23f8",
+            "before_order_id": "zakaz-qa-4103"
+          },
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 12,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 13,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 14,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        }
+      ],
+      "durationMs": 2508
+    },
+    {
+      "id": "interrupted-save-retains-command",
+      "status": "passed",
+      "screenshots": [
+        {
+          "file": "interrupted-save-retains-command-passed.png",
+          "route": "http://127.0.0.1:5186/app/orders?view=queue&apparatus=apparatus%3Aqa%3Aprint-1",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "theme": null,
+          "settling": {
+            "settled": true,
+            "remaining": 0
+          }
+        }
+      ],
+      "requests": [
+        {
+          "sequence": 1,
+          "method": "POST",
+          "path": "/v1/mobile/auth/login",
+          "query": {},
+          "body": {
+            "phone": "[redacted]",
+            "code": "[redacted]"
+          },
+          "authorized": false,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 2,
+          "method": "GET",
+          "path": "/v1/mobile/me",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 3,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 4,
+          "method": "GET",
+          "path": "/v1/mobile/admin/apparatus",
+          "query": {
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 5,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 6,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 7,
+          "method": "POST",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": {
+            "apparatus": "apparatus:qa:print-1",
+            "order_id": "zakaz-qa-4105",
+            "expected_version": "8791574e4e7da63da6d86d5727759ba184facf1acb9358b37ca27493bf572b07",
+            "idempotency_key": "977e0971-9c84-449a-bd49-7aa195588aad",
+            "before_order_id": "zakaz-qa-4103"
+          },
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 8,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 9,
+          "method": "POST",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": {
+            "apparatus": "apparatus:qa:print-1",
+            "order_id": "zakaz-qa-4105",
+            "expected_version": "8791574e4e7da63da6d86d5727759ba184facf1acb9358b37ca27493bf572b07",
+            "idempotency_key": "977e0971-9c84-449a-bd49-7aa195588aad",
+            "before_order_id": "zakaz-qa-4103"
+          },
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 10,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 11,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 12,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        }
+      ],
+      "durationMs": 2569
+    },
+    {
+      "id": "permission-refusal-no-commit",
+      "status": "passed",
+      "screenshots": [
+        {
+          "file": "permission-refusal-no-commit-passed.png",
+          "route": "http://127.0.0.1:5186/app/orders?view=queue&apparatus=apparatus%3Aqa%3Aprint-1",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "theme": null,
+          "settling": {
+            "settled": true,
+            "remaining": 0
+          }
+        }
+      ],
+      "requests": [
+        {
+          "sequence": 1,
+          "method": "POST",
+          "path": "/v1/mobile/auth/login",
+          "query": {},
+          "body": {
+            "phone": "[redacted]",
+            "code": "[redacted]"
+          },
+          "authorized": false,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 2,
+          "method": "GET",
+          "path": "/v1/mobile/me",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 3,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 4,
+          "method": "GET",
+          "path": "/v1/mobile/admin/apparatus",
+          "query": {
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 5,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 6,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 7,
+          "method": "POST",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": {
+            "apparatus": "apparatus:qa:print-1",
+            "order_id": "zakaz-qa-4105",
+            "expected_version": "8791574e4e7da63da6d86d5727759ba184facf1acb9358b37ca27493bf572b07",
+            "idempotency_key": "42fd4d41-936b-49ee-b499-b19c77321cd7",
+            "before_order_id": "zakaz-qa-4103"
+          },
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 403,
+          "error": "forbidden",
+          "invalidJson": false,
+          "responseOverridden": false
+        }
+      ],
+      "durationMs": 1774
+    },
+    {
+      "id": "mobile-buttons-reduced-motion",
+      "status": "passed",
+      "screenshots": [
+        {
+          "file": "mobile-buttons-reduced-motion-passed.png",
+          "route": "http://127.0.0.1:5186/app/orders?view=queue&apparatus=apparatus%3Aqa%3Aprint-1",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "theme": null,
+          "settling": {
+            "settled": true,
+            "remaining": 0
+          }
+        }
+      ],
+      "requests": [
+        {
+          "sequence": 1,
+          "method": "POST",
+          "path": "/v1/mobile/auth/login",
+          "query": {},
+          "body": {
+            "phone": "[redacted]",
+            "code": "[redacted]"
+          },
+          "authorized": false,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 2,
+          "method": "GET",
+          "path": "/v1/mobile/me",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 3,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 4,
+          "method": "GET",
+          "path": "/v1/mobile/admin/apparatus",
+          "query": {
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 5,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 6,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 7,
+          "method": "POST",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": {
+            "apparatus": "apparatus:qa:print-1",
+            "order_id": "zakaz-qa-4104",
+            "expected_version": "8791574e4e7da63da6d86d5727759ba184facf1acb9358b37ca27493bf572b07",
+            "idempotency_key": "f5601ce0-6658-437a-a7f1-15bab975543b",
+            "before_order_id": "zakaz-qa-4103"
+          },
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 8,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 9,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 10,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        }
+      ],
+      "durationMs": 1354
+    },
+    {
+      "id": "mobile-touch-drag",
+      "status": "passed",
+      "screenshots": [
+        {
+          "file": "mobile-touch-drag-passed.png",
+          "route": "http://127.0.0.1:5186/app/orders?view=queue&apparatus=apparatus%3Aqa%3Aprint-1",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "theme": null,
+          "settling": {
+            "settled": true,
+            "remaining": 0
+          }
+        }
+      ],
+      "requests": [
+        {
+          "sequence": 1,
+          "method": "POST",
+          "path": "/v1/mobile/auth/login",
+          "query": {},
+          "body": {
+            "phone": "[redacted]",
+            "code": "[redacted]"
+          },
+          "authorized": false,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 2,
+          "method": "GET",
+          "path": "/v1/mobile/me",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 3,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 4,
+          "method": "GET",
+          "path": "/v1/mobile/admin/apparatus",
+          "query": {
+            "limit": "500"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 5,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 6,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 7,
+          "method": "POST",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": {
+            "apparatus": "apparatus:qa:print-1",
+            "order_id": "zakaz-qa-4105",
+            "expected_version": "8791574e4e7da63da6d86d5727759ba184facf1acb9358b37ca27493bf572b07",
+            "idempotency_key": "b1a0dc99-f253-4bd5-8207-592e6514ccda",
+            "before_order_id": "zakaz-qa-4103"
+          },
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 8,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 9,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 10,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/sequence",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        }
+      ],
+      "durationMs": 2658
+    }
+  ],
+  "outside": [],
+  "pageErrors": []
+}
