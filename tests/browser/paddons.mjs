@@ -6,6 +6,7 @@ import { fixtureLogin, fixtureToken } from '../fixtures/erp-seed.mjs';
 const web = 'http://127.0.0.1:5186', api = 'http://127.0.0.1:5199', path = '/v1/mobile/admin/production-maps/paddons';
 const runId = new Date().toISOString().replace(/[:.]/g, '-'), output = fileURLToPath(new URL(`../../docs/qa/paddons/${runId}/`, import.meta.url));
 const selectedCases = process.argv.find(arg => arg.startsWith('--only='))?.slice(7).split(',');
+const viewportCapture = process.argv.includes('--viewport-capture');
 const allowed = new Set([web, api]), outside = [], pageErrors = [], outcomes = [];
 const sourceRevision = process.env.QA_SOURCE_REV || 'unrecorded';
 const previewMetadata = JSON.parse(await readFile('/tmp/accord-web-quality-local-5186.json', 'utf8'));
@@ -33,7 +34,7 @@ async function confirmReview(kind) { await (await enabled(button(kind === 'delet
 async function capture(label) {
   await page.evaluate(() => { let badge = document.getElementById('qa-paddons-demo'); if (!badge) { badge = document.createElement('div'); badge.id = 'qa-paddons-demo'; document.body.append(badge); } badge.textContent = 'DEMO · Sintetik · Paddonlar'; Object.assign(badge.style, { position: 'fixed', bottom: '6px', right: '6px', zIndex: '2147483647', pointerEvents: 'none', padding: '3px 7px', border: '1px solid #737373', borderRadius: '4px', background: document.documentElement.classList.contains('dark') ? '#171717' : '#fff', color: document.documentElement.classList.contains('dark') ? '#d4d4d4' : '#171717', font: '500 10px/15px system-ui' }); });
   await page.evaluate(async () => { let stable = 0, start = performance.now(); while (stable < 2 && performance.now() - start < 1600) { await new Promise(requestAnimationFrame); stable = document.getAnimations().some(animation => animation.playState === 'running' && Number.isFinite(Number(animation.effect?.getComputedTiming().endTime))) ? 0 : stable + 1; } });
-  const file = `${outcome.id}-${label}.png`; await page.screenshot({ path: output + file, fullPage: true }); outcome.screenshots.push({ file, route: page.url(), viewport: page.viewportSize(), theme: await page.locator('html').getAttribute('class') });
+  const file = `${outcome.id}-${label}.png`; await page.screenshot({ path: output + file, fullPage: !viewportCapture }); outcome.screenshots.push({ file, route: page.url(), viewport: page.viewportSize(), fullPage: !viewportCapture, theme: await page.locator('html').getAttribute('class') });
 }
 async function run(id, execute, { scenario = 'paddons', capabilities, profileOverride, rules, denied = false, ...options } = {}) {
   if (selectedCases && !selectedCases.includes(id)) return;

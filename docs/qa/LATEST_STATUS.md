@@ -1,5 +1,15 @@
 # Current verified milestones
 
+**Paddon administration is implemented in `110650c`.** Open `/app/paddons` for native list/detail/create, unused deletion, atomic batch add/remove and authorized unlock. Fresh capability/state guards, explicit destructive confirmation, bounded feeds, authoritative product weights, retained uncertain intent and offline read-only observation are accepted. [Checkpoint](PADDON_CHECKPOINT.md) · [Verification](PADDON_VERIFICATION.json).
+
+The actual committed application passes paddons35/35, collections25/25, worker groups25/25, queue12/12 and dashboardcn18/18. Supplemental true-viewport captures pass2/2. Source tests1366/78 files and fixtures193/193 pass; typecheck and production/QA builds pass. Focused lint has zero errors and one Fast Refresh warning. Current preview5184/5186 serves `/tmp/accord-web-quality-static-paddons-committed-tGQuV2`. Library DEMO screenshot: `libfile_562fc5ae97a48191a5d45fed6316bdc8`, version0; local identity and xattrs are verified.
+
+Native responses provide no CAS/expected-mode/idempotency/receipt protocol. Response enrichment can fail after commit, snapshots remain observations, and recovery is RAM-only. Printing/QR work, print confirmation, active selection/successor handoff and S08 settings remain explicit W12/adjacent gaps. This does not certify complete parity or production readiness.
+
+Original web main `46ed81c` and backend `fd59167` remain clean. All 17 modified mobile paths at `bc96f1c` are preserved. No production access, push, merge, deployment, dependency or backend/mobile change occurred.
+
+## Retained collections checkpoint
+
 **Apparatus collections are implemented in `bc94a34`.** Open `/app/apparatus` → **Apparat guruhlari** for native create/edit/member replacement/delete. Read-only access, revision conflicts, duplicate-name correction, interrupted/unknown saves and retained bounded selections are accepted. [Checkpoint](COLLECTION_CHECKPOINT.md) · [Verification](COLLECTION_VERIFICATION.json).
 
 Committed-source browser gates pass collections 25/25, worker groups 25/25, queue 12/12 and dashboardcn 18/18. Full source tests pass 1,288/76 files; fixtures 167/167; typecheck and production/QA builds pass. Focused lint has zero errors and eight warnings. The current preview serves `/tmp/accord-web-quality-static-collections-committed-btbwUB` on 5184/5186, source `bc94a34`. Desktop/mobile rendering was visually reviewed. Library screenshot: `libfile_0ccc1139326481918bd05ac774ffcc5e`, version0.

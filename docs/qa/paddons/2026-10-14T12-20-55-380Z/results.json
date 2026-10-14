@@ -1,0 +1,198 @@
+{
+  "synthetic": true,
+  "productionVerified": false,
+  "runId": "2026-10-14T12-20-55-380Z",
+  "sourceRevision": "110650c58b2ad8a2832e690e4ff99aec430ff8ca",
+  "buildDirectory": "/tmp/accord-web-quality-static-paddons-committed-tGQuV2",
+  "fixtureVersion": 12,
+  "web": "http://127.0.0.1:5186",
+  "api": "http://127.0.0.1:5199",
+  "outcomes": [
+    {
+      "id": "directory-search-cancel-no-writes",
+      "status": "passed",
+      "screenshots": [
+        {
+          "file": "directory-search-cancel-no-writes-passed.png",
+          "route": "http://127.0.0.1:5186/app/paddons",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "fullPage": false,
+          "theme": null
+        }
+      ],
+      "requests": [
+        {
+          "sequence": 1,
+          "method": "POST",
+          "path": "/v1/mobile/auth/login",
+          "query": {},
+          "body": {
+            "phone": "[redacted]",
+            "code": "[redacted]"
+          },
+          "authorized": false,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 2,
+          "method": "GET",
+          "path": "/v1/mobile/me",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 3,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/paddons",
+          "query": {
+            "limit": "200"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 4,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/paddons/detail",
+          "query": {
+            "code": "[redacted]"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        }
+      ],
+      "durationMs": 1868
+    },
+    {
+      "id": "mobile-dark-reduced-motion-detail",
+      "status": "passed",
+      "screenshots": [
+        {
+          "file": "mobile-dark-reduced-motion-detail-detail.png",
+          "route": "http://127.0.0.1:5186/app/paddons",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "fullPage": false,
+          "theme": "dark"
+        },
+        {
+          "file": "mobile-dark-reduced-motion-detail-available.png",
+          "route": "http://127.0.0.1:5186/app/paddons",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "fullPage": false,
+          "theme": "dark"
+        },
+        {
+          "file": "mobile-dark-reduced-motion-detail-passed.png",
+          "route": "http://127.0.0.1:5186/app/paddons",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "fullPage": false,
+          "theme": "dark"
+        }
+      ],
+      "requests": [
+        {
+          "sequence": 1,
+          "method": "POST",
+          "path": "/v1/mobile/auth/login",
+          "query": {},
+          "body": {
+            "phone": "[redacted]",
+            "code": "[redacted]"
+          },
+          "authorized": false,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 2,
+          "method": "GET",
+          "path": "/v1/mobile/me",
+          "query": {},
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 3,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/paddons",
+          "query": {
+            "limit": "200"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        },
+        {
+          "sequence": 4,
+          "method": "GET",
+          "path": "/v1/mobile/admin/production-maps/paddons/detail",
+          "query": {
+            "code": "[redacted]"
+          },
+          "body": null,
+          "authorized": true,
+          "idempotencyKeyPresent": false,
+          "expectedRevisionHeader": null,
+          "status": 200,
+          "error": null,
+          "invalidJson": false,
+          "responseOverridden": false
+        }
+      ],
+      "durationMs": 1563
+    }
+  ],
+  "outside": [],
+  "pageErrors": []
+}

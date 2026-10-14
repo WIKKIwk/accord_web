@@ -7,7 +7,8 @@
     "cadSelection": "d2f0bbd",
     "genuineDashboardcn": "168c2c9",
     "workerGroupIntegration": "293ee29a0a48c7fd811794d1bf0b8769d71eb2d8",
-    "apparatusCollections": "bc94a341927b0c85a0d33d35845179f30ec192db"
+    "apparatusCollections": "bc94a341927b0c85a0d33d35845179f30ec192db",
+    "paddonAdministration": "110650c58b2ad8a2832e690e4ff99aec430ff8ca"
   },
   "entries": [
     {
@@ -84,6 +85,16 @@
       "captureReport": "apparatus-collections/2026-10-14T11-22-20-976Z/results.json",
       "sourceRevision": "bc94a341927b0c85a0d33d35845179f30ec192db",
       "localVersionAttributeWritten": true
+    },
+    {
+      "localFile": "deliverables/accord-demo-paddon-directory-light.png",
+      "libraryFileId": "libfile_562fc5ae97a48191a5d45fed6316bdc8",
+      "version": 0,
+      "fileId": "file_000000005240820d91de741879db9f23",
+      "status": "succeeded",
+      "sourceRevision": "110650c58b2ad8a2832e690e4ff99aec430ff8ca",
+      "synthetic": true,
+      "xattrsPersisted": true
     }
   ]
 }

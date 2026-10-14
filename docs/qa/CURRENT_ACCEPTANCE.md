@@ -2,7 +2,7 @@
 
 This is the current implementation matrix for the isolated web worktree, supplementing the immutable `e214d49` baseline audit in [PARITY_ACCEPTANCE.md](../PARITY_ACCEPTANCE.md). Every baseline workflow ID is retained below. **Implemented** means reachable real web controls, not complete browser acceptance or production readiness. Synthetic acceptance proves the exercised subset only. The backend and mobile remain independent, read-only projects.
 
-Current application/QA source: `bc94a341927b0c85a0d33d35845179f30ec192db`, branch `codex/web-apparatus-collections-20261014`, based on the accepted worker-group checkpoint `dff37ce`. Original main is preserved at `46ed81c`. S02 apparatus collections and C09 worker groups are now reachable and accepted in their bounded scopes. Preview 5184/5186 serves `/tmp/accord-web-quality-static-collections-committed-btbwUB`. All acceptance uses isolated Chromium and synthetic local fixtures. [Current collections evidence](COLLECTION_VERIFICATION.json) · [Worker-group checkpoint](WORKER_GROUP_INTEGRATION.md).
+Current application source: `110650c58b2ad8a2832e690e4ff99aec430ff8ca`, branch `codex/web-apparatus-collections-20261014`, based on the accepted collections checkpoint `abf3f02`. Original main is preserved at `46ed81c`. W12 paddon directory/membership/unlock, S02 apparatus collections and C09 worker groups are reachable and accepted in their bounded scopes. Preview 5184/5186 serves `/tmp/accord-web-quality-static-paddons-committed-tGQuV2`. All acceptance uses isolated Chromium and synthetic local fixtures. [Paddon checkpoint](PADDON_CHECKPOINT.md) · [Current verification](PADDON_VERIFICATION.json) · [Collections evidence](COLLECTION_VERIFICATION.json) · [Worker-group checkpoint](WORKER_GROUP_INTEGRATION.md).
 
 | ID | Current reachable implementation | Remaining scope or acceptance limit |
 | --- | --- | --- |
@@ -33,7 +33,7 @@ Current application/QA source: `bc94a341927b0c85a0d33d35845179f30ec192db`, branc
 | W09 | Raw stock read/history and assignment diagnostics | Stock quantity edits and raw-label reprint remain frontend/runtime gaps |
 | W10 | Native factory location create/edit/membership/retirement | No invented DELETE, CAS or undo |
 | W11 | Single-asset relocation/return and cross-warehouse transfer lifecycle | Multi-asset batch UI remains incomplete |
-| W12 | Related start/handoff controls preserve real input continuity | Paddon membership, active handoff and print-lock administration remain missing frontend scope |
+| W12 | Native `/app/paddons` directory/detail/create/unused delete/batch add/remove/authorized unlock; capability and fresh state guards; explicit uncertain-write review | Current paddon subset35/35 synthetic cases. Printing/QR reporting and scanning, print confirmation, active apparatus selection/successor handoff remain missing. Native has no CAS/expected-mode/idempotency/receipt lookup; bounded feeds and RAM recovery limits persist. |
 | C01 | Existing create plus native item edit/delete/customer assignment | Full acceptance combinations not certified |
 | C02 | Group create/reparent and validated single-item move receipt | Full multi-item selection across pages remains incomplete |
 | C03 | Native material/micron/density/GSM maintenance and active sequence; compact variant matrix | Singular native writes have no atomic companion transaction guarantee |

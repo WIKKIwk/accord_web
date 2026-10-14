@@ -1,0 +1,553 @@
+{
+  "synthetic": true,
+  "productionVerified": false,
+  "sourceRevision": "110650c58b2ad8a2832e690e4ff99aec430ff8ca",
+  "branch": "codex/web-apparatus-collections-20261014",
+  "baseRevision": "abf3f02c22df9e377b1526a009ffe835ae560d41",
+  "originalMain": "46ed81c979adbb862140e65e25d412314b4ad0a1",
+  "route": "/app/paddons",
+  "preview": {
+    "buildDirectory": "/tmp/accord-web-quality-static-paddons-committed-tGQuV2",
+    "ports": [
+      5184,
+      5186
+    ],
+    "fixtureOrigin": "http://127.0.0.1:5199",
+    "fixtureVersion": 12
+  },
+  "sourceTests": {
+    "command": "node node_modules/vitest/vitest.mjs run --reporter=json --outputFile=/tmp/accord-web-paddons-final-unit-results.json",
+    "passed": 1366,
+    "failed": 0,
+    "files": 78,
+    "paddonApi": 69,
+    "paddonUi": 8,
+    "addedRoutePermission": 1,
+    "rawReportSha256": "23f2860e51905fc096b2b7ddc41a4a568b1f6c5b374d4a109f9c065fc0ad347b",
+    "fileResults": [
+      {
+        "file": "src/components/FactoryMapViewer.test.ts",
+        "tests": 5,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/admin-identity-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/apparatus-admin-controls.test.tsx",
+        "tests": 9,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/apparatus-collection-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/apparatus-planning-controls.test.tsx",
+        "tests": 5,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/calculator-management-controls.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/domain-metrics.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/factory-stage-strip.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/inventory-admin-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/manufacturing-recorded-analytics.test.tsx",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/manufacturing-time-timeline.test.tsx",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/manufacturing-time-views.test.tsx",
+        "tests": 10,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/material-catalog-controls.test.tsx",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/material-intake-controls.test.tsx",
+        "tests": 3,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/material-link-request-controls.test.tsx",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/paddon-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-assignment-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-completion-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-order-controls.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/production-sequence-queue.test.tsx",
+        "tests": 11,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/progress-passport-controls.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/raw-material-controls.test.tsx",
+        "tests": 11,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/raw-material-rule-controls.test.tsx",
+        "tests": 3,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/resource-create-controls.test.tsx",
+        "tests": 5,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/wip-admin-controls.test.tsx",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/worker-group-controls.test.tsx",
+        "tests": 9,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/worker-group-overview.test.tsx",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/worker-profile-controls.test.tsx",
+        "tests": 9,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/admin-identity.test.ts",
+        "tests": 33,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/api.test.ts",
+        "tests": 60,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/apparatus-admin.test.ts",
+        "tests": 33,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/apparatus-collections.test.ts",
+        "tests": 89,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/apparatus-planning.test.ts",
+        "tests": 26,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/calculator-management.test.ts",
+        "tests": 34,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/catalog-admin.test.ts",
+        "tests": 17,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/dashboard.test.ts",
+        "tests": 11,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/dashboardcn-analytics.test.ts",
+        "tests": 30,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/existing-map.test.ts",
+        "tests": 29,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-cad-isolation.test.ts",
+        "tests": 4,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-cad-theme.test.ts",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-map-selection.test.ts",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-map.test.ts",
+        "tests": 43,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/factory-stage-navigation.test.ts",
+        "tests": 14,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/inventory-admin.test.ts",
+        "tests": 28,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/manufacturing-data.test.ts",
+        "tests": 13,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/manufacturing-time.test.ts",
+        "tests": 24,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/material-catalog.test.ts",
+        "tests": 29,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/material-intake.test.ts",
+        "tests": 24,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/material-link-requests.test.ts",
+        "tests": 26,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/mutation-scope.test.ts",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/navigation.test.ts",
+        "tests": 35,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/nested-dialog-escape.test.ts",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/order-draft.test.ts",
+        "tests": 14,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/paddons.test.ts",
+        "tests": 69,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/permissions.test.ts",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-assignment.test.ts",
+        "tests": 26,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-completion.test.ts",
+        "tests": 27,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-controls.test.ts",
+        "tests": 22,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-map.test.ts",
+        "tests": 17,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-operation-ledger.test.ts",
+        "tests": 21,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/production-sequence.test.ts",
+        "tests": 35,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/progress-passport.test.ts",
+        "tests": 25,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/qa-safety.test.ts",
+        "tests": 6,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/raw-material-admin.test.ts",
+        "tests": 22,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/raw-material-rules.test.ts",
+        "tests": 20,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/reduced-motion.test.ts",
+        "tests": 3,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/resource-create.test.ts",
+        "tests": 28,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/resource-list.test.ts",
+        "tests": 8,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/session.test.ts",
+        "tests": 22,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/use-factory-map.test.ts",
+        "tests": 18,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/wip-admin.test.ts",
+        "tests": 39,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/worker-group-analytics.test.ts",
+        "tests": 20,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/worker-groups.test.ts",
+        "tests": 63,
+        "status": "passed"
+      },
+      {
+        "file": "src/lib/worker-profile.test.ts",
+        "tests": 18,
+        "status": "passed"
+      },
+      {
+        "file": "src/pages/DashboardPage.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      },
+      {
+        "file": "src/pages/SystemPages.test.ts",
+        "tests": 14,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/dashboardcn/composed-chart.test.tsx",
+        "tests": 2,
+        "status": "passed"
+      },
+      {
+        "file": "src/components/dashboardcn/primitives.test.tsx",
+        "tests": 7,
+        "status": "passed"
+      }
+    ]
+  },
+  "fixtureTests": {
+    "command": "node --test tests/fixtures/*.test.mjs",
+    "passed": 193,
+    "failed": 0,
+    "paddonPure": 21,
+    "paddonIntegrated": 5
+  },
+  "typecheck": {
+    "command": "node node_modules/typescript/bin/tsc -b --pretty false",
+    "status": "passed"
+  },
+  "lint": {
+    "command": "/tmp/accord-web-quality-npm/_npx/35625a6d79362d8c/node_modules/oxlint/bin/oxlint src/components/paddon-controls.tsx src/components/paddon-controls.test.tsx src/pages/PaddonsPage.tsx src/lib/paddons.ts src/lib/paddons.test.ts tests/browser/paddons.mjs tests/fixtures/erp-paddons*.mjs",
+    "errors": 0,
+    "warnings": 1,
+    "warning": "Fast Refresh formatter export; no runtime failure"
+  },
+  "productionBuild": {
+    "command": "node node_modules/vite/bin/vite.js build --outDir /tmp/accord-web-quality-paddons-production-R9OmmF",
+    "status": "passed",
+    "qaApiOverride": false,
+    "contentMatchesApplicationSource": "110650c58b2ad8a2832e690e4ff99aec430ff8ca"
+  },
+  "qaBuild": {
+    "command": "VITE_QA_API_ORIGIN=http://127.0.0.1:5199 node node_modules/vite/bin/vite.js build --outDir /tmp/accord-web-quality-static-paddons-committed-tGQuV2",
+    "status": "passed",
+    "applicationSource": "110650c58b2ad8a2832e690e4ff99aec430ff8ca"
+  },
+  "browser": [
+    {
+      "feature": "paddons",
+      "passed": 35,
+      "failed": 0,
+      "report": "paddons/2026-10-14T12-15-59-761Z/results.json",
+      "sha256": "a569dd25b269aba1463bf65658951f2181efaa8bcf7eacea477d46581253a97c"
+    },
+    {
+      "feature": "paddonViewport",
+      "passed": 2,
+      "failed": 0,
+      "report": "paddons/2026-10-14T12-20-55-380Z/results.json",
+      "sha256": "77e918043b1f4cec00b9898cc5c196b86d5e78efc1d1da0ea648a4236a76878b"
+    },
+    {
+      "feature": "collections",
+      "passed": 25,
+      "failed": 0,
+      "report": "apparatus-collections/2026-10-14T12-17-51-006Z/results.json",
+      "sha256": "fc211c37e83a0166f6962c4238da1eea99ba9d840b6ea2a60eb80f04809d5f43"
+    },
+    {
+      "feature": "workerGroups",
+      "passed": 25,
+      "failed": 0,
+      "report": "worker-groups/2026-10-14T12-18-39-453Z/results.json",
+      "sha256": "f67c3da0ad622bc3583b3157f9c424c91bf1c5c9165f2cb472d16b98a7af161c"
+    },
+    {
+      "feature": "queue",
+      "passed": 12,
+      "failed": 0,
+      "report": "sequence-reorder/2026-10-14T12-19-31-134Z/results.json",
+      "sha256": "d3b8bfeeb1978a907eeb24b3054aac50edc0f308c44bccf557fef04b6b927982"
+    },
+    {
+      "feature": "dashboardcn",
+      "passed": 18,
+      "failed": 0,
+      "report": "dashboardcn/2026-10-14T12-17-20-188Z/capture-evidence.json",
+      "sha256": "87e125c377adec4bdd9826e43a2b58af095383abece987c5bc0b91672d46c376"
+    }
+  ],
+  "browserCommands": [
+    "PLAYWRIGHT_PACKAGE_PATH=/tmp/accord-web-quality-qa/node_modules/playwright/index.mjs PLAYWRIGHT_BROWSERS_PATH=/tmp/accord-web-quality-browsers QA_SOURCE_REV=110650c58b2ad8a2832e690e4ff99aec430ff8ca QA_BUILD_DIR=/tmp/accord-web-quality-static-paddons-committed-tGQuV2 node tests/browser/paddons.mjs",
+    "PLAYWRIGHT_PACKAGE_PATH=/tmp/accord-web-quality-qa/node_modules/playwright/index.mjs PLAYWRIGHT_BROWSERS_PATH=/tmp/accord-web-quality-browsers QA_SOURCE_REV=110650c58b2ad8a2832e690e4ff99aec430ff8ca QA_BUILD_DIR=/tmp/accord-web-quality-static-paddons-committed-tGQuV2 node tests/browser/paddons.mjs --only=mobile-dark-reduced-motion-detail,directory-search-cancel-no-writes --viewport-capture",
+    "PLAYWRIGHT_PACKAGE_PATH=/tmp/accord-web-quality-qa/node_modules/playwright/index.mjs PLAYWRIGHT_BROWSERS_PATH=/tmp/accord-web-quality-browsers QA_SOURCE_REV=110650c58b2ad8a2832e690e4ff99aec430ff8ca QA_BUILD_DIR=/tmp/accord-web-quality-static-paddons-committed-tGQuV2 node tests/browser/apparatus-collections.mjs",
+    "PLAYWRIGHT_PACKAGE_PATH=/tmp/accord-web-quality-qa/node_modules/playwright/index.mjs PLAYWRIGHT_BROWSERS_PATH=/tmp/accord-web-quality-browsers QA_SOURCE_REV=110650c58b2ad8a2832e690e4ff99aec430ff8ca QA_BUILD_DIR=/tmp/accord-web-quality-static-paddons-committed-tGQuV2 node tests/browser/worker-groups.mjs",
+    "PLAYWRIGHT_PACKAGE_PATH=/tmp/accord-web-quality-qa/node_modules/playwright/index.mjs PLAYWRIGHT_BROWSERS_PATH=/tmp/accord-web-quality-browsers QA_SOURCE_REV=110650c58b2ad8a2832e690e4ff99aec430ff8ca QA_BUILD_DIR=/tmp/accord-web-quality-static-paddons-committed-tGQuV2 node tests/browser/sequence-reorder.mjs",
+    "PLAYWRIGHT_PACKAGE_PATH=/tmp/accord-web-quality-qa/node_modules/playwright/index.mjs PLAYWRIGHT_BROWSERS_PATH=/tmp/accord-web-quality-browsers QA_SOURCE_REV=110650c58b2ad8a2832e690e4ff99aec430ff8ca QA_BUILD_DIR=/tmp/accord-web-quality-static-paddons-committed-tGQuV2 node tests/browser/dashboardcn.mjs"
+  ],
+  "library": {
+    "localFile": "deliverables/accord-demo-paddon-directory-light.png",
+    "libraryFileId": "libfile_562fc5ae97a48191a5d45fed6316bdc8",
+    "fileId": "file_000000005240820d91de741879db9f23",
+    "version": 0,
+    "xattrsPersisted": true
+  },
+  "reviewedVisuals": [
+    "paddons/2026-10-14T12-15-59-761Z/directory-search-cancel-no-writes-passed.png",
+    "paddons/2026-10-14T12-15-59-761Z/uncertain-add-loss-read-review-read-only-observation.png",
+    "paddons/2026-10-14T12-20-55-380Z/mobile-dark-reduced-motion-detail-detail.png"
+  ],
+  "independentReview": {
+    "model": "gpt-6.1-sol",
+    "effort": "max",
+    "result": "No remaining P1/P2; corrected API and final110650c offline observation/pending closure reviewed",
+    "nativeTestsExecuted": false
+  },
+  "nativeLimits": [
+    "No revision CAS, expected-mode precondition, idempotency key or command-receipt lookup.",
+    "Native write state/mode can change after fresh preflight; response enrichment can fail after commit.",
+    "Directory200 and available500 feeds have no pagination or whole-system total guarantee.",
+    "Free-mode transfer checks unreceipted source/target but does not separately constrain source-owner visibility.",
+    "Empty current membership does not prove a never-used paddon.",
+    "Native nullable product weights exclude pallet tare; receipt totals are frozen.",
+    "Intent is session RAM only; reload/logout/identity change loses accessible recovery.",
+    "Application no-replay does not prohibit browser or transport retransmission."
+  ],
+  "remaining": [
+    "Printing and QR report/scanning",
+    "Native print confirmation",
+    "Active apparatus selection and successor handoff",
+    "S08 paddon management settings",
+    "Broader native/mobile runtime and production acceptance"
+  ],
+  "preservation": {
+    "originalWebClean": true,
+    "backendClean": true,
+    "mobileModifiedPathsPreserved": 17,
+    "backendRevision": "fd59167ca005d522a8fb102e18ff4c80a380807e",
+    "mobileRevision": "bc96f1ce492c3e1708294aa9acb23e6a5e5e63ed",
+    "dependenciesChanged": false,
+    "pushed": false,
+    "merged": false,
+    "deployed": false,
+    "productionAccess": false
+  },
+  "diagnostics": {
+    "acceptedReportsOnly": "paddons/2026-10-14T12-15-59-761Z/results.json",
+    "excludedDiagnosticReport": "paddons/2026-10-14T12-08-03-349Z/results.json",
+    "excludedReason": "Failed diagnostic checks and incorrect build-directory argument; not committed current acceptance evidence",
+    "screenshotHelper": "Current Library helper executed with postponed annotations for Mac Python3.9; returned identity and complete xattrs persisted. No duplicate upload."
+  }
+}
