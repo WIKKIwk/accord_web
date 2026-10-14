@@ -16,6 +16,7 @@ import { workerGroupFixtureRoute, seedWorkerGroupScenario } from './erp-worker-g
 import { apparatusCollectionFixtureRoute, seedApparatusCollectionScenario } from './erp-apparatus-collections.mjs';
 import { createPaddonFixtureExtension } from './erp-paddons.mjs';
 import { paddonHandoffFixtureRoute, seedPaddonHandoffScenario, attachPaddonHandoffOutputs } from './erp-paddon-handoff.mjs';
+import { orderImagesFixtureRoute, seedOrderImagesScenario } from './erp-order-images.mjs';
 import { paddonLabelFixtureRoute, seedPaddonLabelScenario } from './erp-paddon-label.mjs';
 import { paddonManagementFixtureRoute, seedPaddonManagementScenario } from './erp-paddon-management.mjs';
 
@@ -32,7 +33,7 @@ const error = (status, code, detail) => response({ error: code, ...(detail ? { d
 const capabilityLabels = Object.fromEntries(fixtureCapabilities.map(code => [code, `QA ${code}`]));
 const configDefaults = () => ({ capabilities: [...fixtureCapabilities], assignedWarehouses: [], assignedApparatus: [], profileOverride: null, rules: [], partialMoveCodes: [], orderEditLocked: false, workerDeleteBlocked: false, emptyProduction: false, unknownOrderStatuses: [], blockedDeleteCodes: [], emptyClosedHistory: false, manufacturingReportMode: 'partial', manufacturingDemoCohort: false, manufacturingDemoInvalidRecord: false });
 const queueVersion = ids => createHash('sha256').update(JSON.stringify(ids)).digest('hex');
-const fixtureVersion = 14;
+const fixtureVersion = 15;
 const phone = value => { let digits = string(value).replace(/\D/g, ''); if (digits.length === 9) digits = `998${digits}`; return digits ? `+${digits}` : ''; };
 const workerLevels = ['Brigader', 'Master', '1 - darajali', '2 - darajali', '3 - darajali'];
 const systemRoles = ['qolipchi', 'boyoqchi', 'tayyorlov_masteri', 'homashyo_rezkachi'];
@@ -219,6 +220,7 @@ export function createFixture() {
     if (path === '/__qa/apparatus-collections' && method === 'POST') return seedApparatusCollectionScenario(state, body);
     if (path === '/__qa/paddons' && method === 'POST') return paddons.seed(body);
     if (path === '/__qa/paddon-handoff' && method === 'POST') return seedPaddonHandoffScenario(state, body);
+    if (path === '/__qa/order-images' && method === 'POST') return seedOrderImagesScenario(state, body);
     if (path === '/__qa/paddon-label' && method === 'POST') return seedPaddonLabelScenario(state, body);
     if (path === '/__qa/paddon-management' && method === 'POST') return seedPaddonManagementScenario(state, body);
     if (path === '/__qa/opening-wip' && method === 'POST') {
@@ -262,6 +264,7 @@ export function createFixture() {
     if (path === '/v1/mobile/me' && method === 'GET') return response(actorProfile);
     if (path === '/v1/mobile/auth/logout' && method === 'POST') { state.sessions.delete(token); return response({ ok: true }); }
     const extensionContext = { method, path, query, body, headers, state, config, requires, profile: actorProfile, bump, findOrder, compile, snapshot, equal };
+    const orderImage = orderImagesFixtureRoute(extensionContext); if (orderImage) return orderImage;
     const paddonLabel = paddonLabelFixtureRoute(extensionContext); if (paddonLabel) return paddonLabel;
     const paddonManagement = paddonManagementFixtureRoute(extensionContext); if (paddonManagement) return paddonManagement;
     const paddonHandoff = paddonHandoffFixtureRoute(extensionContext); if (paddonHandoff) return paddonHandoff;
@@ -655,6 +658,7 @@ export function createFixture() {
     logs.push({ sequence: ++sequence, method, path, query: sanitize(query), body: body instanceof Uint8Array ? { syntheticBinary: true, byteLength: body.byteLength } : sanitize(body ?? null),
       authorized: Boolean(normalizedHeaders.authorization), idempotencyKeyPresent: Boolean(normalizedHeaders['idempotency-key']),
       expectedRevisionHeader: normalizedHeaders['if-match'] || null,
+      ...(result.body instanceof Uint8Array ? { responseBytes: result.body.byteLength, responseMime: result.contentType } : {}),
       status: result.dropResponse ? 'lost' : result.status, error: result.body?.error || null, invalidJson: result.invalidJson || false, responseOverridden: result.responseOverridden || false });
     if (logs.length > 500) logs.shift();
     return clone(result);
@@ -668,10 +672,10 @@ export function createFixtureServer({ webPorts = [5186, 5184, 5174, 4174], fixtu
   const server = http.createServer(async (req, res) => {
     const origin = req.headers.origin;
     if (origin && !origins.has(origin)) { res.writeHead(403, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: 'fixture_origin_forbidden' })); return; }
-    const cors = origin ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {};
+    const cors = origin ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Expose-Headers': 'ETag, Content-Length, Cache-Control, Vary', Vary: 'Origin' } : {};
     res.setHeader('Cache-Control', 'no-store');
     if (req.method === 'OPTIONS') {
-      res.writeHead(204, { ...cors, 'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Authorization, Content-Type, Idempotency-Key, X-File-Name, If-Match, Accept', 'Access-Control-Max-Age': '0' }); res.end(); return;
+      res.writeHead(204, { ...cors, 'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Authorization, Content-Type, Idempotency-Key, X-File-Name, If-Match, Accept, If-None-Match', 'Access-Control-Max-Age': '0' }); res.end(); return;
     }
     try {
       const binary = req.headers['content-type']?.split(';')[0] === fixtureAasxMime, chunks = []; let bytes = 0;

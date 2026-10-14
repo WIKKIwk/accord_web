@@ -27,6 +27,8 @@ import { productionOperationLedger, type ProductionOperationLease } from '@/lib/
 import { executeProductionSequenceMove, productionSequenceMove, productionSequenceQueue, SequenceMoveError, type SequenceMovePlan, type SequenceQueueRow } from '@/lib/production-sequence'
 import { useSession } from '@/lib/session'
 import { isHandoffCutApparatus } from '@/lib/paddon-handoff'
+import { OrderImageThumbnail } from './order-image-controls'
+import { orderPhotoReference } from "@/lib/order-photo";
 import { PaddonHandoffToolbar } from './paddon-handoff-controls'
 
 const errorMessage = (value: unknown) => value instanceof Error ? value.message : 'Navbat amali bajarilmadi.'
@@ -110,7 +112,7 @@ function SequenceQueuePanel({ apparatusId, onApparatusChange }: QueueProps) {
     if (saving) return
     if (connection !== 'online') await reconnect()
     const result = await snapshot.refetch()
-    if (result.isSuccess) { setNeedsRefresh(false); setError('') }
+    if (result.isSuccess) { setNeedsRefresh(false); setError(''); void queryClient.invalidateQueries({ queryKey: ['order-image-thumb', scope] }) }
   }
   const propose = (orderId: string, destination: number, source = snapshot.data) => {
     if (!canChange || !source || busy.current || productionOperationLedger.get(scope, orderId) || productionOperationLedger.list(scope).some(entry => entry.apparatusId === selectedId)) return
@@ -194,7 +196,7 @@ function SequenceQueuePanel({ apparatusId, onApparatusChange }: QueueProps) {
       {uncertain && <Alert><TriangleAlert /><AlertTitle>Navbat buyrug‘i natijasi noaniq</AlertTitle><AlertDescription className="space-y-2"><p>{uncertain.error}</p><p>Buyurtma № {uncertain.plan.orderLabel}. Asl buyruq shu sessiyada saqlanmoqda. Joriy navbatni o‘qish bu buyruq tasdig‘ining o‘rnini bosmaydi.</p><Button ref={recoveryRef} size="sm" variant="outline" className="mt-2" disabled={saving || connection !== 'online' || !productionCanManageOrders(session)} onClick={() => void save(uncertain.plan, true)}>{saving ? <Loader2 className="animate-spin" /> : <RefreshCw />}Asl navbat buyrug‘i natijasini tekshirish</Button></AlertDescription></Alert>}
       {apparatusAttempt && !uncertain && <Alert><AlertDescription>{apparatusAttempt.channel === 'sequence-reorder' ? 'Navbat buyrug‘i tekshirilmoqda. Natija aniqlanguncha shu apparatdagi yangi surish yopiq.' : <span>Shu apparatning boshqa navbat buyrug‘i natijasi kutilmoqda. <Link className="underline" to={`/app/orders?selected=${encodeURIComponent(apparatusAttempt.orderId)}`}>Buyurtma boshqaruvini oching</Link>.</span>}</AlertDescription></Alert>}
       {error && !uncertain && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
-      {snapshot.isLoading ? <div role="status" aria-label="Navbat yuklanmoqda"><Skeleton className="h-10" /><Skeleton className="mt-2 h-40" /></div> : !selectedId ? <p className="py-8 text-center text-sm text-muted-foreground">Apparat navbatlari mavjud emas.</p> : <div className="overflow-hidden rounded-lg border">
+      {snapshot.isLoading ? <div role="status" aria-label="Navbat yuklanmoqda"><Skeleton className="h-10" /><Skeleton className="mt-2 h-40" /></div> : !selectedId ? <p className="py-8 text-center text-sm text-muted-foreground">Apparat navbatlari mavjud emas.</p> : <div className="motion-list-enter overflow-hidden rounded-lg border" data-motion-list data-list-state="ready">
         {/* Adapted from the audited shadcn dashboard-01 sortable-row pattern.
             See docs/third-party/sequence-reorder.md and shadcn-ui-MIT.txt. */}
         <DndContext id={dndId} sensors={sensors} collisionDetection={closestCenter} modifiers={[restrictToVerticalAxis]} onDragStart={() => { if (canChange && snapshot.data) setDragSnapshot(structuredClone(snapshot.data)) }} onDragEnd={dragEnd} onDragCancel={() => { setDragSnapshot(null); setAnnouncement('Surish bekor qilindi. Navbat o‘zgarmadi.') }} accessibility={{ screenReaderInstructions: { draggable: 'Navbat dastasida Space yoki Enter bilan buyurtmani ko‘taring, yuqoriga yoki pastga strelka bilan suring, Space yoki Enter bilan qo‘ying. Escape bilan bekor qiling.' }, announcements: { onDragStart: ({ active }) => `${labelFor(active.id)} ko‘tarildi.`, onDragOver: ({ active, over }) => over ? `${labelFor(active.id)}: ${labelFor(over.id)} o‘rniga surilmoqda.` : 'Buyurtma jadval tashqarisida.', onDragEnd: ({ active, over }) => over ? `${labelFor(active.id)} qo‘yildi. Yangi o‘rinni saqlashni tasdiqlang.` : 'Surish bekor qilindi.', onDragCancel: () => 'Surish bekor qilindi. Navbat o‘zgarmadi.' } }}>
@@ -230,7 +232,7 @@ function SortableQueueRow({ row, position, enabled, reducedMotion, reason, up, d
   return <TableRow ref={setNodeRef} data-order-id={row.id} data-dragging={isDragging || undefined} className="relative data-[dragging=true]:z-10 data-[dragging=true]:bg-muted data-[dragging=true]:opacity-80" style={{ transform: CSS.Transform.toString(transform), transition: reducedMotion ? undefined : transition }}>
     <TableCell><Button ref={setActivatorNodeRef} {...attributes} {...listeners} variant="ghost" size="icon-sm" disabled={!enabled} aria-label={`Navbatni surish: ${row.label}`} className="touch-none text-muted-foreground" title={reason || 'Buyurtmani navbatda surish'}>{row.locked ? <LockKeyhole className="size-4" /> : <GripVertical className="size-4" />}</Button></TableCell>
     <TableCell className="tabular-nums text-muted-foreground">{position}</TableCell>
-    <TableCell className="min-w-44"><Link to={`/app/orders?selected=${encodeURIComponent(row.id)}`} className="font-medium hover:underline">№ {row.label}</Link>{row.product && <p className="mt-0.5 max-w-72 truncate text-xs text-muted-foreground">{row.product}</p>}{reason && <p className="mt-1 max-w-72 whitespace-normal text-xs text-muted-foreground">{reason}</p>}</TableCell>
+    <TableCell className="min-w-44"><div className="flex items-center gap-3"><OrderImageThumbnail photo={orderPhotoReference("orders", { id: row.id })} title={row.label} /><div className="min-w-0"><Link to={`/app/orders?selected=${encodeURIComponent(row.id)}`} className="font-medium hover:underline">№ {row.label}</Link>{row.product && <p className="mt-0.5 max-w-72 truncate text-xs text-muted-foreground">{row.product}</p>}{reason && <p className="mt-1 max-w-72 whitespace-normal text-xs text-muted-foreground">{reason}</p>}</div></div></TableCell>
     <TableCell><Badge variant="outline">{row.statusLabel}</Badge></TableCell><TableCell className="hidden max-w-64 truncate text-muted-foreground md:table-cell">{text(row.customer)}</TableCell>
     <TableCell><div className="flex justify-end gap-1"><Button size="icon-sm" variant="ghost" disabled={!up} onClick={() => onMove(-1)} aria-label={`${row.label}: navbatda oldinga`}><ArrowUp className="size-4" /></Button><Button size="icon-sm" variant="ghost" disabled={!down} onClick={() => onMove(1)} aria-label={`${row.label}: navbatda orqaga`}><ArrowDown className="size-4" /></Button></div></TableCell>
   </TableRow>

@@ -88,6 +88,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { OrderImageThumbnail } from "@/components/order-image-controls";
+import { orderPhotoLabel, orderPhotoReference } from "@/lib/order-photo";
 import { InfiniteListEnd } from "@/components/infinite-list-end";
 import { DomainMetrics } from "@/components/domain-metrics";
 import { supportsDomainMetrics } from "@/lib/dashboardcn-analytics";
@@ -170,6 +172,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
   const bounded = data.data?.pages.some((page) => page.bounded);
   function refreshList() {
     void queryClient.invalidateQueries({ queryKey: ["resource", scope, kind] });
+    if (["orders", "maps", "templates", "completed", "closed"].includes(kind)) void queryClient.invalidateQueries({ queryKey: ["order-image-thumb", scope] });
     if (kind === 'apparatus') void queryClient.invalidateQueries({ queryKey: [scope, 'production-snapshot'] });
   }
   const selectedId = params.get("selected");
@@ -182,6 +185,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
           ) || null
         : { id: selectedId }
       : null);
+  const imageList = ['orders', 'maps', 'pending', 'completed', 'closed', 'templates'].includes(kind);
   const columns = view.columns.filter((column) => !hidden.includes(column.key));
   const statusColumn = view.columns.find((column) => column.status);
   const states = kind === "wip" ? ["waiting", "in_use", "processed"] : statusColumn
@@ -419,6 +423,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
             <Table>
               <TableHeader>
                 <TableRow>
+                  {imageList && <TableHead className="w-16"><span className="sr-only">Rasm</span></TableHead>}
                   {columns.map((c) => (
                     <TableHead
                       key={c.key}
@@ -444,10 +449,11 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
                   </TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className={data.isPending ? undefined : "motion-list-enter"} data-motion-list data-list-state={data.isPending ? "loading" : "ready"}>
                 {data.isPending && (kind !== "stock" || warehouse) ? (
                   Array.from({ length: 6 }, (_, i) => (
                     <TableRow key={i}>
+                      {imageList && <TableCell><Skeleton className="h-10 w-12 rounded-md" /></TableCell>}
                       {columns.map((c) => (
                         <TableCell key={c.key}>
                           <Skeleton className="h-4 w-full" />
@@ -463,6 +469,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
                       className="cursor-pointer"
                       onClick={() => pick(row)}
                     >
+                      {imageList && <TableCell><OrderImageThumbnail photo={orderPhotoReference(kind, row)} title={orderPhotoLabel(kind, row)} /></TableCell>}
                       {columns.map((c, i) => (
                         <TableCell
                           key={c.key}
@@ -493,7 +500,7 @@ export function ResourcePage({ page }: { page: NavigationPage }) {
                 ) : (
                   <TableRow>
                     <TableCell
-                      colSpan={columns.length + 1}
+                      colSpan={columns.length + (imageList ? 2 : 1)}
                       className="h-52 text-center"
                     >
                       <ClipboardList className="mx-auto mb-3 size-8 text-muted-foreground" />

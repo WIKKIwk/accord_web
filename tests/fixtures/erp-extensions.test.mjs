@@ -6,7 +6,7 @@ import { fixturePassportMeasures } from './erp-passport.mjs';
 const base = '/v1/mobile/admin', pm = base + '/production-maps', order_id = 'zakaz-qa-1001';
 async function setup() { const fixture = createFixture(); const request = (method, url, body, headers = {}) => fixture.dispatch({ method, url, body, headers: { authorization: 'Bearer ' + fixtureToken, ...headers } }); await request('POST', '/v1/mobile/auth/login', fixtureLogin); return { fixture, request }; }
 test('integrated raw rules share actual canonical revision and explicit opt-in native group choices', async () => {
-  const { request } = await setup(); assert.equal((await request('GET', '/__qa/health')).body.fixtureVersion, 14);
+  const { request } = await setup(); assert.equal((await request('GET', '/__qa/health')).body.fixtureVersion, 15);
   await request('POST', '/__qa/raw-rules', {}); const groups = (await request('GET', base + '/item-groups/tree')).body;
   assert.ok(JSON.stringify(groups).includes('Homashyo')); const rules = (await request('GET', base + '/raw-material-rules')).body;
   const body = { apparatus_id: apparatusIds.print, expected_revision: rules[0].source_revision, material: { mode: 'all_required', item_group_ids: ['Xomashyo'] }, tooling: rules[0].tooling };

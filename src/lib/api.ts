@@ -210,6 +210,19 @@ export interface RequestOptions {
   expectedStatus?: number
 }
 
+export interface BinaryRequestOptions {
+  query?: Query
+  signal?: AbortSignal
+  timeoutMs?: number
+  ifNoneMatch?: string
+  /** Client memory bound; no image-size guarantee is inferred from this limit. */
+  maxBytes?: number
+}
+export interface BinaryResponseMetadata { mime: string; etag?: string; cache_control?: string; vary?: string }
+export type BinaryGetResult =
+  | ({ status: 200; blob: Blob } & BinaryResponseMetadata)
+  | ({ status: 304 } & BinaryResponseMetadata)
+
 /** Each instance is bound to one server and token; callers key caches by that session. */
 export class ApiClient {
   readonly endpoint: string
@@ -268,6 +281,82 @@ export class ApiClient {
     } finally {
       clearTimeout(timeout)
       options.signal?.removeEventListener('abort', abort)
+    }
+  }
+
+  /** Bounded authorized bytes from this ERP only; JSON request semantics remain independent. */
+  async getBinary(path: string, options: BinaryRequestOptions = {}): Promise<BinaryGetResult> {
+    if (typeof path !== 'string' || !path.startsWith('/v1/mobile/') || path.startsWith('//') || /[\\\r\n\0]/.test(path)) throw new Error('API yo‘li noto‘g‘ri.')
+    const url = new URL(`${this.endpoint}${path}`)
+    if (url.origin !== new URL(this.endpoint).origin) throw new Error('API yo‘li noto‘g‘ri.')
+    for (const [key, value] of Object.entries(options.query || {})) if (value !== undefined && value !== '') url.searchParams.set(key, String(value))
+    if (!this.token) throw new ApiError(401, 'unauthorized')
+    if (options.signal?.aborted) throw new DOMException('So‘rov bekor qilindi.', 'AbortError')
+    const maxBytes = options.maxBytes ?? 8 * 1024 * 1024
+    if (!Number.isSafeInteger(maxBytes) || maxBytes <= 0 || maxBytes > 8 * 1024 * 1024) throw new Error('Rasm hajmi chegarasi noto‘g‘ri.')
+    const headers = new Headers({ Accept: 'image/webp, image/png, image/jpeg', Authorization: `Bearer ${this.token}` })
+    if (options.ifNoneMatch) headers.set('If-None-Match', options.ifNoneMatch)
+    const controller = new AbortController(), abort = () => controller.abort()
+    options.signal?.addEventListener('abort', abort, { once: true })
+    if (options.signal?.aborted) controller.abort()
+    const timeout = setTimeout(abort, options.timeoutMs ?? 20_000)
+    const current = (): void => {
+      if (options.signal?.aborted || controller.signal.aborted) throw new DOMException('So‘rov bekor qilindi.', 'AbortError')
+    }
+    const readBody = async (response: Response, limit: number, mime: string): Promise<Blob> => {
+      const declared = response.headers.get('Content-Length')
+      if (declared && /^\d+$/.test(declared) && Number(declared) > limit) {
+        await response.body?.cancel().catch(() => undefined)
+        throw new ApiError(502, 'response_too_large', 'Rasm hajmi bu ko‘rish uchun juda katta.')
+      }
+      const reader = response.body?.getReader(), chunks: Uint8Array<ArrayBuffer>[] = []
+      let size = 0
+      if (reader) {
+        const stop = () => { void reader.cancel().catch(() => undefined) }
+        controller.signal.addEventListener('abort', stop, { once: true })
+        try {
+          current()
+          while (true) {
+            const part = await reader.read(); current()
+            if (part.done) break
+            size += part.value.byteLength
+            if (size > limit) { await reader.cancel().catch(() => undefined); throw new ApiError(502, 'response_too_large', 'Rasm hajmi bu ko‘rish uchun juda katta.') }
+            chunks.push(part.value.slice())
+          }
+        } finally {
+          controller.signal.removeEventListener('abort', stop); reader.releaseLock()
+        }
+      }
+      current(); return new Blob(chunks, { type: mime })
+    }
+    try {
+      const response = await fetch(url, { method: 'GET', headers, signal: controller.signal, credentials: 'omit', redirect: 'error', cache: 'no-store' })
+      current(); this.onConnectionChange?.(true)
+      if (response.status === 401) this.onUnauthorized?.()
+      const metadata: BinaryResponseMetadata = { mime: (response.headers.get('Content-Type') || '').split(';')[0]!.trim().toLowerCase() }
+      for (const [property, header] of [['etag', 'ETag'], ['cache_control', 'Cache-Control'], ['vary', 'Vary']] as const) {
+        const value = response.headers.get(header); if (value) metadata[property] = value
+      }
+      if (response.status === 304 && options.ifNoneMatch) { current(); return { status: 304, ...metadata } }
+      if (response.status !== 200) {
+        let payload: unknown
+        try { payload = JSON.parse(await (await readBody(response, Math.min(maxBytes, 64 * 1024), metadata.mime)).text()) }
+        catch (error) { if (!(error instanceof SyntaxError) && !(error instanceof ApiError && error.code === 'response_too_large')) throw error }
+        current()
+        if (response.ok || response.status === 304) throw new ApiError(response.status, 'invalid_response', 'Serverdan kutilgan rasm javobi kelmadi.')
+        throw new ApiError(response.status, isRecord(payload) && typeof payload.error === 'string' ? payload.error : `http_${response.status}`)
+      }
+      const blob = await readBody(response, maxBytes, metadata.mime); current()
+      if (!blob.size) throw new ApiError(502, 'invalid_response', 'Serverdan rasm baytlari kelmadi.')
+      return { status: 200, blob, ...metadata }
+    } catch (error) {
+      if (options.signal?.aborted) throw new DOMException('So‘rov bekor qilindi.', 'AbortError')
+      if (error instanceof ApiError) throw error
+      this.onConnectionChange?.(false)
+      if (controller.signal.aborted) throw new ApiError(0, 'timeout', 'Server javobi kechikdi. Qayta urinib ko‘ring.')
+      throw new ApiError(0, 'network', 'Serverga ulanib bo‘lmadi. Manzil va internetni tekshiring.')
+    } finally {
+      clearTimeout(timeout); options.signal?.removeEventListener('abort', abort)
     }
   }
 
