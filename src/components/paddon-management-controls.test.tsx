@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { useEffect } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { ComponentProps, MouseEvent, ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
@@ -17,7 +17,7 @@ const ui = vi.hoisted(() => ({ buttons: [] as ButtonProps[], draftSeeds: [] as u
 // Controlled SSR drafts exercise the actual component handlers without installing a DOM runtime.
 vi.mock('react', async original => {
   const actual = await original<typeof import('react')>()
-  return { ...actual, useEffect: vi.fn(actual.useEffect), useState: vi.fn((initial: unknown) => {
+  return { ...actual, useEffect: vi.fn(actual.useEffect), useLayoutEffect: vi.fn(actual.useLayoutEffect), useRef: vi.fn(actual.useRef), useState: vi.fn((initial: unknown) => {
     const seeded = ui.draftSeeds.shift(); return actual.useState(seeded === undefined ? initial : seeded)
   }) }
 })
@@ -180,6 +180,26 @@ describe('read states and explicit movement impact', () => {
 })
 
 describe('component dispatch, interruption and read-only recovery handlers', () => {
+  it('does not publish a discarded render context; committed context changes still gate an existing operation', async () => {
+    const scope = setup(), committed = useSession(), liveRef = { current: true }, contextRef = { current: committed }, server = wire()
+    // Reuse the committed component's refs across controlled render-only work.
+    vi.mocked(useRef).mockReturnValueOnce(liveRef).mockReturnValueOnce(contextRef)
+    ui.draftSeeds.push(true, true); dialog(); const committedAction = button('O‘zgarishni saqlash')
+    setup({ ref: 'qa-other-admin' }); const proposed = useSession()
+    vi.mocked(useRef).mockReturnValueOnce(liveRef).mockReturnValueOnce(contextRef)
+    ui.buttons.length = 0; dialog()
+    expect(contextRef.current).toBe(committed)
+    committedAction.onClick?.({} as MouseEvent<HTMLButtonElement>)
+    await vi.waitFor(() => expect(toast.success).toHaveBeenCalledTimes(1))
+    expect(writes(server.fetch)).toHaveLength(1)
+    const publish = vi.mocked(useLayoutEffect).mock.calls.find(([, deps]) => deps?.[0] === proposed)?.[0]
+    if (!publish) throw new Error('Missing committed-context layout effect')
+    publish(); expect(contextRef.current).toBe(proposed)
+    committedAction.onClick?.({} as MouseEvent<HTMLButtonElement>)
+    await vi.waitFor(() => expect(paddonManagementIntentLedger(scope).snapshot()).toBeNull())
+    expect(server.fetch.mock.calls.map(([, options]) => options.method)).toEqual(['GET', 'PUT'])
+    expect(toast.success).toHaveBeenCalledTimes(1)
+  })
   it('requires the explicit review checkbox before the component can dispatch', () => {
     setup(); ui.draftSeeds.push(true, false); wire(); dialog()
     expect(button('O‘zgarishni saqlash').disabled).toBe(true)

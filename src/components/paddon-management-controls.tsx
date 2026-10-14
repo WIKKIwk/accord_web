@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2, RefreshCw, Settings2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -59,7 +59,8 @@ export function PaddonManagementRecovery({ intent, checking, canCheck, error, re
 
 export function PaddonManagementDialog({ onClose, onReturnFocus }: { onClose: () => void; onReturnFocus: () => void }) {
   const context = useSession(), { client, session, scope, demo, connection } = context, queryClient = useQueryClient()
-  const live = useRef(true), current = useRef(context); current.current = context
+  const live = useRef(true), current = useRef(context)
+  useLayoutEffect(() => { current.current = context }, [context])
   const api = useMemo(() => client && session && !demo && canReadPaddonManagement(session) ? new PaddonManagementApi(client, session, () => live.current && current.current.scope === scope && current.current.client === client && current.current.session === session && !current.current.demo) : null, [client, session, scope, demo])
   const ledger = useMemo(() => paddonManagementIntentLedger(scope), [scope]), intent = useSyncExternalStore(ledger.subscribe, ledger.snapshot, ledger.snapshot)
   const leases = useMemo(() => new MutationScope(), []), busy = useRef(false), activeOperation = useRef<PaddonManagementOperation | null>(null)
