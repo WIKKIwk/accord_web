@@ -47,4 +47,10 @@ describe('backend capability parity', () => {
     expect(canViewPage(session('admin.access', 'party.customer.read'), 'catalog')).toBe(true)
     expect(canViewPage(session('admin.access'), 'unknown')).toBe(false)
   })
+  it('adds paddons without broadening the existing admin workspace entrance', () => {
+    expect(canViewPage(session('admin.access'), 'paddons')).toBe(true)
+    expect(canViewPage(session('apparatus.queue.read'), 'paddons')).toBe(false)
+    expect(canViewPage(session('production.map.manage'), 'paddons')).toBe(false)
+    expect(canViewPage(null, 'paddons')).toBe(false)
+  })
 })

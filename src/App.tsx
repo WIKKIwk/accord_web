@@ -25,6 +25,7 @@ const SettingsPage = lazy(() => import('@/pages/SystemPages').then(module => ({ 
 const ServerPage = lazy(() => import('@/pages/SystemPages').then(module => ({ default: module.ServerPage })));
 const CalculatorPage = lazy(() => import('@/pages/CalculatorPage').then(module => ({ default: module.CalculatorPage })));
 const ProductionMapPage = lazy(() => import('@/pages/ProductionMapPage').then(module => ({ default: module.ProductionMapPage })));
+const PaddonsPage = lazy(() => import('@/pages/PaddonsPage').then(module => ({ default: module.PaddonsPage })));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -52,6 +53,7 @@ function Page() {
   if (pageById(pageId) && !canViewPage(session, pageId)) return <Alert><AlertTitle>Bu bo‘limga ruxsat berilmagan</AlertTitle><AlertDescription>Hisobingizning huquqlari bu ma’lumotlarni ko‘rishga ruxsat bermaydi. Chap menyudan mavjud bo‘limni tanlang.</AlertDescription></Alert>;
   if (pageId === "home") return <DashboardPage />;
   if (pageId === "production-time") return <ManufacturingTimePage />;
+  if (pageId === "paddons") return <PaddonsPage />;
   if (modules.some((m) => m.id === pageId))
     return <WorkspacePage id={pageId} />;
   if (pageId === "settings") return <SettingsPage />;

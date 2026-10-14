@@ -57,6 +57,7 @@ export const modules: NavigationModule[] = [
           { id: 'maps', title: 'Ish xaritalari', description: 'Buyurtma operatsiyalari, ishlab chiqarish bosqichlari va uskunalar.', icon: Waypoints, resource: 'maps' },
           { id: 'completion', title: 'Yakunlash so‘rovlari', description: 'Uskunalardan kelgan ishni yakunlash so‘rovlarini ko‘rib chiqish.', icon: ClipboardCheck, resource: 'completion' },
           { id: 'wip', title: 'Yarim tayyor mahsulotlar', description: 'Jarayondagi rulonlar, partiyalar va ularning joriy joylashuvi.', icon: Layers3, resource: 'wip' },
+          { id: 'paddons', title: 'Paddonlar', description: 'Paddon tarkibi, mahsulot og‘irligi va bosilgan paddonlarni boshqarish.', icon: Boxes },
           { id: 'opening-wip', title: 'Boshlang‘ich WIP', description: 'Tizimga boshlang‘ich qoldiq sifatida kiritilgan ishlab chiqarish partiyalari.', icon: SquareStack, resource: 'opening-wip' },
         ],
       },

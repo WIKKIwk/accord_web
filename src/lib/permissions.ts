@@ -21,6 +21,7 @@ export const pageRequirements: Record<string, Requirement> = {
   'production-time': mapRead,
   pending: mapManage, completed: mapRead, closed: mapRead, completion: mapManage,
   wip: mapRead, 'opening-wip': mapRead, 'factory-map': mapRead,
+  paddons: { any: ['admin.access', 'production.map.manage', 'apparatus.queue.read', 'apparatus.queue.manage'] },
   items: 'catalog.item.read', 'item-groups': { any: ['catalog.item_group.read', 'gscale.catalog.read'] },
   apparatus: { any: ['admin.access', 'production.map.manage', 'catalog.item.read', 'apparatus.queue.read', 'raw_material.assign', 'qolip.manage', 'preparation.access'] }, workers: 'admin.access',
   suppliers: 'party.supplier.read', customers: 'party.customer.read',

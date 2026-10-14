@@ -14,6 +14,7 @@ import { materialLinkFixtureRoute, materialLinkSnapshotControl, seedMaterialLink
 import { seedSequenceScenario, sequenceCohortSnapshot, sequenceCohortMove } from './erp-sequence.mjs';
 import { workerGroupFixtureRoute, seedWorkerGroupScenario } from './erp-worker-groups.mjs';
 import { apparatusCollectionFixtureRoute, seedApparatusCollectionScenario } from './erp-apparatus-collections.mjs';
+import { createPaddonFixtureExtension } from './erp-paddons.mjs';
 
 const base = '/v1/mobile/admin';
 const clone = value => structuredClone(value);
@@ -28,7 +29,7 @@ const error = (status, code, detail) => response({ error: code, ...(detail ? { d
 const capabilityLabels = Object.fromEntries(fixtureCapabilities.map(code => [code, `QA ${code}`]));
 const configDefaults = () => ({ capabilities: [...fixtureCapabilities], assignedWarehouses: [], assignedApparatus: [], profileOverride: null, rules: [], partialMoveCodes: [], orderEditLocked: false, workerDeleteBlocked: false, emptyProduction: false, unknownOrderStatuses: [], blockedDeleteCodes: [], emptyClosedHistory: false, manufacturingReportMode: 'partial', manufacturingDemoCohort: false, manufacturingDemoInvalidRecord: false });
 const queueVersion = ids => createHash('sha256').update(JSON.stringify(ids)).digest('hex');
-const fixtureVersion = 11;
+const fixtureVersion = 12;
 const phone = value => { let digits = string(value).replace(/\D/g, ''); if (digits.length === 9) digits = `998${digits}`; return digits ? `+${digits}` : ''; };
 const workerLevels = ['Brigader', 'Master', '1 - darajali', '2 - darajali', '3 - darajali'];
 const systemRoles = ['qolipchi', 'boyoqchi', 'tayyorlov_masteri', 'homashyo_rezkachi'];
@@ -134,6 +135,7 @@ function snapshot(state) {
 
 export function createFixture() {
   let resetCount = 1, state = createSeed(), config = configDefaults(), logs = [], sequence = 0;
+  let paddons = createPaddonFixtureExtension(state);
   const idempotency = new Map();
   const bump = () => { state.rev += 1; };
   const requires = (...codes) => codes.some(code => config.capabilities.includes(code));
@@ -155,6 +157,7 @@ export function createFixture() {
     if (path === '/__qa/state' && method === 'GET') return response(publicState());
     if (path === '/__qa/reset' && method === 'POST') {
       state = createSeed(`qa-local-epoch-${++resetCount}`); config = configDefaults(); logs = []; sequence = 0; idempotency.clear();
+      paddons = createPaddonFixtureExtension(state);
       if (object(body) && Array.isArray(body.capabilities)) config.capabilities = body.capabilities.filter(value => typeof value === 'string');
       return response({ ok: true, synthetic: true, epoch: state.epoch });
     }
@@ -211,6 +214,7 @@ export function createFixture() {
     if (path === '/__qa/sequence' && method === 'POST') return seedSequenceScenario(state);
     if (path === '/__qa/worker-groups' && method === 'POST') return seedWorkerGroupScenario(state, body);
     if (path === '/__qa/apparatus-collections' && method === 'POST') return seedApparatusCollectionScenario(state, body);
+    if (path === '/__qa/paddons' && method === 'POST') return paddons.seed(body);
     if (path === '/__qa/opening-wip' && method === 'POST') {
       const record = state.openingWip.find(record => record.batches.some(batch => batch.batch_id === body?.batch_id)), batch = record?.batches.find(batch => batch.batch_id === body.batch_id);
       if (!batch) return error(404, 'opening_wip_not_found');
@@ -252,6 +256,7 @@ export function createFixture() {
     if (path === '/v1/mobile/me' && method === 'GET') return response(actorProfile);
     if (path === '/v1/mobile/auth/logout' && method === 'POST') { state.sessions.delete(token); return response({ ok: true }); }
     const extensionContext = { method, path, query, body, headers, state, config, requires, profile: actorProfile, bump, findOrder, compile, snapshot, equal };
+    const paddonResult = paddons.route(extensionContext); if (paddonResult) return paddonResult;
     const apparatusCollections = apparatusCollectionFixtureRoute(extensionContext); if (apparatusCollections) return apparatusCollections;
     const workerGroups = workerGroupFixtureRoute(extensionContext); if (workerGroups) return workerGroups;
     const materialLink = materialLinkFixtureRoute(extensionContext); if (materialLink) return materialLink;
